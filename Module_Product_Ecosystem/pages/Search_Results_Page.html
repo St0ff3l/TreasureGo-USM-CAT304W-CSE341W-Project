@@ -41,7 +41,8 @@
     }
     .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo span { color: var(--text-dark); }
-    /* Please ensure the image path is correct, go back two levels to find assets */
+
+    /* Updated Logo Path */
     .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; }
 
     .nav-actions { display: flex; align-items: center; gap: 20px; }
@@ -199,7 +200,10 @@
 <body>
 
 <nav class="navbar">
-  <a href="../../index.html" class="logo"><img src="../../assets/images/ChatGPT Image 2025年12月12日 13_20_32.png" alt="Logo" class="logo-img">Treasure<span>Go</span></a>
+  <a href="../../index.html" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+    Treasure<span>Go</span>
+  </a>
   <div class="nav-actions">
     <button class="nav-btn" onclick="alert('Top Up')">Top Up</button>
     <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>

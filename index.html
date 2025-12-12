@@ -236,30 +236,30 @@
 <div id="floating-container"></div>
 
 <div class="sidebar left">
-    <a href="Pages/Product_Ecosystem/Search_Results_Page.html?q=Digital" class="sidebar-item">
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Digital" class="sidebar-item">
         <span class="sidebar-icon">📱</span>
         <span class="sidebar-text">Digital</span>
     </a>
-    <a href="Pages/Product_Ecosystem/Search_Results_Page.html?q=Fashion" class="sidebar-item">
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Fashion" class="sidebar-item">
         <span class="sidebar-icon">👗</span>
         <span class="sidebar-text">Fashion</span>
     </a>
-    <a href="Pages/Product_Ecosystem/Search_Results_Page.html?q=Home" class="sidebar-item">
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Home" class="sidebar-item">
         <span class="sidebar-icon">🏠</span>
         <span class="sidebar-text">Home</span>
     </a>
-    <a href="Pages/Product_Ecosystem/Search_Results_Page.html?q=Books" class="sidebar-item">
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Books" class="sidebar-item">
         <span class="sidebar-icon">📚</span>
         <span class="sidebar-text">Books</span>
     </a>
-    <a href="Pages/Product_Ecosystem/Search_Results_Page.html?q=Transport" class="sidebar-item">
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Transport" class="sidebar-item">
         <span class="sidebar-icon">🚲</span>
         <span class="sidebar-text">Transport</span>
     </a>
 </div>
 
 <div class="sidebar right">
-    <a href="Pages/Product_Ecosystem/Publish_Page.html" class="sidebar-item">
+    <a href="Module_Product_Ecosystem/pages/Publish_Page.html" class="sidebar-item">
         <span class="sidebar-icon">📢</span>
         <span class="sidebar-text">Publish</span>
     </a>
@@ -283,7 +283,7 @@
 
 <nav class="navbar">
     <a href="index.html" class="logo">
-        <img src="assets/images/ChatGPT Image 2025年12月12日 13_20_32.png" alt="Logo" class="logo-img">
+        <img src="Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
         Treasure<span>Go</span>
     </a>
 
@@ -370,11 +370,12 @@
         container.appendChild(el);
     }
 
-    // 2. Search Logic (Redirection)
+    // 2. Search Logic (Updated Redirection Path)
     function goToSearch() {
         const inputVal = document.getElementById('homeSearchInput').value;
-        // The specific path requested
-        const targetUrl = 'Pages/Product_Ecosystem/Search_Results_Page.html';
+
+        // Updated path here as requested
+        const targetUrl = 'Module_Product_Ecosystem/pages/Search_Results_Page.html';
 
         // Redirect with query parameter
         window.location.href = `${targetUrl}?q=${encodeURIComponent(inputVal)}`;
