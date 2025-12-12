@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TreasureGO - 违规举报</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* 复用主页的基础变量以保持风格一致 */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      min-height: 100vh;
+      background-image:
+              radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* 举报卡片容器 */
+    .report-container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 500px;
+      padding: 40px;
+      border-radius: 30px;
+      box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.15);
+      border: 1px solid rgba(255,255,255,0.8);
+      position: relative;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .header { text-align: center; margin-bottom: 30px; }
+    .header h1 { font-size: 1.8rem; margin-bottom: 10px; color: var(--text-dark); }
+    .header p { color: #6B7280; font-size: 0.9rem; }
+    .emoji-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+
+    /* 表单样式 */
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+      background: #F9FAFB;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    textarea { resize: vertical; min-height: 100px; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.4);
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #6B7280;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .back-link:hover { color: var(--primary); }
+
+  </style>
+</head>
+<body>
+
+<div class="report-container">
+  <div class="header">
+    <span class="emoji-icon">🏴</span>
+    <h1>违规举报中心</h1>
+    <p>Report Violation</p>
+    <p>我们要共同维护 TreasureGO 的良好环境</p>
+  </div>
+
+  <form onsubmit="alert('提交成功！我们会尽快处理。'); return false;">
+    <div class="form-group">
+      <label>举报类型 / Reason</label>
+      <select required>
+        <option value="" disabled selected>请选择举报原因...</option>
+        <option value="fake">假冒伪劣 / Fake Item</option>
+        <option value="scam">欺诈行为 / Scam</option>
+        <option value="rude">言语辱骂 / Rude Behavior</option>
+        <option value="spam">垃圾广告 / Spam</option>
+        <option value="other">其他 / Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>涉事商品或用户链接 / Target Link</label>
+      <input type="url" placeholder="例如：https://treasurego.com/item/123">
+    </div>
+
+    <div class="form-group">
+      <label>详细描述 / Description</label>
+      <textarea placeholder="请详细描述您遇到的问题..." required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>联系邮箱 / Your Email</label>
+      <input type="email" placeholder="方便我们反馈处理结果" required>
+    </div>
+
+    <button type="submit" class="submit-btn">提交举报 (Submit)</button>
+  </form>
+
+  <a href="../../index.html" class="back-link">← 返回市集首页</a>
+</div>
+
+</body>
+</html>
