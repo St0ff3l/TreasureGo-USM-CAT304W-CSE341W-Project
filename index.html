@@ -1,28 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TreasureGO - 现代校园市集</title>
+    <title>TreasureGO - Discover Treasures</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- 现代潮流配色 --- */
+        /* --- 1. Core Colors & Variables --- */
         :root {
             --bg-color: #F3F6F9;
-            --primary: #4F46E5;
+            --primary: #4F46E5;        /* Brand Blue-Purple */
             --primary-hover: #4338CA;
-            --accent: #F59E0B;
             --text-dark: #1F2937;
             --text-gray: #6B7280;
             --glass-bg: rgba(255, 255, 255, 0.95);
+            --sidebar-radius: 50px;    /* Sidebar Large Radius */
             --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-            --float-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-dark);
             min-height: 100vh;
@@ -33,7 +32,7 @@
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
-        /* --- 🎈 背景漂浮物 (Emoji) --- */
+        /* --- 2. 🎈 Background Floating Animation (Atmosphere) --- */
         #floating-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -57,69 +56,52 @@
             100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
         }
 
-        /* --- 更圆润的侧边悬浮栏 --- */
+        /* --- 3. Floating Sidebar --- */
         .sidebar {
             position: fixed;
             top: 50%;
             transform: translateY(-50%);
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border-radius: 50px; /* 超圆润的边框 */
-            padding: 20px 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(8px);
+            border-radius: var(--sidebar-radius);
+            padding: 25px 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             z-index: 999;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px; /* Increase spacing */
             align-items: center;
             width: 80px;
-            border: 1px solid #eee;
+            border: 1px solid rgba(255,255,255,0.8);
         }
 
-        .sidebar.left { left: 20px; }
-        .sidebar.right { right: 20px; }
+        .sidebar.left { left: 25px; }
+        .sidebar.right { right: 25px; }
 
         .sidebar-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             cursor: pointer;
-            transition: all 0.2s;
-            padding: 10px 0;
             text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #f9f9f9;
+            color: #4b5563;
             width: 100%;
-        }
-
-        .sidebar-item:last-child {
-            border-bottom: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .sidebar-item:hover {
-            transform: scale(1.1);
-            color: #000;
+            transform: translateY(-3px);
+            color: var(--primary);
         }
 
-        .sidebar-icon {
-            font-size: 24px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
+        .sidebar-icon { font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
+        .sidebar-text { font-size: 13px; font-weight: 700; }
 
-        .sidebar-text {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-dark);
-            text-align: center;
-        }
-
-        /* --- 导航栏 (毛玻璃效果) --- */
+        /* --- 4. Navbar --- */
         .navbar {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             padding: 1rem 5%;
             display: flex;
             justify-content: space-between;
@@ -136,288 +118,195 @@
             color: var(--primary);
             display: flex;
             align-items: center;
-            gap: 8px;
-            letter-spacing: -0.5px;
+            gap: 10px;
         }
-
         .logo span { color: var(--text-dark); }
+        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        /* Logo 图片样式 */
-        .logo-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
-        .nav-actions button {
+        /* Text-only buttons (No Emoji) */
+        .nav-btn {
             border: none;
             background: transparent;
             font-weight: 600;
             color: var(--text-gray);
-            padding: 0.6rem 1.2rem;
+            padding: 0.6rem 0.5rem;
             cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 8px;
+            transition: color 0.2s;
+            font-size: 1rem;
         }
+        .nav-btn:hover { color: var(--text-dark); }
 
-        .nav-actions .btn-primary {
+        /* Login Button */
+        .btn-primary {
+            border: none;
             background-color: var(--text-dark);
             color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .nav-actions .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        }
-        .nav-actions button:not(.btn-primary):hover {
-            color: var(--primary);
-            background: rgba(79, 70, 229, 0.05);
-        }
-
-        /* --- 搜索区域 --- */
-        .search-section {
-            text-align: center;
-            padding: 120px 20px 80px;
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        .main-title {
-            font-size: 3.5rem;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .search-box-container {
-            display: flex;
-            background: white;
-            padding: 8px;
-            border-radius: 50px;
-            box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.15);
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-
-        .search-box-container:focus-within {
-            transform: translateY(-2px);
-            box-shadow: 0 25px 50px -10px rgba(79, 70, 229, 0.25);
-            border-color: var(--primary);
-        }
-
-        .search-input {
-            flex: 1;
-            border: none;
-            padding: 15px 25px;
-            font-size: 1.1rem;
-            outline: none;
-            border-radius: 50px;
-            color: var(--text-dark);
-        }
-
-        .search-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0 40px;
-            border-radius: 40px;
             font-weight: 600;
-            font-size: 1rem;
+            padding: 0.7rem 1.8rem;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background-color: #000;
+        }
+
+        /* --- 5. Dropdown Menu (Three Dots) --- */
+        .menu-container { position: relative; display: inline-block; }
+        .dots-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; color: var(--text-dark);
+            font-weight: bold; padding-bottom: 6px; transition: 0.2s;
+        }
+        .dots-btn:hover { background: #eee; }
+
+        .dropdown-content {
+            display: none; position: absolute; right: 0; top: 130%;
+            background-color: white; min-width: 160px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 16px; z-index: 1001; padding: 8px;
+            animation: fadeIn 0.2s ease;
+        }
+        .menu-container:hover .dropdown-content { display: block; }
+        .dropdown-item {
+            color: var(--text-dark); padding: 12px 16px; text-decoration: none;
+            display: block; font-size: 14px; font-weight: 500; border-radius: 10px;
+        }
+        .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 6. Main Content Area --- */
+        .search-section {
+            text-align: center; padding: 100px 20px 60px;
+            max-width: 800px; margin: 0 auto; position: relative; z-index: 10;
+        }
+        .main-title {
+            font-size: 3.5rem; line-height: 1.1; margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .search-box-container {
+            display: flex; background: white; padding: 6px;
+            border-radius: 60px; box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.15);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .search-input {
+            flex: 1; border: none; padding: 16px 30px; font-size: 1.1rem;
+            outline: none; border-radius: 60px; background: transparent;
+        }
+        .search-btn {
+            background-color: var(--primary); color: white; border: none;
+            padding: 0 40px; border-radius: 40px; font-weight: 600;
+            font-size: 1rem; cursor: pointer; transition: 0.2s;
         }
         .search-btn:hover { background-color: var(--primary-hover); }
 
-        /* --- 商品列表 --- */
-        .market-container {
-            max-width: 1200px;
-            margin: 0 auto 100px;
-            padding: 0 20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 2rem;
-        }
-        .section-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        .badge {
-            background: #DEF7EC;
-            color: #03543F;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 30px;
-        }
-
+        .market-container { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; position: relative; z-index: 10; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
         .product-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.04);
-            box-shadow: var(--card-shadow);
-            transition: all 0.3s ease;
-            cursor: pointer;
+            background: white; border-radius: 24px; overflow: hidden;
+            box-shadow: var(--card-shadow); transition: all 0.3s ease; cursor: pointer;
         }
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
-        }
-
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .card-img-container {
-            height: 200px;
-            width: 100%;
-            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+            height: 220px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .card-emoji {
-            font-size: 5rem;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
-            transition: transform 0.3s;
-        }
-        .product-card:hover .card-emoji {
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        .card-info { padding: 1.2rem; }
-
-        .product-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text-dark);
-            line-height: 1.3;
-        }
-        .product-desc {
-            font-size: 0.9rem;
-            color: var(--text-gray);
-            margin-bottom: 1rem;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            border-top: 1px solid #f3f4f6;
-        }
-
-        .price-tag {
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--primary);
-        }
-
-        .like-btn {
-            color: #D1D5DB;
-            font-size: 1.2rem;
-            transition: color 0.2s;
-        }
-        .product-card:hover .like-btn { color: #EC4899; }
-
-        /* 手机适配 */
-        @media (max-width: 768px) {
-            .main-title { font-size: 2.5rem; }
-            .search-section { padding: 80px 20px 40px; }
-            .search-input { padding: 12px 20px; font-size: 1rem; }
-            .search-btn { padding: 0 25px; }
-            .sidebar { display: none; } /* 手机端隐藏侧边栏 */
-        }
+        .card-emoji { font-size: 5rem; transition: transform 0.3s; }
+        .product-card:hover .card-emoji { transform: scale(1.1) rotate(5deg); }
+        .card-info { padding: 1.5rem; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .price-tag { font-weight: 800; font-size: 1.3rem; color: var(--text-dark); }
+        .category-tag { font-size: 0.85rem; color: #9ca3af; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; }
     </style>
 </head>
 <body>
 
 <div id="floating-container"></div>
 
-<!-- 左侧悬浮栏 - 更圆润的设计 -->
 <div class="sidebar left">
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">📱</span>
-        <span class="sidebar-text">数码</span>
+        <span class="sidebar-text">Digital</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">👗</span>
-        <span class="sidebar-text">服饰</span>
+        <span class="sidebar-text">Fashion</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">🏠</span>
-        <span class="sidebar-text">家居</span>
+        <span class="sidebar-text">Home</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">📚</span>
-        <span class="sidebar-text">图书</span>
+        <span class="sidebar-text">Books</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">🚲</span>
-        <span class="sidebar-text">出行</span>
+        <span class="sidebar-text">Transport</span>
     </a>
 </div>
 
-<!-- 右侧悬浮栏 - 更圆润的设计 -->
 <div class="sidebar right">
-    <a href="#" class="sidebar-item">
+    <a href="publish.html" class="sidebar-item">
         <span class="sidebar-icon">📢</span>
-        <span class="sidebar-text">发布</span>
+        <span class="sidebar-text">Publish</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">💬</span>
-        <span class="sidebar-text">消息</span>
+        <span class="sidebar-text">Chat</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">🏴</span>
-        <span class="sidebar-text">举报</span>
+        <span class="sidebar-text">Report</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">📝</span>
-        <span class="sidebar-text">反馈</span>
+        <span class="sidebar-text">Feedback</span>
     </a>
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">🎧</span>
-        <span class="sidebar-text">客服</span>
+        <span class="sidebar-text">Support</span>
     </a>
 </div>
 
 <nav class="navbar">
     <div class="logo">
-        <img src="assets/images/ChatGPT Image 2025年12月12日 13_20_32.png" alt="TreasureGO Logo" class="logo-img">
+        <img src="assets/images/ChatGPT Image 2025年12月12日 13_20_32.png" alt="Logo" class="logo-img">
         Treasure<span>Go</span>
     </div>
+
     <div class="nav-actions">
-        <button>Market</button>
-        <button class="btn-primary">Login</button>
+        <button class="nav-btn" onclick="alert('Top Up Page')">Top Up</button>
+
+        <button class="nav-btn" onclick="window.location.href='orders.html'">Orders</button>
+
+        <button class="btn-primary" onclick="window.location.href='login.html'">Login</button>
+
+        <div class="menu-container">
+            <div class="dots-btn">•••</div>
+            <div class="dropdown-content">
+                <a href="#" class="dropdown-item">My Profile</a>
+                <a href="#" class="dropdown-item">Settings</a>
+                <a href="#" class="dropdown-item" style="color: #ef4444;">Log Out</a>
+            </div>
+        </div>
     </div>
 </nav>
 
 <section class="search-section">
-    <h1 class="main-title">Find Hidden<br>Campus Treasures</h1>
+    <h1 class="main-title">Discover Hidden<br>Treasures Around You</h1>
+
     <div class="search-box-container">
         <input type="text" class="search-input" placeholder="Search for books, gadgets...">
         <button class="search-btn">Search</button>
@@ -425,66 +314,39 @@
 </section>
 
 <section class="market-container">
-    <div class="section-header">
-        <h3>Fresh Arrivals</h3>
-        <span class="badge">🔥 Hot</span>
+    <div style="margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Fresh Arrivals</h3>
+        <span style="background: #ecfdf5; color: #059669; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">🔥 Hot</span>
     </div>
 
     <div class="product-grid">
         <div class="product-card">
-            <div class="card-img-container">
-                <div class="card-emoji">📸</div>
-            </div>
+            <div class="card-img-container"><div class="card-emoji">📸</div></div>
             <div class="card-info">
-                <div class="product-meta">
-                    <div class="product-title">Polaroid Camera</div>
-                </div>
-                <p class="product-desc">Vintage style, fully functional. Comes with film.</p>
+                <h4>Polaroid Camera</h4>
                 <div class="card-footer">
+                    <span class="category-tag">Digital</span>
                     <span class="price-tag">$45</span>
-                    <div class="like-btn">♥</div>
                 </div>
             </div>
         </div>
-
         <div class="product-card">
-            <div class="card-img-container">
-                <div class="card-emoji">🎮</div>
-            </div>
+            <div class="card-img-container"><div class="card-emoji">🎮</div></div>
             <div class="card-info">
-                <div class="product-title">Switch Lite</div>
-                <p class="product-desc">Yellow edition. No scratches. Urgent sale.</p>
+                <h4>Switch Lite</h4>
                 <div class="card-footer">
+                    <span class="category-tag">Gaming</span>
                     <span class="price-tag">$120</span>
-                    <div class="like-btn">♥</div>
                 </div>
             </div>
         </div>
-
         <div class="product-card">
-            <div class="card-img-container">
-                <div class="card-emoji">📚</div>
-            </div>
+            <div class="card-img-container"><div class="card-emoji">🎧</div></div>
             <div class="card-info">
-                <div class="product-title">Calculus Textbook</div>
-                <p class="product-desc">Edition 5. Highlighted notes included.</p>
+                <h4>Sony Headphones</h4>
                 <div class="card-footer">
-                    <span class="price-tag">$25</span>
-                    <div class="like-btn">♥</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="product-card">
-            <div class="card-img-container">
-                <div class="card-emoji">🎧</div>
-            </div>
-            <div class="card-info">
-                <div class="product-title">Sony Headphones</div>
-                <p class="product-desc">Noise cancelling. Barely used.</p>
-                <div class="card-footer">
+                    <span class="category-tag">Audio</span>
                     <span class="price-tag">$80</span>
-                    <div class="like-btn">♥</div>
                 </div>
             </div>
         </div>
@@ -492,24 +354,17 @@
 </section>
 
 <script>
+    // Floating Emoji Animation Logic
     const container = document.getElementById('floating-container');
-    const items = ['📷', '💻', '📱', '⌚', '🎸', '👟', '🎒', '🕶️', '🚲', '🛹', '🧸', '🎮', '📚'];
-    const count = 15;
-
-    for (let i = 0; i < count; i++) {
-        createFloater();
-    }
-
-    function createFloater() {
+    const items = ['📷', '💻', '📱', '⌚', '🎸', '👟', '🎒', '🚲'];
+    for (let i = 0; i < 12; i++) {
         const el = document.createElement('div');
         el.classList.add('floating-item');
         el.innerText = items[Math.floor(Math.random() * items.length)];
         el.style.left = Math.random() * 100 + 'vw';
-        const size = (Math.random() * 3 + 3) + 'rem';
-        el.style.fontSize = size;
-        const duration = (Math.random() * 10 + 15) + 's';
-        el.style.animationDuration = duration;
-        el.style.animationDelay = '-' + (Math.random() * 15) + 's';
+        el.style.fontSize = (Math.random() * 3 + 3) + 'rem';
+        el.style.animationDuration = (Math.random() * 10 + 20) + 's';
+        el.style.animationDelay = '-' + (Math.random() * 20) + 's';
         container.appendChild(el);
     }
 </script>
