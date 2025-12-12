@@ -316,15 +316,6 @@
             box-shadow: 0 15px 35px -5px rgba(79, 70, 229, 0.4);
         }
 
-        .btn-secondary {
-            background: #F3F4F6;
-            color: var(--text-dark);
-        }
-
-        .btn-secondary:hover {
-            background: #E5E7EB;
-        }
-
         /* Table Styles */
         .table-container {
             background: white;
@@ -371,16 +362,6 @@
             font-size: 0.8rem;
             font-weight: 600;
             margin-top: 4px;
-        }
-
-        .order-type-product {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .order-type-deposit {
-            background: #FEF3C7;
-            color: #92400E;
         }
 
         .status-badge {
@@ -627,7 +608,7 @@
 
 <nav class="navbar">
     <a href="../../index.html" class="logo">
-        <img src="../../public_assets/images/ChatGPT%20Image%202025年12月12日%2013_20_32.png" alt="TreasureGO Logo" class="logo-img">
+        <img src="../../Public_Assets/images/ChatGPT%20Image%202025年12月12日%2013_20_32.png" alt="TreasureGO Logo" class="logo-img">
         Treasure<span>Go</span>
     </a>
     <div class="nav-actions">
@@ -974,6 +955,235 @@
 </div>
 
 <script>
+    // ==================== API CONFIGURATION ====================
+    const API_BASE_URL = '../api/TXN.php';
+    const CURRENT_USER_ID = 12345678; // TODO: Get from session/login
+
+    // API Helper Functions
+    async function apiCall(action, data = {}, method = 'POST') {
+        try {
+            const url = `${API_BASE_URL}?action=${action}`;
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            if (method === 'POST' || method === 'PUT') {
+                options.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(url, options);
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'API request failed');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('API Error:', error);
+            alert('Error: ' + error.message);
+            throw error;
+        }
+    }
+
+    // Load initial data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStatistics();
+        loadFundRequests();
+        loadOrders();
+        loadTransactions();
+    });
+
+    // ==================== DATA LOADING FUNCTIONS ====================
+
+    // Load Statistics
+    async function loadStatistics() {
+        try {
+            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'POST');
+            const stats = result.data;
+
+            // Update statistics cards
+            document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = '$' + stats.balance;
+            document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = stats.total_orders;
+            document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = stats.pending_requests;
+            document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = stats.completed_transactions;
+        } catch (error) {
+            console.error('Failed to load statistics:', error);
+        }
+    }
+
+    // Load Fund Requests
+    async function loadFundRequests() {
+        try {
+            const result = await apiCall('get_fund_requests', { user_id: CURRENT_USER_ID }, 'POST');
+            const requests = result.data;
+
+            const tbody = document.getElementById('fundRequestsBody');
+            tbody.innerHTML = '';
+
+            if (requests && requests.length > 0) {
+                requests.forEach(request => {
+                    const row = createFundRequestRow(request);
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No fund requests found</td></tr>';
+            }
+        } catch (error) {
+            console.error('Failed to load fund requests:', error);
+        }
+    }
+
+    // Create Fund Request Table Row
+    function createFundRequestRow(request) {
+        const row = document.createElement('tr');
+        const statusClass = getStatusClass(request.Status);
+        const processedAt = request.Processed_AT || '-';
+
+        row.innerHTML = `
+            <td>#FR${request.REQUEST_ID}</td>
+            <td>${capitalizeFirst(request.Type)}</td>
+            <td><strong>$${parseFloat(request.Amount).toFixed(2)}</strong></td>
+            <td><span class="status-badge ${statusClass}">${capitalizeFirst(request.Status)}</span></td>
+            <td>${formatDateTime(request.Created_AT)}</td>
+            <td>${processedAt === '-' ? '-' : formatDateTime(processedAt)}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-small btn-view" onclick="viewFundRequestDetails(${request.REQUEST_ID})">View</button>
+                </div>
+            </td>
+        `;
+        return row;
+    }
+
+    // Load Orders
+    async function loadOrders() {
+        try {
+            const result = await apiCall('get_orders', { user_id: CURRENT_USER_ID }, 'POST');
+            const orders = result.data;
+
+            const tbody = document.getElementById('ordersBody');
+            tbody.innerHTML = '';
+
+            if (orders && orders.length > 0) {
+                orders.forEach(order => {
+                    const row = createOrderRow(order);
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-gray);">No orders found</td></tr>';
+            }
+        } catch (error) {
+            console.error('Failed to load orders:', error);
+        }
+    }
+
+    // Create Order Table Row
+    function createOrderRow(order) {
+        const row = document.createElement('tr');
+        const statusClass = getStatusClass(order.Orders_Status);
+        const isProduct = order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-';
+        const orderType = isProduct ? 'product' : 'deposit';
+        const orderPrefix = isProduct ? 'ORD' : 'FND';
+        const orderIcon = isProduct ? '📦 Product Order' : '💰 Fund Deposit';
+        const orderColor = isProduct ? '#10B981' : '#F59E0B';
+
+        row.innerHTML = `
+            <td><strong>#${orderPrefix}${order.Orders_Order_ID}</strong><br><small style="color: ${orderColor};">${orderIcon}</small></td>
+            <td>${order.Orders_Buyer_ID}</td>
+            <td>${order.Orders_Seller_ID || '-'}</td>
+            <td><strong>$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</strong></td>
+            <td>$${parseFloat(order.Orders_Platform_Fee).toFixed(2)}</td>
+            <td><span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span></td>
+            <td>${formatDateTime(order.Orders_Created_AT)}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-small btn-view" onclick="viewOrderDetails(${order.Orders_Order_ID}, '${orderType}', '${order.Orders_Status}')">View</button>
+                </div>
+            </td>
+        `;
+        return row;
+    }
+
+    // Load Transactions (Wallet Logs)
+    async function loadTransactions() {
+        try {
+            const result = await apiCall('get_wallet_logs', { user_id: CURRENT_USER_ID }, 'POST');
+            const transactions = result.data;
+
+            const tbody = document.getElementById('transactionsBody');
+            tbody.innerHTML = '';
+
+            if (transactions && transactions.length > 0) {
+                transactions.forEach(transaction => {
+                    const row = createTransactionRow(transaction);
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No transactions found</td></tr>';
+            }
+        } catch (error) {
+            console.error('Failed to load transactions:', error);
+        }
+    }
+
+    // Create Transaction Table Row
+    function createTransactionRow(transaction) {
+        const row = document.createElement('tr');
+        const amount = parseFloat(transaction.Amount);
+        const amountColor = amount >= 0 ? '#10B981' : '#EF4444';
+        const amountSign = amount >= 0 ? '+' : '';
+        const statusClass = 'status-completed'; // Wallet logs are always completed
+
+        row.innerHTML = `
+            <td>#TXN${transaction.Log_ID}</td>
+            <td>${transaction.Description || 'Transaction'}</td>
+            <td><strong style="color: ${amountColor};">${amountSign}$${Math.abs(amount).toFixed(2)}</strong></td>
+            <td>${transaction.Reference_ID ? '#' + transaction.Reference_Type.toUpperCase() + transaction.Reference_ID : '-'}</td>
+            <td><span class="status-badge ${statusClass}">Completed</span></td>
+            <td>${formatDateTime(transaction.Created_AT)}</td>
+            <td>
+                <div class="action-btns">
+                    <button class="btn-small btn-view" onclick="viewTransactionDetails(${transaction.Log_ID})">View</button>
+                </div>
+            </td>
+        `;
+        return row;
+    }
+
+    // ==================== HELPER FUNCTIONS ====================
+
+    function getStatusClass(status) {
+        const statusLower = status.toLowerCase();
+        if (statusLower === 'completed' || statusLower === 'approved') return 'status-completed';
+        if (statusLower === 'processing' || statusLower === 'shipped') return 'status-processing';
+        if (statusLower === 'pending') return 'status-pending';
+        if (statusLower === 'cancelled' || statusLower === 'rejected') return 'status-cancelled';
+        return 'status-pending';
+    }
+
+    function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function formatDateTime(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    }
+
+    // ==================== EXISTING CODE ====================
+
     // Background floating items
     const container = document.getElementById('floating-container');
     const items = ['💳', '💰', '💸', '🏦', '💵', '💴', '💶', '💷', '📊', '📈', '💹', '🔒', '🛡️'];
@@ -1014,7 +1224,7 @@
     }
 
     // Fund Request Form Submission
-    document.getElementById('fundRequestForm').addEventListener('submit', function(e) {
+    document.getElementById('fundRequestForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const type = document.getElementById('requestType').value;
@@ -1022,19 +1232,102 @@
         const proofImage = document.getElementById('proofImage').value;
         const adminRemark = document.getElementById('adminRemark').value;
 
-        // Simulate API call
-        alert(`Fund Request Submitted!\n\nType: ${type}\nAmount: $${amount}\nProof: ${proofImage || 'N/A'}\nRemark: ${adminRemark || 'N/A'}`);
+        try {
+            // Submit to API
+            const result = await apiCall('create_fund_request', {
+                user_id: CURRENT_USER_ID,
+                type: type,
+                amount: parseFloat(amount),
+                proof_image: proofImage,
+                admin_remark: adminRemark
+            });
 
-        // Reset form
-        this.reset();
+            alert(`✅ Fund Request Submitted Successfully!\n\nRequest ID: #FR${result.data.request_id}\nType: ${type}\nAmount: $${amount}\nStatus: ${result.data.status}`);
 
-        // In real application, you would:
-        // 1. Send data to API
-        // 2. Add new row to table
-        // 3. Update statistics
+            // Reset form
+            this.reset();
+
+            // Reload data
+            loadFundRequests();
+            loadStatistics();
+
+        } catch (error) {
+            alert('❌ Failed to submit fund request: ' + error.message);
+        }
     });
 
-    // View Fund Request Details
+    // View Fund Request Details (API-based)
+    async function viewFundRequestDetails(requestId) {
+        try {
+            const result = await apiCall('get_fund_request', { request_id: requestId }, 'POST');
+            const request = result.data;
+
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = `Fund Request Details - #FR${request.REQUEST_ID}`;
+
+            const statusClass = getStatusClass(request.Status);
+            const processedAt = request.Processed_AT ? formatDateTime(request.Processed_AT) : 'Not yet processed';
+
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Request ID:</span>
+                    <span class="detail-value">#FR${request.REQUEST_ID}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">User ID:</span>
+                    <span class="detail-value">${request.User_ID}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${capitalizeFirst(request.Type)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount:</span>
+                    <span class="detail-value">$${parseFloat(request.Amount).toFixed(2)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="status-badge ${statusClass}">${capitalizeFirst(request.Status)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Created At:</span>
+                    <span class="detail-value">${formatDateTime(request.Created_AT)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Processed At:</span>
+                    <span class="detail-value">${processedAt}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Proof Image:</span>
+                    <span class="detail-value">${request.Proof_Image || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Admin Remark:</span>
+                    <span class="detail-value">${request.Admin_Remark || 'Pending verification'}</span>
+                </div>
+                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
+                <div class="modal-actions">
+                    <button class="btn btn-admin" onclick="contactAdmin()">
+                        👨‍💼 Contact Administrator
+                    </button>
+                    <button class="btn btn-view" onclick="contactCustomerService()">
+                        🎧 Customer Service
+                    </button>
+                </div>
+            `;
+
+            modal.classList.add('active');
+
+        } catch (error) {
+            alert('Failed to load fund request details: ' + error.message);
+        }
+    }
+
+    // View Fund Request Details (Legacy - kept for compatibility)
     function viewFundRequest(id) {
         const modal = document.getElementById('detailModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -1092,8 +1385,195 @@
     // Store order confirmation status (in real app, this would be from database)
     const orderConfirmationStatus = {};
 
-    // View Order Details
-    function viewOrder(id, type, status) {
+    /**
+     * View Order Details (API-based)
+     * @param {number} orderId - The order ID to view
+     * @param {string} _type - Order type (kept for API compatibility)
+     * @param {string} _status - Order status (kept for API compatibility)
+     */
+    async function viewOrderDetails(orderId, _type, _status) {
+        try {
+            const result = await apiCall('get_order', { order_id: orderId }, 'POST');
+            const order = result.data;
+
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            const isConfirmed = orderConfirmationStatus[orderId] === true || order.Orders_Status === 'completed';
+            const isProduct = order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-';
+
+            if (!isProduct) {
+                // Fund Deposit Order
+                modalTitle.textContent = `💰 Fund Deposit Details - #FND${order.Orders_Order_ID}`;
+
+                const statusClass = getStatusClass(order.Orders_Status);
+
+                modalBody.innerHTML = `
+                    <div class="detail-row">
+                        <span class="detail-label">Order Type:</span>
+                        <span class="detail-value" style="color: #F59E0B; font-weight: 700;">💰 Fund Deposit</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order ID:</span>
+                        <span class="detail-value">#FND${order.Orders_Order_ID}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">User ID:</span>
+                        <span class="detail-value">${order.Orders_Buyer_ID}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Deposit Amount:</span>
+                        <span class="detail-value" style="color: #10B981; font-weight: 700;">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Platform Fee:</span>
+                        <span class="detail-value">$${parseFloat(order.Orders_Platform_Fee).toFixed(2)} (No fee for deposits)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created At:</span>
+                        <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method:</span>
+                        <span class="detail-value">Bank Transfer</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Note:</span>
+                        <span class="detail-value">This is a fund deposit order, managed by platform administrators.</span>
+                    </div>
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
+                    <div class="modal-actions">
+                        <button class="btn btn-admin" onclick="contactAdmin()">
+                            👨‍💼 Contact Administrator
+                        </button>
+                        <button class="btn btn-view" onclick="contactCustomerService()">
+                            🎧 Customer Service
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Product Transaction Order
+                modalTitle.textContent = `📦 Product Order Details - #ORD${order.Orders_Order_ID}`;
+
+                const statusClass = getStatusClass(order.Orders_Status);
+
+                modalBody.innerHTML = `
+                    <div class="detail-row">
+                        <span class="detail-label">Order Type:</span>
+                        <span class="detail-value" style="color: #10B981; font-weight: 700;">📦 Product Transaction</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Order ID:</span>
+                        <span class="detail-value">#ORD${order.Orders_Order_ID}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Buyer ID:</span>
+                        <span class="detail-value">${order.Orders_Buyer_ID}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Seller ID:</span>
+                        <span class="detail-value">${order.Orders_Seller_ID}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Amount:</span>
+                        <span class="detail-value">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Platform Fee:</span>
+                        <span class="detail-value">$${parseFloat(order.Orders_Platform_Fee).toFixed(2)} (5%)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created At:</span>
+                        <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
+                    </div>
+                    ${isConfirmed ? `
+                    <div class="detail-row" style="background: #D1FAE5; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                        <span class="detail-label">✅ Receipt Confirmed:</span>
+                        <span class="detail-value">You have confirmed receipt of this order</span>
+                    </div>
+                    ` : ''}
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
+                    <div class="modal-actions" style="flex-direction: column; gap: 12px;">
+                        <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
+                            <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                ✅ Confirm Receipt
+                            </button>
+                            <button class="btn btn-refund" onclick="applyRefundInModal('ORD${order.Orders_Order_ID}')" id="refundBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                                💸 Apply for Refund
+                            </button>
+                        </div>
+                        ${isConfirmed ? `
+                        <div style="background: #FEE2E2; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #991B1B;">
+                            ⚠️ Refund is no longer available after confirming receipt
+                        </div>
+                        ` : ''}
+                    </div>
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
+                    <div class="modal-actions">
+                        <button class="btn btn-contact" onclick="contactSeller('${order.Orders_Seller_ID}')">
+                            💬 Contact Seller
+                        </button>
+                        <button class="btn btn-view" onclick="contactCustomerService()">
+                            🎧 Customer Service
+                        </button>
+                    </div>
+                `;
+            }
+
+            modal.classList.add('active');
+
+        } catch (error) {
+            alert('Failed to load order details: ' + error.message);
+        }
+    }
+
+    // Confirm Receipt with API
+    async function confirmReceiptAPI(orderId) {
+        if (orderConfirmationStatus[orderId]) {
+            alert('⚠️ This order has already been confirmed!');
+            return;
+        }
+
+        if (confirm(`Confirm that you have received the product for order #ORD${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n❌ You cannot apply for refund anymore\n⚠️ This action cannot be undone`)) {
+            try {
+                const result = await apiCall('confirm_receipt', {
+                    order_id: orderId,
+                    buyer_id: CURRENT_USER_ID
+                });
+
+                orderConfirmationStatus[orderId] = true;
+
+                alert(`✅ Receipt confirmed successfully!\n\nOrder ID: #ORD${orderId}\nStatus: ${result.data.status}\n\nFunds have been released to the seller. Thank you for your purchase!`);
+
+                closeModal();
+
+                // Reload data
+                loadOrders();
+                loadStatistics();
+
+            } catch (error) {
+                alert('❌ Failed to confirm receipt: ' + error.message);
+            }
+        }
+    }
+
+    /**
+     * View Order Details (Legacy - kept for compatibility)
+     * @deprecated Use viewOrderDetails instead
+     */
+    function viewOrder(id, type, _status) {
         const modal = document.getElementById('detailModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalBody = document.getElementById('modalBody');
@@ -1270,7 +1750,75 @@
         modal.classList.add('active');
     }
 
-    // View Transaction Details
+    // View Transaction Details (API-based)
+    async function viewTransactionDetails(logId) {
+        try {
+            // Get all wallet logs and find the specific one
+            const result = await apiCall('get_wallet_logs', { user_id: CURRENT_USER_ID }, 'POST');
+            const transaction = result.data.find(log => log.Log_ID === logId);
+
+            if (!transaction) {
+                alert('Transaction not found');
+                return;
+            }
+
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = `Transaction Details - #TXN${transaction.Log_ID}`;
+
+            const amount = parseFloat(transaction.Amount);
+            const amountColor = amount >= 0 ? '#10B981' : '#EF4444';
+            const amountSign = amount >= 0 ? '+' : '';
+
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Transaction ID:</span>
+                    <span class="detail-value">#TXN${transaction.Log_ID}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">User ID:</span>
+                    <span class="detail-value">${transaction.User_id}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">${transaction.Description}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount:</span>
+                    <span class="detail-value" style="color: ${amountColor}; font-weight: 700;">${amountSign}$${Math.abs(amount).toFixed(2)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Balance After:</span>
+                    <span class="detail-value">$${parseFloat(transaction.Balance_After).toFixed(2)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Reference Type:</span>
+                    <span class="detail-value">${transaction.Reference_Type || 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Reference ID:</span>
+                    <span class="detail-value">${transaction.Reference_ID ? '#' + transaction.Reference_ID : 'N/A'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date & Time:</span>
+                    <span class="detail-value">${formatDateTime(transaction.Created_AT)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="status-badge status-completed">Completed</span>
+                </div>
+            `;
+
+            modal.classList.add('active');
+
+        } catch (error) {
+            alert('Failed to load transaction details: ' + error.message);
+        }
+    }
+
+    // View Transaction Details (Legacy - kept for compatibility)
     function viewTransaction(id) {
         const modal = document.getElementById('detailModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -1386,11 +1934,18 @@
         }
     }
 
-    // Legacy functions for backward compatibility (deprecated)
+    /**
+     * Legacy functions for backward compatibility (deprecated)
+     * These functions are kept to prevent breaking changes in existing code
+     * @deprecated Use applyRefundInModal instead
+     */
     function applyRefund(orderId) {
         applyRefundInModal(orderId);
     }
 
+    /**
+     * @deprecated Use confirmReceiptInModal instead
+     */
     function confirmReceipt(orderId) {
         confirmReceiptInModal(orderId);
     }
