@@ -1,1 +1,1 @@
-# TreasureGO-USM-CAT304W-CSE341-Project
+# TreasureGO-USM-CAT304W-CSE341W-Project
