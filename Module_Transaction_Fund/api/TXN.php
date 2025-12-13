@@ -18,7 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Include database configuration
-require_once __DIR__ . '/../api/config/treasurego_db_config.php';
+require_once(__DIR__ . '/config/treasurego_db_config.php');
+
 
 // Error handling
 set_error_handler(function($errno, $errstr, $errfile, $errline) {

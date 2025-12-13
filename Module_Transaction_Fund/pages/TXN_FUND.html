@@ -1229,7 +1229,7 @@
 
         const type = document.getElementById('requestType').value;
         const amount = document.getElementById('requestAmount').value;
-        const proofImage = document.getElementById('proofImage').value;
+        const proofImage = document.getElementById('requestImage').value;
         const adminRemark = document.getElementById('adminRemark').value;
 
         try {
@@ -1721,10 +1721,10 @@
                 <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
                 <div class="modal-actions" style="flex-direction: column; gap: 12px;">
                     <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
-                        <button class="btn btn-confirm" onclick="confirmReceiptInModal('${id}')" id="confirmBtn-${id}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                        <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
                             ✅ Confirm Receipt
                         </button>
-                        <button class="btn btn-refund" onclick="applyRefundInModal('${id}')" id="refundBtn-${id}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                        <button class="btn btn-refund" onclick="applyRefundInModal('ORD${order.Orders_Order_ID}')" id="refundBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
                             💸 Apply for Refund
                         </button>
                     </div>
@@ -1737,7 +1737,7 @@
                 <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
                 <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
                 <div class="modal-actions">
-                    <button class="btn btn-contact" onclick="contactSeller('${data.sellerId}')">
+                    <button class="btn btn-contact" onclick="contactSeller('${order.Orders_Seller_ID}')">
                         💬 Contact Seller
                     </button>
                     <button class="btn btn-view" onclick="contactCustomerService()">
