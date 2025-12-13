@@ -6,15 +6,17 @@
     <title>TreasureGO - Discover Treasures</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- 1. Core Colors & Variables --- */
+        /* ========================================= */
+        /* 核心样式 & 变量 (Core Styles)        */
+        /* ========================================= */
         :root {
             --bg-color: #F3F6F9;
-            --primary: #4F46E5;        /* Brand Blue-Purple */
+            --primary: #4F46E5;
             --primary-hover: #4338CA;
             --text-dark: #1F2937;
             --text-gray: #6B7280;
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --sidebar-radius: 50px;    /* Sidebar Large Radius */
+            --sidebar-radius: 50px;
             --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
         }
 
@@ -32,7 +34,7 @@
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
-        /* --- 2. 🎈 Background Floating Animation --- */
+        /* --- 背景浮动动画 --- */
         #floating-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -56,7 +58,9 @@
             100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
         }
 
-        /* --- 3. Floating Sidebar --- */
+        /* ========================================= */
+        /* 侧边栏样式 (Sidebar)            */
+        /* ========================================= */
         .sidebar {
             position: fixed;
             top: 50%;
@@ -90,15 +94,30 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        .sidebar-item:hover {
-            transform: translateY(-3px);
-            color: var(--primary);
-        }
-
+        .sidebar-item:hover { transform: translateY(-3px); color: var(--primary); }
         .sidebar-icon { font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
         .sidebar-text { font-size: 13px; font-weight: 700; }
 
-        /* --- 4. Navbar --- */
+        /* 左侧 Category 特殊样式 */
+        .sidebar.left .sidebar-item:nth-child(3) {
+            order: 0; color: var(--primary); font-weight: 600;
+        }
+        .sidebar.left .sidebar-item:nth-child(3):hover {
+            transform: translateY(-3px) scale(1.05); color: var(--primary-hover);
+        }
+
+        /* 右侧 Sidebar 排序逻辑 */
+        .sidebar.right .sidebar-item:nth-child(1) { order: 3; color: var(--primary); font-weight: 600; transform: scale(1); }
+        .sidebar.right .sidebar-item:nth-child(1):hover { transform: translateY(-3px) scale(1.05); color: var(--primary-hover); }
+        .sidebar.right .sidebar-item:nth-child(2) { order: 1; }
+        .sidebar.right .sidebar-item:nth-child(3) { order: 2; }
+        .sidebar.right .sidebar-item:nth-child(4) { order: 4; }
+        .sidebar.right .sidebar-item:nth-child(5) { order: 5; }
+        .sidebar.right .sidebar-item:nth-child(6) { display: none; } /* Desktop hide Category */
+
+        /* ========================================= */
+        /* 顶部导航栏 (Navbar)           */
+        /* ========================================= */
         .navbar {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -113,71 +132,74 @@
         }
 
         .logo {
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
+            font-weight: 800; font-size: 1.5rem; color: var(--primary);
+            display: flex; align-items: center; gap: 10px; text-decoration: none;
         }
         .logo span { color: var(--text-dark); }
-        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        /* ✨ Logo 发光效果 (新添加) ✨ */
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            /* 呼吸发光动画 */
+            animation: glowAnimation 3s infinite alternate;
         }
 
-        /* Text-only buttons (No Emoji) */
+        /* 发光动画定义 */
+        @keyframes glowAnimation {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.2),
+                0 0 10px rgba(245, 158, 11, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(245, 158, 11, 0.8),
+                0 0 25px rgba(245, 158, 11, 0.5);
+            }
+        }
+
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+
         .nav-btn {
-            border: none;
-            background: transparent;
-            font-weight: 600;
-            color: var(--text-gray);
-            padding: 0.6rem 0.5rem;
-            cursor: pointer;
-            transition: color 0.2s;
-            font-size: 1rem;
+            border: none; background: transparent; font-weight: 600; color: var(--text-gray);
+            padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
         }
         .nav-btn:hover { color: var(--text-dark); }
 
-        /* Login Button */
         .btn-primary {
-            border: none;
-            background-color: var(--text-dark);
-            color: white;
-            font-weight: 600;
-            padding: 0.7rem 1.8rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 1rem;
+            border: none; background-color: var(--text-dark); color: white;
+            font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px;
+            cursor: pointer; transition: all 0.2s; font-size: 1rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            background-color: #000;
-        }
+        .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
 
-        /* --- 5. Dropdown Menu (Three Dots) --- */
+        /* --- 下拉菜单 (修复缝隙版) --- */
         .menu-container { position: relative; display: inline-block; }
+
         .dots-btn {
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 20px; cursor: pointer; color: var(--text-dark);
-            font-weight: bold; padding-bottom: 6px; transition: 0.2s;
+            font-weight: bold; transition: 0.2s; background: #f3f4f6;
         }
         .dots-btn:hover { background: #eee; }
 
         .dropdown-content {
-            display: none; position: absolute; right: 0; top: 130%;
+            display: none; position: absolute; right: 0;
+            top: 100%; margin-top: 10px;
             background-color: white; min-width: 160px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.12);
             border-radius: 16px; z-index: 1001; padding: 8px;
             animation: fadeIn 0.2s ease;
         }
+        /* 修复鼠标滑过缝隙 */
+        .dropdown-content::before {
+            content: ""; position: absolute; top: -20px; left: 0;
+            width: 100%; height: 20px; background: transparent;
+        }
+
         .menu-container:hover .dropdown-content { display: block; }
         .dropdown-item {
             color: var(--text-dark); padding: 12px 16px; text-decoration: none;
@@ -186,7 +208,9 @@
         .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- 6. Main Content Area --- */
+        /* ========================================= */
+        /* 主内容区域 (Main)             */
+        /* ========================================= */
         .search-section {
             text-align: center; padding: 100px 20px 60px;
             max-width: 800px; margin: 0 auto; position: relative; z-index: 10;
@@ -214,6 +238,7 @@
 
         .market-container { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; position: relative; z-index: 10; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+
         .product-card {
             background: white; border-radius: 24px; overflow: hidden;
             box-shadow: var(--card-shadow); transition: all 0.3s ease; cursor: pointer;
@@ -229,6 +254,47 @@
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
         .price-tag { font-weight: 800; font-size: 1.3rem; color: var(--text-dark); }
         .category-tag { font-size: 0.85rem; color: #9ca3af; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; }
+
+        /* ========================================= */
+        /* 手机端适配 (Mobile Responsive)     */
+        /* ========================================= */
+        @media (max-width: 768px) {
+            .sidebar.left { display: none !important; }
+
+            .sidebar.right {
+                top: auto; bottom: 25px; right: auto; left: 50%;
+                transform: translateX(-50%);
+                flex-direction: row;
+                width: 90%; max-width: 380px; height: auto;
+                padding: 12px 20px; justify-content: space-between;
+                gap: 0; z-index: 9999; border-radius: 50px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            }
+
+            .sidebar.right .sidebar-icon { font-size: 22px; margin-bottom: 2px; }
+            .sidebar.right .sidebar-text { font-size: 10px; }
+
+            /* 手机端隐藏 Feedback，显示 Category */
+            .sidebar.right .sidebar-item:nth-child(4) { display: none; }
+            .sidebar.right .sidebar-item:nth-child(6) { display: flex !important; order: 4; }
+
+            .sidebar.right .sidebar-item:nth-child(1) { transform: scale(1); }
+            #floating-container { display: none !important; }
+
+            .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 15px !important; }
+            .card-img-container { height: 160px; }
+            .card-emoji { font-size: 4rem; }
+            .card-info { padding: 1rem; }
+            .card-footer h4 { font-size: 1rem; }
+
+            .navbar { padding: 15px; }
+            .nav-actions { gap: 10px; }
+            .nav-btn { display: none; } /* 手机端隐藏文字按钮 */
+            .main-title { font-size: 2.2rem; }
+            .search-section { padding-top: 60px; padding-bottom: 40px; }
+            .search-input { padding: 12px 20px; font-size: 1rem; }
+            .search-btn { padding: 0 25px; }
+        }
     </style>
 </head>
 <body>
@@ -244,6 +310,10 @@
         <span class="sidebar-icon">👗</span>
         <span class="sidebar-text">Fashion</span>
     </a>
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html" class="sidebar-item">
+        <span class="sidebar-icon">📂</span>
+        <span class="sidebar-text">Category</span>
+    </a>
     <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Home" class="sidebar-item">
         <span class="sidebar-icon">🏠</span>
         <span class="sidebar-text">Home</span>
@@ -251,10 +321,6 @@
     <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Books" class="sidebar-item">
         <span class="sidebar-icon">📚</span>
         <span class="sidebar-text">Books</span>
-    </a>
-    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Transport" class="sidebar-item">
-        <span class="sidebar-icon">🚲</span>
-        <span class="sidebar-text">Transport</span>
     </a>
 </div>
 
@@ -275,9 +341,13 @@
         <span class="sidebar-icon">📝</span>
         <span class="sidebar-text">Feedback</span>
     </a>
-    <a href="#" class="sidebar-item">
+    <a href="Module_Platform_Governance_AI_Services/pages/support.html" class="sidebar-item">
         <span class="sidebar-icon">🎧</span>
         <span class="sidebar-text">Support</span>
+    </a>
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html" class="sidebar-item">
+        <span class="sidebar-icon">📂</span>
+        <span class="sidebar-text">Category</span>
     </a>
 </div>
 
@@ -293,24 +363,16 @@
 
         <button id="nav-login-btn" class="btn-primary" onclick="window.location.href='Module_User_Account_Management/pages/login.php'">Login</button>
 
-        <div id="nav-user-menu" style="display: none; cursor: pointer;" onclick="window.location.href='Module_User_Account_Management/pages/profile.php'">
-            <div class="dots-btn" id="nav-avatar" style="
-                width: 40px;
-                height: 40px;
-                background: #EEF2FF;
-                color: #4F46E5;
-                border: 2px solid #fff;
-                box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 1.2rem;">
+        <div id="nav-user-menu" class="menu-container" style="display: none;">
+            <div id="nav-avatar" class="dots-btn" onclick="window.location.href='Module_User_Account_Management/pages/profile.php'">
                 👤
             </div>
+            <div class="dropdown-content">
+                <a href="Module_User_Account_Management/pages/profile.php" class="dropdown-item">My Profile</a>
+                <a href="#" class="dropdown-item">Settings</a>
+                <a href="Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
+            </div>
         </div>
-    </div>
     </div>
 </nav>
 
@@ -319,13 +381,12 @@
 
     <div class="search-box-container">
         <input type="text" id="homeSearchInput" class="search-input" placeholder="Search for books, gadgets...">
-
         <button class="search-btn" onclick="goToSearch()">Search</button>
     </div>
 </section>
 
 <section class="market-container">
-    <div style="margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
+    <div style="margin-bottom: 30px; display: flex; align-items: center; gap: 10px; justify-content: center;">
         <h3 style="font-size: 1.5rem; font-weight: 700;">Fresh Arrivals</h3>
         <span style="background: #ecfdf5; color: #059669; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">🔥 Hot</span>
     </div>
@@ -365,7 +426,6 @@
 </section>
 
 <script>
-    // 1. Floating Emoji Animation
     const container = document.getElementById('floating-container');
     const items = ['📷', '💻', '📱', '⌚', '🎸', '👟', '🎒', '🚲'];
     for (let i = 0; i < 12; i++) {
@@ -378,19 +438,15 @@
         el.style.animationDelay = '-' + (Math.random() * 20) + 's';
         container.appendChild(el);
     }
+</script>
 
-    // 2. Search Logic (Updated Redirection Path)
+<script>
     function goToSearch() {
         const inputVal = document.getElementById('homeSearchInput').value;
-
-        // Updated path here as requested
         const targetUrl = 'Module_Product_Ecosystem/pages/Search_Results_Page.html';
-
-        // Redirect with query parameter
         window.location.href = `${targetUrl}?q=${encodeURIComponent(inputVal)}`;
     }
-
-    // Support 'Enter' key
+    // 支持回车键
     document.getElementById('homeSearchInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             goToSearch();
@@ -411,14 +467,19 @@
             if (data.is_logged_in) {
                 // 已登录
                 loginBtn.style.display = 'none';
-                userMenu.style.display = 'block'; // 显示头像
+                userMenu.style.display = 'inline-block';
 
-                // 设置头像内容
                 if (data.user) {
                     if (data.user.avatar_url) {
                         avatarBtn.innerHTML = `<img src="${data.user.avatar_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                        avatarBtn.style.background = 'transparent';
+                        avatarBtn.style.border = '2px solid #fff';
+                        avatarBtn.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.2)';
                     } else if (data.user.username) {
                         avatarBtn.innerText = data.user.username.charAt(0).toUpperCase();
+                        avatarBtn.style.background = '#EEF2FF';
+                        avatarBtn.style.color = '#4F46E5';
+                        avatarBtn.style.border = '2px solid #fff';
                     }
                 }
             } else {
@@ -427,13 +488,12 @@
                 userMenu.style.display = 'none';
             }
         } catch (err) {
-            console.error(err);
+            console.error("Session check failed:", err);
             loginBtn.style.display = 'inline-block';
             userMenu.style.display = 'none';
         }
     });
 </script>
-
 
 </body>
 </html>
