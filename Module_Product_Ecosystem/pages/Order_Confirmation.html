@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Confirm Order - TreasureGO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Core Variables & Reset --- */
+        :root { --bg-color: #F3F6F9; --primary: #4F46E5; --primary-hover: #4338CA; --text-dark: #1F2937; --text-gray: #6B7280; --glass-bg: rgba(255, 255, 255, 0.95); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; margin: 0; padding-bottom: 40px; }
+
+        /* --- Navbar (Consistent) --- */
+        .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.5); }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo span { color: var(--text-dark); }
+        /* 确保路径正确：回退2层找到Public_Assets */
+        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+        .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; font-size: 1rem; }
+        .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .menu-container { position: relative; display: inline-block; }
+        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; font-weight: bold; }
+
+        /* --- Layout --- */
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; align-items: start; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.2rem; font-weight: 700; }
+
+        /* Content Styles */
+        .item-preview { display: flex; gap: 15px; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; }
+        .item-img { width: 80px; height: 80px; background: #f0f0f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; flex-shrink: 0; }
+
+        .delivery-selector { display: flex; gap: 15px; margin-bottom: 20px; }
+        .delivery-option { flex: 1; border: 2px solid #eee; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; text-align: center; color: var(--text-gray); }
+        .delivery-option.selected { border-color: var(--primary); background: #EEF2FF; color: var(--primary); font-weight: 600; }
+
+        #meet-info { background: #F9FAFB; padding: 15px; border-radius: 12px; border: 1px solid #eee; font-size: 0.9rem; }
+        #shipping-form { display: none; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #666; font-weight: 600; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; font-size: 1rem; }
+
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: #555; font-size: 0.95rem; }
+        .total-row { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #eee; font-weight: 800; font-size: 1.3rem; color: var(--text-dark); }
+
+        /* Buttons */
+        .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 25px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); }
+
+        /* Cancel Button */
+        .btn-cancel { width: 100%; background: transparent; color: var(--text-gray); border: 2px solid #eee; padding: 14px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; display: block; }
+        .btn-cancel:hover { background: #f9fafb; color: var(--text-dark); border-color: #ddd; }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 1rem 20px; }
+            .container { margin-top: 20px; grid-template-columns: 1fr; gap: 20px; }
+            .card { padding: 20px; }
+            .nav-btn { display: none; } /* Mobile hide redundant links */
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="../../index.html" class="logo">
+        <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+        Treasure<span>Go</span>
+    </a>
+    <div class="nav-actions">
+        <button class="nav-btn" onclick="alert('Top Up')">Top Up</button>
+        <button class="nav-btn">Orders</button>
+        <button class="btn-primary">Login</button>
+        <div class="menu-container">
+            <div class="dots-btn">•••</div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="left-col">
+        <div class="card">
+            <h2>Order Item</h2>
+            <div class="item-preview">
+                <div class="item-img">🎧</div>
+                <div>
+                    <h4 style="margin:0 0 5px 0;">Sony WH-1000XM4</h4>
+                    <p style="margin:0; color:#666; font-size:0.9rem;">Condition: Like New</p>
+                    <p style="margin:5px 0 0 0; font-weight:700; color:var(--primary);">$200.00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Delivery Method</h2>
+            <div class="delivery-selector">
+                <div class="delivery-option selected" id="opt-meet" onclick="selectDelivery('meet')">
+                    <div style="font-size:1.5rem; margin-bottom:5px;">🤝</div>Meet-up
+                </div>
+                <div class="delivery-option" id="opt-ship" onclick="selectDelivery('ship')">
+                    <div style="font-size:1.5rem; margin-bottom:5px;">🚚</div>Shipping
+                </div>
+            </div>
+
+            <div id="meet-info">
+                <div style="margin-bottom: 8px;"><span style="font-size: 1.2rem;">📍</span> <strong>Area:</strong> Seattle, WA (Downtown)</div>
+                <small style="color: #666; display: block;">* Exact location details will be shared in Chat after payment.</small>
+            </div>
+
+            <div id="shipping-form">
+                <div class="input-group"><label>Full Name</label><input type="text" class="input-field" placeholder="Receiver's Name"></div>
+                <div class="input-group"><label>Street Address</label><input type="text" class="input-field" placeholder="123 Main St, Apt 4B"></div>
+                <div class="input-group"><label>City & Zip Code</label><div style="display:flex; gap:10px;"><input type="text" class="input-field" placeholder="City"><input type="text" class="input-field" placeholder="Zip Code"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="card">
+            <h2>Order Summary</h2>
+            <div class="summary-row"><span>Subtotal</span><span>$200.00</span></div>
+            <div class="summary-row"><span>Delivery Fee</span><span id="shipping-fee-display">$0.00</span></div>
+            <div class="summary-row"><span>Service Fee (2%)</span><span>$4.00</span></div>
+            <div class="total-row"><span>Total</span><span id="total-price-display" style="color:var(--primary);">$204.00</span></div>
+
+            <button class="btn-pay" onclick="alert('Proceeding to Payment...')">Pay Now</button>
+
+            <a href="Product_Detail.html" class="btn-cancel">Cancel</a>
+
+            <div style="text-align:center; margin-top:15px; font-size:0.8rem; color:#999;">Secure Encrypted Payment 🔒</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectDelivery(type) {
+        const meetOpt = document.getElementById('opt-meet');
+        const shipOpt = document.getElementById('opt-ship');
+        const meetInfo = document.getElementById('meet-info');
+        const shipForm = document.getElementById('shipping-form');
+        const shipFeeDisplay = document.getElementById('shipping-fee-display');
+        const totalDisplay = document.getElementById('total-price-display');
+
+        let basePrice = 200; let serviceFee = 4; let shippingCost = 0;
+
+        if (type === 'meet') {
+            meetOpt.classList.add('selected'); shipOpt.classList.remove('selected');
+            meetInfo.style.display = 'block'; shipForm.style.display = 'none';
+            shippingCost = 0;
+        } else {
+            shipOpt.classList.add('selected'); meetOpt.classList.remove('selected');
+            meetInfo.style.display = 'none'; shipForm.style.display = 'block';
+            shippingCost = 15;
+        }
+        shipFeeDisplay.innerText = `$${shippingCost.toFixed(2)}`;
+        totalDisplay.innerText = `$${(basePrice + serviceFee + shippingCost).toFixed(2)}`;
+    }
+</script>
+</body>
+</html>

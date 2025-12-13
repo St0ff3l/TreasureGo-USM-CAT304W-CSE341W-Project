@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Browsing History - TreasureGO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Styles --- */
+        :root {
+            --bg-color: #F3F6F9;
+            --primary: #4F46E5;
+            --text-dark: #1F2937;
+            --text-gray: #6B7280;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            --danger: #EF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; padding-bottom: 80px; /* 增加底部留白给悬浮栏 */ }
+
+        /* --- 1. Navbar (与 Homepage 一致) --- */
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+        }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo span { color: var(--text-dark); }
+        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+        .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem; }
+        .nav-btn:hover { color: var(--text-dark); }
+        .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        .menu-container { position: relative; display: inline-block; }
+        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; font-weight: bold; }
+
+        /* --- Page Layout --- */
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+
+        /* Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 1.8rem; font-weight: 800; }
+
+        /* Header Actions */
+        .header-actions { display: flex; gap: 10px; }
+        .btn-action { background: white; border: 1px solid #ddd; color: var(--text-dark); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; font-weight: 600; }
+        .btn-action:hover { background: #f9fafb; border-color: #ccc; }
+        .btn-action.active { background: var(--text-dark); color: white; border-color: var(--text-dark); }
+
+        /* Date Group */
+        .history-group { margin-bottom: 40px; }
+        .group-date { font-size: 1.1rem; font-weight: 700; color: var(--text-gray); margin-bottom: 15px; padding-left: 5px; border-left: 4px solid var(--primary); line-height: 1.2; }
+
+        /* Grid */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+
+        /* Product Card */
+        .product-card {
+            background: white; border-radius: 20px; box-shadow: var(--card-shadow); overflow: hidden;
+            transition: 0.3s; position: relative; cursor: pointer; border: 2px solid transparent;
+        }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+
+        /* ✨ Selection Style ✨ */
+        .product-card.selected { border-color: var(--primary); background: #EEF2FF; }
+        .product-card.selected .card-img-container { opacity: 0.8; }
+
+        /* ✨ Checkbox Circle (Hidden by default) ✨ */
+        .select-checkbox {
+            position: absolute; top: 10px; left: 10px; width: 24px; height: 24px;
+            background: white; border: 2px solid #ddd; border-radius: 50%;
+            z-index: 20; display: none; /* Hidden unless in select mode */
+            align-items: center; justify-content: center; color: white; font-size: 14px;
+        }
+        .product-card.selected .select-checkbox { background: var(--primary); border-color: var(--primary); display: flex; }
+
+        /* Delete Single Button (Only visible in Normal Mode) */
+        .btn-delete-item {
+            position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
+            background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #999; font-size: 18px; cursor: pointer; z-index: 10; transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .btn-delete-item:hover { background: var(--danger); color: white; }
+
+        .card-img-container { height: 160px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; transition: 0.3s; }
+        .card-info { padding: 1.2rem; }
+        .card-title { font-size: 1rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; color: var(--primary); font-weight: 800; }
+
+        /* ✨ Bottom Floating Action Bar ✨ */
+        .selection-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--text-dark); color: white; padding: 12px 24px; border-radius: 50px;
+            display: flex; align-items: center; gap: 20px; z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0; width: 90%; max-width: 400px; justify-content: space-between;
+        }
+        .selection-bar.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        .btn-bar-delete { background: var(--danger); border: none; color: white; padding: 8px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; }
+        .btn-bar-cancel { background: transparent; border: none; color: #ccc; cursor: pointer; font-weight: 500; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 60px 20px; display: none; }
+        .empty-icon { font-size: 4rem; margin-bottom: 20px; display: block; opacity: 0.5; }
+        .btn-go-home { background: var(--primary); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 20px; }
+
+        @media (max-width: 768px) {
+            .product-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
+            .card-img-container { height: 140px; font-size: 3rem; }
+            .btn-action { padding: 6px 12px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="../../index.html" class="logo">
+        <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+        Treasure<span>Go</span>
+    </a>
+    <div class="nav-actions">
+        <button class="nav-btn" onclick="alert('Top Up')">Top Up</button>
+        <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
+        <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
+        <div class="menu-container">
+            <div class="dots-btn">•••</div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="page-header">
+        <div class="page-title">Browsing History</div>
+        <div class="header-actions">
+            <button class="btn-action" id="btnSelect" onclick="toggleSelectMode()">Select</button>
+            <button class="btn-action" onclick="clearAllHistory()" style="color:var(--danger); border-color:#fee2e2;">Clear All</button>
+        </div>
+    </div>
+
+    <div id="history-content">
+
+        <div class="history-group">
+            <div class="group-date">Today</div>
+            <div class="product-grid">
+
+                <div class="product-card" data-id="sony" onclick="handleCardClick(this, 'sony')">
+                    <div class="select-checkbox">✓</div>
+                    <div class="btn-delete-item" onclick="deleteSingleItem(event, this)">×</div>
+                    <div class="card-img-container">🎧</div>
+                    <div class="card-info">
+                        <h4 class="card-title">Sony WH-1000XM4</h4>
+                        <div class="card-footer"><span>$200</span> <small style="color:#999;">Like New</small></div>
+                    </div>
+                </div>
+
+                <div class="product-card" data-id="macbook" onclick="handleCardClick(this, 'macbook')">
+                    <div class="select-checkbox">✓</div>
+                    <div class="btn-delete-item" onclick="deleteSingleItem(event, this)">×</div>
+                    <div class="card-img-container">💻</div>
+                    <div class="card-info">
+                        <h4 class="card-title">MacBook Air M1</h4>
+                        <div class="card-footer"><span>$650</span> <small style="color:#999;">Used</small></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="history-group">
+            <div class="group-date">Yesterday</div>
+            <div class="product-grid">
+
+                <div class="product-card" data-id="camera" onclick="handleCardClick(this, 'camera')">
+                    <div class="select-checkbox">✓</div>
+                    <div class="btn-delete-item" onclick="deleteSingleItem(event, this)">×</div>
+                    <div class="card-img-container">📸</div>
+                    <div class="card-info">
+                        <h4 class="card-title">Polaroid Camera</h4>
+                        <div class="card-footer"><span>$45</span> <small style="color:#999;">Like New</small></div>
+                    </div>
+                </div>
+
+                <div class="product-card" data-id="bike" onclick="handleCardClick(this, 'bike')">
+                    <div class="select-checkbox">✓</div>
+                    <div class="btn-delete-item" onclick="deleteSingleItem(event, this)">×</div>
+                    <div class="card-img-container">🚲</div>
+                    <div class="card-info">
+                        <h4 class="card-title">Mountain Bike</h4>
+                        <div class="card-footer"><span>$200</span> <small style="color:#999;">Used</small></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="empty-state" id="empty-state">
+        <span class="empty-icon">🕒</span>
+        <h2>No browsing history yet</h2>
+        <p style="color:#999;">Go discover some treasures!</p>
+        <a href="../../index.html" class="btn-go-home">Go Shopping</a>
+    </div>
+
+</div>
+
+<div class="selection-bar" id="selectionBar">
+    <div>
+        <span id="selectedCount">0</span> items selected
+        <button class="btn-bar-cancel" onclick="toggleSelectMode()">Cancel</button>
+    </div>
+    <button class="btn-bar-delete" onclick="deleteSelectedItems()">Delete</button>
+</div>
+
+<script>
+    let isSelectMode = false;
+
+    // 1. Toggle Select Mode
+    function toggleSelectMode() {
+        isSelectMode = !isSelectMode;
+        const btnSelect = document.getElementById('btnSelect');
+        const checkboxes = document.querySelectorAll('.select-checkbox');
+        const deleteBtns = document.querySelectorAll('.btn-delete-item');
+        const cards = document.querySelectorAll('.product-card');
+        const selectionBar = document.getElementById('selectionBar');
+
+        if (isSelectMode) {
+            // Enter Select Mode
+            btnSelect.innerText = 'Done';
+            btnSelect.classList.add('active');
+            checkboxes.forEach(cb => cb.style.display = 'flex'); // Show placeholders
+            deleteBtns.forEach(btn => btn.style.display = 'none'); // Hide single delete
+            selectionBar.classList.add('show');
+        } else {
+            // Exit Select Mode
+            btnSelect.innerText = 'Select';
+            btnSelect.classList.remove('active');
+            checkboxes.forEach(cb => cb.style.display = 'none');
+            deleteBtns.forEach(btn => btn.style.display = 'flex');
+            selectionBar.classList.remove('show');
+
+            // Clear selections
+            cards.forEach(card => card.classList.remove('selected'));
+            updateSelectionCount();
+        }
+    }
+
+    // 2. Handle Card Click
+    function handleCardClick(card, id) {
+        if (isSelectMode) {
+            // Select Mode: Toggle Selection
+            card.classList.toggle('selected');
+            updateSelectionCount();
+        } else {
+            // Normal Mode: Go to Detail
+            window.location.href = `Product_Detail.html?id=${id}`;
+        }
+    }
+
+    // 3. Update Count
+    function updateSelectionCount() {
+        const count = document.querySelectorAll('.product-card.selected').length;
+        document.getElementById('selectedCount').innerText = count;
+    }
+
+    // 4. Delete Selected Items (Multi-select)
+    function deleteSelectedItems() {
+        const selectedCards = document.querySelectorAll('.product-card.selected');
+        const count = selectedCards.length;
+
+        if (count === 0) {
+            alert("Please select items to delete first.");
+            return;
+        }
+
+        // ✨ Confirmation Dialog ✨
+        if (confirm(`Are you sure you want to delete these ${count} items?`)) {
+            selectedCards.forEach(card => {
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            });
+
+            // Cleanup
+            setTimeout(() => {
+                toggleSelectMode(); // Exit mode
+                checkEmpty();
+            }, 300);
+        }
+    }
+
+    // 5. Delete Single Item (Normal Mode)
+    function deleteSingleItem(event, btnElement) {
+        event.stopPropagation();
+        if(confirm("Delete this item from history?")) {
+            const card = btnElement.closest('.product-card');
+            card.style.opacity = '0';
+            setTimeout(() => {
+                card.remove();
+                checkEmpty();
+            }, 300);
+        }
+    }
+
+    // 6. Clear All
+    function clearAllHistory() {
+        if(confirm("Are you sure you want to clear ALL browsing history?")) {
+            document.getElementById('history-content').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'block';
+        }
+    }
+
+    // Helper: Check Empty
+    function checkEmpty() {
+        const remaining = document.querySelectorAll('.product-card');
+        if (remaining.length === 0) {
+            document.getElementById('history-content').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>

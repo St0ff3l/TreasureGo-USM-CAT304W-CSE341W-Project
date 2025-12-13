@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TreasureGO Membership</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* --- Core Variables --- */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --gold: #F59E0B;
+      --gold-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); padding-bottom: 50px; }
+
+    /* --- 2. Navbar (Pixel Perfect Match with Homepage) --- */
+    .navbar {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo span { color: var(--text-dark); }
+    .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+
+    /* 统一按钮样式 */
+    .nav-btn {
+      border: none; background: transparent; font-weight: 600; color: var(--text-gray);
+      padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
+    }
+    .nav-btn:hover { color: var(--text-dark); }
+
+    .btn-primary {
+      border: none; background-color: var(--text-dark); color: white; font-weight: 600;
+      padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+      font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
+
+    .menu-container { position: relative; display: inline-block; }
+    .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: var(--text-dark); font-weight: bold; }
+
+    /* --- Hero Section --- */
+    .hero { text-align: center; padding: 40px 20px 30px; }
+    .hero h1 { font-size: 2.2rem; margin-bottom: 8px; }
+    .hero p { color: var(--text-gray); font-size: 1rem; }
+
+    /* --- Billing Toggle --- */
+    .billing-toggle {
+      background: white; display: inline-flex; padding: 4px; border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px; position: relative;
+    }
+    .toggle-btn {
+      padding: 8px 20px; border-radius: 40px; border: none; background: transparent;
+      font-weight: 600; color: var(--text-gray); cursor: pointer; transition: 0.3s; position: relative; font-size: 0.9rem;
+    }
+    .toggle-btn.active { background: var(--text-dark); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+    .discount-badge {
+      position: absolute; top: -10px; right: -5px; background: #EF4444; color: white;
+      font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; transform: rotate(5deg);
+    }
+
+    /* --- Pricing Cards Container (调整尺寸) --- */
+    .pricing-container {
+      max-width: 850px; /* 缩小宽度，原1000px */
+      margin: 0 auto; padding: 0 20px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
+    }
+
+    /* Card Styles (调整内边距) */
+    .plan-card {
+      background: white; border-radius: 20px; padding: 30px 25px; /* 缩小Padding，原40px 30px */
+      position: relative; transition: 0.3s; border: 2px solid transparent;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      display: flex; flex-direction: column;
+    }
+    .plan-card:hover { transform: translateY(-8px); }
+    .plan-card.vip { border-color: #E5E7EB; }
+    .plan-card.vip:hover { border-color: var(--primary); }
+    .plan-card.svip { border: 2px solid var(--gold); background: linear-gradient(to bottom, #FFFCF5, #FFFFFF); }
+
+    .popular-tag {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--gold-gradient); color: white; padding: 4px 12px;
+      border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4); width: max-content;
+    }
+
+    /* Content (调整字体大小) */
+    .plan-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .price-area { margin-bottom: 25px; }
+    .price { font-size: 2.5rem; font-weight: 800; color: var(--text-dark); } /* 缩小价格字体 */
+    .period { color: var(--text-gray); font-size: 0.9rem; }
+
+    .features { list-style: none; margin-bottom: 30px; flex-grow: 1; }
+    .features li { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: #4B5563; font-size: 0.9rem; }
+    .check-icon { color: var(--success); font-weight: bold; font-size: 1.1rem; }
+    .check-icon.gold { color: var(--gold); }
+
+    /* Buttons */
+    .btn-plan { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .btn-vip { background: #F3F4F6; color: var(--text-dark); }
+    .btn-vip:hover { background: #E5E7EB; }
+    .btn-svip { background: var(--text-dark); color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+    .btn-svip:hover { background: black; transform: scale(1.02); }
+
+    /* Mobile Adaptation */
+    @media (max-width: 768px) {
+      .navbar { padding: 1rem 20px; }
+      .nav-btn { display: none; } /* Mobile hide text links */
+      .pricing-container { grid-template-columns: 1fr; gap: 30px; max-width: 400px; } /* 手机端单列且限宽 */
+      .hero h1 { font-size: 1.8rem; }
+      .plan-card.svip { order: -1; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="../../index.html" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+    Treasure<span>Go</span>
+  </a>
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="alert('Top Up Page')">Top Up</button>
+    <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
+    <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
+
+    <div class="menu-container">
+      <div class="dots-btn">•••</div>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Unlock More Power</h1>
+  <p>Save fees and trade faster with TreasureGo Membership.</p>
+</section>
+
+<div style="text-align: center;">
+  <div class="billing-toggle">
+    <button class="toggle-btn active" onclick="setCycle('monthly', this)">Monthly</button>
+    <button class="toggle-btn" onclick="setCycle('quarterly', this)">Quarterly <span class="discount-badge">-10%</span></button>
+    <button class="toggle-btn" onclick="setCycle('yearly', this)">Yearly <span class="discount-badge">-20%</span></button>
+  </div>
+</div>
+
+<div class="pricing-container">
+
+  <div class="plan-card vip">
+    <div class="plan-name">
+      <span style="color:#4F46E5;">💎</span> VIP Member
+    </div>
+    <div class="price-area">
+      <span class="price" id="price-vip">$9.9</span>
+      <span class="period" id="period-text">/ month</span>
+    </div>
+    <ul class="features">
+      <li><span class="check-icon">✓</span> <strong>0% Service Fee</strong> on Sales</li>
+      <li><span class="check-icon">✓</span> Exclusive Profile Badge</li>
+      <li><span class="check-icon">✓</span> Priority Customer Support</li>
+      <li style="color:#ccc; text-decoration:line-through;"><span class="check-icon" style="color:#ccc;">×</span> Free Withdrawal Fee</li>
+    </ul>
+    <button class="btn-plan btn-vip" onclick="purchase('VIP')">Choose VIP</button>
+  </div>
+
+  <div class="plan-card svip">
+    <div class="popular-tag">MOST POPULAR 🔥</div>
+    <div class="plan-name">
+      <span style="color:#F59E0B;">👑</span> SVIP Member
+    </div>
+    <div class="price-area">
+      <span class="price" id="price-svip">$19.9</span>
+      <span class="period" id="period-text-svip">/ month</span>
+    </div>
+    <ul class="features">
+      <li><span class="check-icon gold">✓</span> <strong>0% Service Fee</strong> on Sales</li>
+      <li><span class="check-icon gold">✓</span> <strong>0% Withdrawal Fee</strong></li>
+      <li><span class="check-icon gold">✓</span> Gold Profile Badge</li>
+      <li><span class="check-icon gold">✓</span> 24/7 Dedicated Support</li>
+      <li><span class="check-icon gold">✓</span> Faster Withdrawal Speed</li>
+    </ul>
+    <button class="btn-plan btn-svip" onclick="purchase('SVIP')">Get SVIP Access</button>
+  </div>
+
+</div>
+
+<div id="toast" style="visibility:hidden; min-width:250px; background:#333; color:#fff; text-align:center; border-radius:50px; padding:16px; position:fixed; z-index:10000; left:50%; bottom:30px; transform:translateX(-50%); opacity:0; transition:0.3s;">
+  Processing...
+</div>
+
+<script>
+  // 1. Pricing Configuration
+  const pricingData = {
+    'monthly': { vip: 9.9, svip: 19.9, label: '/ month' },
+    'quarterly': { vip: 26.9, svip: 53.9, label: '/ quarter' },
+    'yearly': { vip: 95.0, svip: 190.0, label: '/ year' }
+  };
+
+  let currentCycle = 'monthly';
+
+  // 2. Switch Cycle Function
+  function setCycle(cycle, btnElement) {
+    currentCycle = cycle;
+    document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+    updatePrice('price-vip', pricingData[cycle].vip);
+    updatePrice('price-svip', pricingData[cycle].svip);
+    document.getElementById('period-text').innerText = pricingData[cycle].label;
+    document.getElementById('period-text-svip').innerText = pricingData[cycle].label;
+  }
+
+  function updatePrice(id, newPrice) {
+    const el = document.getElementById(id);
+    el.style.opacity = 0;
+    setTimeout(() => {
+      el.innerText = '$' + newPrice;
+      el.style.opacity = 1;
+    }, 200);
+  }
+
+  function purchase(plan) {
+    const price = plan === 'VIP' ? pricingData[currentCycle].vip : pricingData[currentCycle].svip;
+    showToast(`Selected ${plan} - ${currentCycle} ($${price})`);
+  }
+
+  function showToast(message) {
+    var x = document.getElementById("toast");
+    x.innerText = message;
+    x.style.visibility = "visible"; x.style.opacity = "1"; x.style.bottom = "50px";
+    setTimeout(function(){ x.style.visibility = "hidden"; x.style.opacity = "0"; x.style.bottom = "30px"; }, 3000);
+  }
+</script>
+
+</body>
+</html>

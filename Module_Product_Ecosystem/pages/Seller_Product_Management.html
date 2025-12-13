@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Manage Product - TreasureGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* --- Global Styles --- */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --danger: #EF4444;
+      --warning: #F59E0B;
+      --success: #10B981;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); padding-bottom: 60px; }
+
+    /* --- 1. Navbar (与主页保持一致) --- */
+    .navbar {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+    .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo span { color: var(--text-dark); }
+    .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+    .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem; }
+    .nav-btn:hover { color: var(--text-dark); }
+
+    .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
+
+    .menu-container { position: relative; display: inline-block; }
+    .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: var(--text-dark); font-weight: bold; padding-bottom: 6px; }
+    .dropdown-content { display: none; position: absolute; right: 0; top: 130%; background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 16px; z-index: 1001; padding: 8px; }
+    .menu-container:hover .dropdown-content { display: block; }
+    .dropdown-item { color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; font-weight: 500; border-radius: 10px; }
+    .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
+
+    /* --- Layout --- */
+    .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: start; }
+
+    /* Left: Gallery */
+    .main-image-box { width: 100%; height: 400px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 8rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 15px; position: relative; }
+    .status-badge { position: absolute; top: 20px; left: 20px; padding: 8px 16px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .status-active { background: #ECFDF5; color: var(--success); }
+    .status-inactive { background: #F3F4F6; color: var(--text-gray); }
+
+    .thumbnails { display: flex; gap: 10px; }
+    .thumb { width: 70px; height: 70px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 2px solid transparent; cursor: pointer; }
+    .thumb.active { border-color: var(--primary); }
+
+    /* Right: Management Controls */
+    .product-info { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+    .stats-row { display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .stat-item { text-align: center; }
+    .stat-val { font-weight: 800; font-size: 1.2rem; display: block; }
+    .stat-label { font-size: 0.8rem; color: var(--text-gray); }
+
+    .product-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; line-height: 1.3; }
+    .price-container { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .product-price { font-size: 2rem; color: var(--primary); font-weight: 700; }
+    .price-input { font-size: 2rem; font-weight: 700; width: 150px; border: 2px solid var(--primary); border-radius: 8px; padding: 5px; display: none; }
+    .description-box { color: var(--text-gray); line-height: 1.6; margin-bottom: 30px; font-size: 0.95rem; }
+
+    /* --- Management Buttons --- */
+    .management-actions { display: flex; flex-direction: column; gap: 12px; }
+
+    .btn-manage { width: 100%; padding: 15px; border-radius: 14px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    .btn-edit { background: #EEF2FF; color: var(--primary); }
+    .btn-edit:hover { background: #E0E7FF; }
+    .btn-save { background: var(--success); color: white; display: none; }
+
+    .btn-unlist { background: #FFF7ED; color: var(--warning); border: 1px solid #FFEDD5; }
+    .btn-unlist:hover { background: #FFEDD5; }
+
+    .btn-delete { background: #FEF2F2; color: var(--danger); border: 1px solid #FEE2E2; margin-top: 10px; }
+    .btn-delete:hover { background: #FEE2E2; }
+
+    /* Cancel Button Style */
+    .btn-cancel { background: transparent; color: var(--text-gray); border: 2px solid #eee; margin-top: 5px; }
+    .btn-cancel:hover { background: #f9fafb; border-color: #ddd; color: var(--text-dark); }
+
+    /* Mobile Adaptation */
+    @media (max-width: 768px) {
+      .navbar { padding: 1rem 20px; } /* Mobile navbar padding */
+      .nav-actions { gap: 15px; } /* Reduce gap on mobile */
+      .container { grid-template-columns: 1fr; gap: 30px; margin-top: 20px; }
+      .product-info { padding: 20px; }
+      .main-image-box { height: 300px; }
+      .btn-manage { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="../../index.html" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+    Treasure<span>Go</span>
+  </a>
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="alert('Top Up Page')">Top Up</button>
+    <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
+    <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
+    <div class="menu-container">
+      <div class="dots-btn">•••</div>
+      <div class="dropdown-content">
+        <a href="#" class="dropdown-item">My Profile</a>
+        <a href="#" class="dropdown-item">Settings</a>
+        <a href="#" class="dropdown-item" style="color: #ef4444;">Log Out</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="preview-col">
+    <div class="main-image-box" id="mainImage">
+      🎧
+      <div id="statusBadge" class="status-badge status-active">● On Sale</div>
+    </div>
+    <div class="thumbnails">
+      <div class="thumb active">🎧</div>
+      <div class="thumb">📦</div>
+      <div class="thumb">🧾</div>
+    </div>
+  </div>
+
+  <div class="product-info">
+
+    <div class="stats-row">
+      <div class="stat-item"><span class="stat-val">1,204</span><span class="stat-label">Views</span></div>
+      <div class="stat-item"><span class="stat-val">42</span><span class="stat-label">Likes</span></div>
+      <div class="stat-item"><span class="stat-val">8</span><span class="stat-label">Chats</span></div>
+    </div>
+
+    <h1 class="product-title">Sony WH-1000XM4</h1>
+
+    <div class="price-container">
+      <span class="product-price" id="displayPrice">$200.00</span>
+      <input type="number" id="inputPrice" class="price-input" value="200.00">
+    </div>
+
+    <p class="description-box">
+      Selling my Sony XM4s because I upgraded to the XM5. Battery life is amazing. No scratches, ear pads are clean.
+    </p>
+
+    <div class="management-actions">
+
+      <button class="btn-manage btn-edit" id="btnEdit" onclick="toggleEditMode()">✏️ Modify Price</button>
+      <button class="btn-manage btn-save" id="btnSave" onclick="savePrice()">💾 Save New Price</button>
+
+      <button class="btn-manage btn-unlist" id="btnUnlist" onclick="toggleStatus()">🔒 Pull Off Shelf (Unlist)</button>
+
+      <button class="btn-manage btn-delete" onclick="confirmDelete()">🗑️ Delete Item</button>
+
+      <button class="btn-manage btn-cancel" onclick="history.back()">Cancel / Return</button>
+
+    </div>
+
+    <div style="margin-top: 25px; background: #F0F9FF; padding: 15px; border-radius: 12px; font-size: 0.85rem; color: #0369A1; display:flex; gap:10px;">
+      <span>💡</span>
+      <span><strong>Pro Tip:</strong> Improving your description or lowering the price by 10% can boost sales by 2x!</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleEditMode() {
+    document.getElementById('displayPrice').style.display = 'none';
+    document.getElementById('inputPrice').style.display = 'block';
+    document.getElementById('btnEdit').style.display = 'none';
+    document.getElementById('btnSave').style.display = 'flex';
+    document.getElementById('inputPrice').focus();
+  }
+
+  function savePrice() {
+    const newPrice = document.getElementById('inputPrice').value;
+    document.getElementById('displayPrice').innerText = '$' + parseFloat(newPrice).toFixed(2);
+    document.getElementById('displayPrice').style.display = 'block';
+    document.getElementById('inputPrice').style.display = 'none';
+    document.getElementById('btnEdit').style.display = 'flex';
+    document.getElementById('btnSave').style.display = 'none';
+    alert('Price updated successfully!');
+  }
+
+  let isListed = true;
+  function toggleStatus() {
+    const badge = document.getElementById('statusBadge');
+    const btn = document.getElementById('btnUnlist');
+    if (isListed) {
+      badge.className = 'status-badge status-inactive'; badge.innerText = '● Unlisted';
+      btn.innerText = '📢 Re-list Item'; btn.style.background = '#ECFDF5'; btn.style.color = '#059669';
+      alert('Item is now hidden from search results.');
+    } else {
+      badge.className = 'status-badge status-active'; badge.innerText = '● On Sale';
+      btn.innerText = '🔒 Pull Off Shelf (Unlist)'; btn.style.background = '#FFF7ED'; btn.style.color = '#F59E0B';
+      alert('Item is now live on the marketplace!');
+    }
+    isListed = !isListed;
+  }
+
+  function confirmDelete() {
+    if (confirm("Are you sure you want to PERMANENTLY delete this item?\nThis action cannot be undone.")) {
+      alert('Item deleted.');
+      window.location.href = '../../index.html';
+    }
+  }
+</script>
+
+</body>
+</html>
