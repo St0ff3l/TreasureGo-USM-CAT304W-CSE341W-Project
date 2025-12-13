@@ -94,42 +94,38 @@
         .sidebar-icon { font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
         .sidebar-text { font-size: 13px; font-weight: 700; }
 
-        /* --- 4. Right Sidebar Logic (Desktop Default) --- */
-        /*
-           Order Logic:
-           1. Chat (2nd item in HTML)
-           2. Report (3rd item in HTML)
-           3. Publish (1st item in HTML) - Center
-           4. Feedback (4th item in HTML)
-           5. Support (5th item in HTML)
-           6. Categories (6th item in HTML) - Hidden on Desktop
-        */
+        /* --- 左侧 Category 样式 --- */
+        .sidebar.left .sidebar-item:nth-child(3) {
+            order: 0;
+            color: var(--primary); /* 仅保留颜色，不强制放大 */
+            font-weight: 600;
+        }
+        /* Hover 效果 */
+        .sidebar.left .sidebar-item:nth-child(3):hover {
+            transform: translateY(-3px) scale(1.05);
+            color: var(--primary-hover);
+        }
 
-        /* Chat -> Order 1 */
-        .sidebar.right .sidebar-item:nth-child(2) { order: 1; }
-
-        /* Report -> Order 2 */
-        .sidebar.right .sidebar-item:nth-child(3) { order: 2; }
-
-        /* Publish -> Order 3 (Center) */
+        /* --- 4. Right Sidebar Logic (Desktop) --- */
+        /* Publish (Center) */
         .sidebar.right .sidebar-item:nth-child(1) {
             order: 3;
             color: var(--primary);
-            transform: scale(1.15);
+            font-weight: 600;
+            transform: scale(1); /* 强制取消默认放大 */
+        }
+        /* Publish Hover 效果 */
+        .sidebar.right .sidebar-item:nth-child(1):hover {
+            transform: translateY(-3px) scale(1.05);
+            color: var(--primary-hover);
         }
 
-        /* Feedback -> Order 4 */
-        .sidebar.right .sidebar-item:nth-child(4) { order: 4; }
+        .sidebar.right .sidebar-item:nth-child(2) { order: 1; } /* Chat */
+        .sidebar.right .sidebar-item:nth-child(3) { order: 2; } /* Report */
+        .sidebar.right .sidebar-item:nth-child(4) { order: 4; } /* Feedback */
+        .sidebar.right .sidebar-item:nth-child(5) { order: 5; } /* Support */
+        .sidebar.right .sidebar-item:nth-child(6) { display: none; } /* Categories */
 
-        /* Support -> Order 5 */
-        .sidebar.right .sidebar-item:nth-child(5) { order: 5; }
-
-        /* Categories -> Hidden on Desktop */
-        .sidebar.right .sidebar-item:nth-child(6) { display: none; }
-
-        .sidebar.right .sidebar-item:nth-child(1) .sidebar-text {
-            font-weight: 800;
-        }
 
         /* --- 5. Navbar --- */
         .navbar {
@@ -173,7 +169,7 @@
         }
         .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
 
-        /* --- 6. Dropdown Menu --- */
+        /* --- 6. Dropdown Menu (Fixed) --- */
         .menu-container { position: relative; display: inline-block; }
         .dots-btn {
             width: 36px; height: 36px; border-radius: 50%;
@@ -184,12 +180,26 @@
         .dots-btn:hover { background: #eee; }
 
         .dropdown-content {
-            display: none; position: absolute; right: 0; top: 130%;
+            display: none; position: absolute; right: 0;
+            top: 100%; /* Changed from 130% to 100% to close gap */
+            margin-top: 10px; /* Use margin for visual spacing */
             background-color: white; min-width: 160px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.12);
             border-radius: 16px; z-index: 1001; padding: 8px;
             animation: fadeIn 0.2s ease;
         }
+
+        /* Bridge the gap to prevent menu closing */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: transparent;
+        }
+
         .menu-container:hover .dropdown-content { display: block; }
         .dropdown-item {
             color: var(--text-dark); padding: 12px 16px; text-decoration: none;
@@ -273,16 +283,12 @@
             .sidebar.right .sidebar-text { font-size: 10px; }
 
             /* Mobile Item Swapping Logic */
+            .sidebar.right .sidebar-item:nth-child(4) { display: none; } /* Hide Feedback */
+            .sidebar.right .sidebar-item:nth-child(6) { display: flex !important; order: 4; } /* Show Categories */
 
-            /* Hide Feedback (4th Item) */
-            .sidebar.right .sidebar-item:nth-child(4) {
-                display: none;
-            }
-
-            /* Show Categories (6th Item) */
-            .sidebar.right .sidebar-item:nth-child(6) {
-                display: flex !important; /* Force display flex to match others */
-                order: 4; /* Place it where Feedback was */
+            /* 确保手机端 Publish 按钮没有奇怪的缩放，但保留 Hover 效果 */
+            .sidebar.right .sidebar-item:nth-child(1) {
+                transform: scale(1);
             }
 
             #floating-container { display: none !important; }
@@ -319,6 +325,10 @@
         <span class="sidebar-icon">👗</span>
         <span class="sidebar-text">Fashion</span>
     </a>
+    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html" class="sidebar-item">
+        <span class="sidebar-icon">📂</span>
+        <span class="sidebar-text">Category</span>
+    </a>
     <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Home" class="sidebar-item">
         <span class="sidebar-icon">🏠</span>
         <span class="sidebar-text">Home</span>
@@ -327,10 +337,6 @@
         <span class="sidebar-icon">📚</span>
         <span class="sidebar-text">Books</span>
     </a>
-    <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html?q=Transport" class="sidebar-item">
-        <span class="sidebar-icon">🚲</span>
-        <span class="sidebar-text">Transport</span>
-    </a>
 </div>
 
 <div class="sidebar right">
@@ -338,27 +344,22 @@
         <span class="sidebar-icon">📢</span>
         <span class="sidebar-text">Publish</span>
     </a>
-
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">💬</span>
         <span class="sidebar-text">Chat</span>
     </a>
-
     <a href="Module_Platform_Governance_AI_Services/pages/report.html" class="sidebar-item">
         <span class="sidebar-icon">🏴</span>
         <span class="sidebar-text">Report</span>
     </a>
-
     <a href="#" class="sidebar-item">
         <span class="sidebar-icon">📝</span>
         <span class="sidebar-text">Feedback</span>
     </a>
-
     <a href="Module_Platform_Governance_AI_Services/pages/support.html" class="sidebar-item">
         <span class="sidebar-icon">🎧</span>
         <span class="sidebar-text">Support</span>
     </a>
-
     <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html" class="sidebar-item">
         <span class="sidebar-icon">📂</span>
         <span class="sidebar-text">Category</span>
@@ -396,7 +397,7 @@
 </section>
 
 <section class="market-container">
-    <div style="margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
+    <div style="margin-bottom: 30px; display: flex; align-items: center; gap: 10px; justify-content: center;">
         <h3 style="font-size: 1.5rem; font-weight: 700;">Fresh Arrivals</h3>
         <span style="background: #ecfdf5; color: #059669; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">🔥 Hot</span>
     </div>
