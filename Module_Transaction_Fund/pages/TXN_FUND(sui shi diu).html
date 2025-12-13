@@ -670,8 +670,6 @@
                             <option value="">Select Type</option>
                             <option value="deposit">Deposit</option>
                             <option value="withdrawal">Withdrawal</option>
-                            <option value="refund">Refund</option>
-                            <option value="transfer">Transfer</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1229,7 +1227,7 @@
 
         const type = document.getElementById('requestType').value;
         const amount = document.getElementById('requestAmount').value;
-        const proofImage = document.getElementById('requestImage').value;
+        const proofImage = document.getElementById('proofImage').value;
         const adminRemark = document.getElementById('adminRemark').value;
 
         try {
@@ -1505,17 +1503,12 @@
                     <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
                     <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
                     <div class="modal-actions" style="flex-direction: column; gap: 12px;">
-                        <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
-                            <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                                ✅ Confirm Receipt
-                            </button>
-                            <button class="btn btn-refund" onclick="applyRefundInModal('ORD${order.Orders_Order_ID}')" id="refundBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                                💸 Apply for Refund
-                            </button>
-                        </div>
+                        <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                            ✅ Confirm Receipt
+                        </button>
                         ${isConfirmed ? `
-                        <div style="background: #FEE2E2; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #991B1B;">
-                            ⚠️ Refund is no longer available after confirming receipt
+                        <div style="background: #D1FAE5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065F46;">
+                            ✅ Receipt confirmed
                         </div>
                         ` : ''}
                     </div>
@@ -1546,7 +1539,7 @@
             return;
         }
 
-        if (confirm(`Confirm that you have received the product for order #ORD${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n❌ You cannot apply for refund anymore\n⚠️ This action cannot be undone`)) {
+        if (confirm(`Confirm that you have received the product for order #ORD${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n⚠️ This action cannot be undone`)) {
             try {
                 const result = await apiCall('confirm_receipt', {
                     order_id: orderId,
@@ -1720,24 +1713,19 @@
                 <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
                 <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
                 <div class="modal-actions" style="flex-direction: column; gap: 12px;">
-                    <div style="display: flex; gap: 10px; width: 100%; flex-wrap: wrap;">
-                        <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                            ✅ Confirm Receipt
-                        </button>
-                        <button class="btn btn-refund" onclick="applyRefundInModal('ORD${order.Orders_Order_ID}')" id="refundBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                            💸 Apply for Refund
-                        </button>
-                    </div>
+                    <button class="btn btn-confirm" onclick="confirmReceiptInModal('${id}')" id="confirmBtn-${id}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                        ✅ Confirm Receipt
+                    </button>
                     ${isConfirmed ? `
-                    <div style="background: #FEE2E2; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #991B1B;">
-                        ⚠️ Refund is no longer available after confirming receipt
+                    <div style="background: #D1FAE5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065F46;">
+                        ✅ Receipt confirmed
                     </div>
                     ` : ''}
                 </div>
                 <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
                 <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
                 <div class="modal-actions">
-                    <button class="btn btn-contact" onclick="contactSeller('${order.Orders_Seller_ID}')">
+                    <button class="btn btn-contact" onclick="contactSeller('${data.sellerId}')">
                         💬 Contact Seller
                     </button>
                     <button class="btn btn-view" onclick="contactCustomerService()">
@@ -1888,7 +1876,7 @@
             return;
         }
 
-        if (confirm(`Confirm that you have received the product for order ${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n❌ You cannot apply for refund anymore\n⚠️ This action cannot be undone`)) {
+        if (confirm(`Confirm that you have received the product for order ${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n⚠️ This action cannot be undone`)) {
             // Mark as confirmed
             orderConfirmationStatus[orderId] = true;
 
@@ -1911,37 +1899,6 @@
         }
     }
 
-    // Apply for Refund from Modal
-    function applyRefundInModal(orderId) {
-        // Check if order has been confirmed
-        if (orderConfirmationStatus[orderId]) {
-            alert('⚠️ Cannot apply for refund!\n\nYou have already confirmed receipt of this order. Refund is no longer available.');
-            return;
-        }
-
-        if (confirm(`Are you sure you want to apply for a refund for order ${orderId}?\n\nThis will create a refund request that will be reviewed by the administrator.\n\n⚠️ The order will be put on hold during the review process.`)) {
-            alert(`✅ Refund application submitted successfully!\n\nOrder ID: ${orderId}\nStatus: Pending Review\n\nThe seller and administrator will be notified. You can track the status in the Fund Requests tab.`);
-
-            // Close modal
-            closeModal();
-
-            // In real application:
-            // 1. Send refund request to API
-            // 2. Create a fund request record
-            // 3. Notify seller and admin
-            // 4. Update order status to "Refund Requested"
-            // 5. Redirect to Fund Requests tab or refresh data
-        }
-    }
-
-    /**
-     * Legacy functions for backward compatibility (deprecated)
-     * These functions are kept to prevent breaking changes in existing code
-     * @deprecated Use applyRefundInModal instead
-     */
-    function applyRefund(orderId) {
-        applyRefundInModal(orderId);
-    }
 
     /**
      * @deprecated Use confirmReceiptInModal instead
