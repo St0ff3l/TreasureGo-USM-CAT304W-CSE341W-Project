@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TreasureGO - 违规举报</title>
+  <title>TreasureGO - Violation Report</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* 复用主页的基础变量以保持风格一致 */
     :root {
       --bg-color: #F3F6F9;
       --primary: #4F46E5;
@@ -32,7 +31,6 @@
       padding: 20px;
     }
 
-    /* 举报卡片容器 */
     .report-container {
       background: var(--glass-bg);
       backdrop-filter: blur(20px);
@@ -56,7 +54,6 @@
     .header p { color: #6B7280; font-size: 0.9rem; }
     .emoji-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
 
-    /* 表单样式 */
     .form-group { margin-bottom: 20px; }
 
     label {
@@ -125,43 +122,43 @@
 <div class="report-container">
   <div class="header">
     <span class="emoji-icon">🏴</span>
-    <h1>违规举报中心</h1>
+    <h1>Violation Report Center</h1>
     <p>Report Violation</p>
-    <p>我们要共同维护 TreasureGO 的良好环境</p>
+    <p>Let’s work together to maintain a healthy TreasureGO community</p>
   </div>
 
-  <form onsubmit="alert('提交成功！我们会尽快处理。'); return false;">
+  <form onsubmit="alert('Submitted successfully! We will process it as soon as possible.'); return false;">
     <div class="form-group">
-      <label>举报类型 / Reason</label>
+      <label>Report Reason</label>
       <select required>
-        <option value="" disabled selected>请选择举报原因...</option>
-        <option value="fake">假冒伪劣 / Fake Item</option>
-        <option value="scam">欺诈行为 / Scam</option>
-        <option value="rude">言语辱骂 / Rude Behavior</option>
-        <option value="spam">垃圾广告 / Spam</option>
-        <option value="other">其他 / Other</option>
+        <option value="" disabled selected>Please select a reason...</option>
+        <option value="fake">Fake Item</option>
+        <option value="scam">Scam</option>
+        <option value="rude">Rude Behavior</option>
+        <option value="spam">Spam</option>
+        <option value="other">Other</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label>涉事商品或用户链接 / Target Link</label>
-      <input type="url" placeholder="例如：https://treasurego.com/item/123">
+      <label>Item or User Link</label>
+      <input type="url" placeholder="e.g. https://treasurego.com/item/123">
     </div>
 
     <div class="form-group">
-      <label>详细描述 / Description</label>
-      <textarea placeholder="请详细描述您遇到的问题..." required></textarea>
+      <label>Detailed Description</label>
+      <textarea placeholder="Please describe the issue in detail..." required></textarea>
     </div>
 
     <div class="form-group">
-      <label>联系邮箱 / Your Email</label>
-      <input type="email" placeholder="方便我们反馈处理结果" required>
+      <label>Your Email</label>
+      <input type="email" placeholder="So we can update you on the result" required>
     </div>
 
-    <button type="submit" class="submit-btn">提交举报 (Submit)</button>
+    <button type="submit" class="submit-btn">Submit Report</button>
   </form>
 
-  <a href="../../index.html" class="back-link">← 返回市集首页</a>
+  <a href="../../index.html" class="back-link">← Back to Marketplace</a>
 </div>
 
 </body>

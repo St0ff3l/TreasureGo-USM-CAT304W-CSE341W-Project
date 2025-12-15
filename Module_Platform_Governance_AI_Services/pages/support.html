@@ -6,7 +6,7 @@
     <title>TreasureGO - AI Support</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- 1. Core Variables --- */
+        /* --- Core Variables --- */
         :root {
             --bg-color: #F3F6F9;
             --primary: #4F46E5;
@@ -14,7 +14,7 @@
             --text-dark: #1F2937;
             --text-gray: #6B7280;
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --sidebar-radius: 50px;
+            --sidebar-radius: 24px;
             --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
         }
 
@@ -55,24 +55,77 @@
             display: flex; align-items: center; gap: 10px;
         }
         .logo span { color: var(--text-dark); }
-        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; }
+        .logo-img {
+            width: 40px; height: 40px; border-radius: 8px; object-fit: cover;
+            animation: glowAnimation 3s infinite alternate;
+        }
 
-        /* --- Sidebar (Decorative) --- */
-        .sidebar {
-            position: fixed; top: 50%; transform: translateY(-50%);
+        @keyframes glowAnimation {
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); }
+            100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.8); }
+        }
+
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+
+        .nav-btn {
+            border: none; background: transparent; font-weight: 600; color: var(--text-gray);
+            padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
+        }
+        .nav-btn:hover { color: var(--text-dark); }
+
+        .btn-primary {
+            border: none; background-color: var(--text-dark); color: white;
+            font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px;
+            cursor: pointer; transition: all 0.2s; font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
+
+        /* --- Dropdown Menu --- */
+        .menu-container { position: relative; display: inline-block; }
+        .dots-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; color: var(--text-dark);
+            font-weight: bold; transition: 0.2s; background: #f3f4f6;
+        }
+        .dots-btn:hover { background: #eee; }
+
+        .dropdown-content {
+            display: none; position: absolute; right: 0;
+            top: 100%; margin-top: 10px;
+            background-color: white; min-width: 160px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 16px; z-index: 1001; padding: 8px;
+            animation: fadeIn 0.2s ease;
+        }
+        .dropdown-content::before {
+            content: ""; position: absolute; top: -20px; left: 0;
+            width: 100%; height: 20px; background: transparent;
+        }
+        .menu-container:hover .dropdown-content { display: block; }
+        .dropdown-item {
+            color: var(--text-dark); padding: 12px 16px; text-decoration: none;
+            display: block; font-size: 14px; font-weight: 500; border-radius: 10px;
+        }
+        .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Main Nav Sidebar (Icon only) --- */
+        .main-nav-sidebar {
+            position: fixed; top: 50%; left: 25px; transform: translateY(-50%);
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
-            border-radius: var(--sidebar-radius);
+            border-radius: 50px;
             padding: 25px 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             z-index: 999;
             display: flex; flex-direction: column; gap: 20px; align-items: center; width: 80px;
         }
-        .sidebar.left { left: 25px; }
-        .sidebar-item { font-size: 26px; cursor: pointer; transition: 0.3s; text-decoration: none;}
-        .sidebar-item:hover { transform: translateY(-3px); }
+        .nav-item { font-size: 26px; cursor: pointer; transition: 0.3s; text-decoration: none;}
+        .nav-item:hover { transform: translateY(-3px); }
 
-        /* --- Chat Layout --- */
+        /* --- Chat Layout Wrapper --- */
         .chat-layout {
             display: flex;
             justify-content: center;
@@ -80,146 +133,103 @@
             height: 100vh;
             padding-top: 80px;
             padding-bottom: 20px;
+            padding-left: 100px;
+            padding-right: 20px;
+            gap: 20px;
         }
 
-        .chat-container {
-            width: 900px;
-            height: 85%;
-            background: white;
-            border-radius: 24px;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-            z-index: 10;
+        /* --- Knowledge Base Sidebar --- */
+        .kb-sidebar {
+            width: 300px; height: 85%; background: white;
+            border-radius: var(--sidebar-radius); box-shadow: var(--card-shadow);
+            padding: 25px; display: flex; flex-direction: column;
             border: 1px solid rgba(0,0,0,0.05);
         }
+        .kb-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--text-dark); }
+        .faq-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .faq-item {
+            padding: 12px 15px; background: #F9FAFB; border-radius: 12px;
+            font-size: 0.9rem; color: #4B5563; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .faq-item:hover { background: #EEF2FF; color: var(--primary); transform: translateX(5px); }
+        .faq-arrow { font-size: 12px; opacity: 0.5; }
+        .human-support-area { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; }
+        .btn-human {
+            width: 100%; padding: 12px; background: #1F2937; color: white;
+            border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-human:hover { background: #000; transform: scale(1.02); }
 
-        /* Header */
+        /* --- Chat Container --- */
+        .chat-container {
+            flex: 1; max-width: 800px; height: 85%; background: white;
+            border-radius: var(--sidebar-radius); box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+            z-index: 10; border: 1px solid rgba(0,0,0,0.05);
+        }
         .chat-header {
-            padding: 20px 30px;
-            background: white;
-            border-bottom: 1px solid #f3f4f6;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            padding: 20px 30px; background: white; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; gap: 15px;
         }
         .bot-avatar {
-            width: 45px; height: 45px;
-            background: linear-gradient(135deg, #4F46E5, #818cf8);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; color: white;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+            width: 45px; height: 45px; background: linear-gradient(135deg, #4F46E5, #818cf8);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); flex-shrink: 0;
         }
         .header-info h2 { font-size: 1.2rem; color: var(--text-dark); }
         .status-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .status-text { font-size: 0.85rem; color: var(--text-gray); font-weight: 500; }
 
-        /* Messages Area */
-        .chat-messages {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            background: #FAFAFA;
-        }
-
-        /* Message Bubbles */
-        .message {
-            display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            max-width: 80%;
-            animation: fadeIn 0.3s ease;
-        }
+        .chat-messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #FAFAFA; }
+        .message { display: flex; align-items: flex-end; gap: 10px; max-width: 80%; animation: fadeIn 0.3s ease; }
         .message.user { align-self: flex-end; flex-direction: row-reverse; }
+        .bubble { padding: 14px 20px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; position: relative; word-wrap: break-word; }
+        .message.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
+        .message.bot .bubble { background: white; color: var(--text-dark); border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        .bubble {
-            padding: 14px 20px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .message.user .bubble {
-            background: var(--primary);
-            color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
-        }
-
-        .message.bot .bubble {
-            background: white;
-            color: var(--text-dark);
-            border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        /* Input Area */
-        .input-area {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #f3f4f6;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
+        .input-area { padding: 20px; background: white; border-top: 1px solid #f3f4f6; display: flex; align-items: center; gap: 15px; }
         .chat-input-wrapper {
-            flex: 1;
-            background: #F3F6F9;
-            border-radius: 50px;
-            padding: 5px 20px;
-            display: flex;
-            align-items: center;
-            border: 1px solid transparent;
-            transition: 0.2s;
+            flex: 1; background: #F3F6F9; border-radius: 50px; padding: 5px 20px;
+            display: flex; align-items: center; border: 1px solid transparent; transition: 0.2s;
         }
-        .chat-input-wrapper:focus-within {
-            border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .chat-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 12px 0;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
-            color: var(--text-dark);
-        }
-
+        .chat-input-wrapper:focus-within { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .chat-input { flex: 1; border: none; background: transparent; padding: 12px 0; outline: none; font-family: 'Poppins', sans-serif; font-size: 1rem; color: var(--text-dark); }
         .send-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 45px; height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
-            transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            background: var(--primary); color: white; border: none; width: 45px; height: 45px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; transition: 0.2s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
         .send-btn:hover { background: var(--primary-hover); transform: scale(1.05); }
-        .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
 
-        /* Typing Indicator (CSS Only) */
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- Modal (Dialog) Custom Styles --- */
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
 
+        dialog {
+            /* 关键修改：取消默认居中，设置为顶部显示 */
+            margin: 0 auto;         /* 左右居中 */
+            margin-top: 120px;      /* 距离顶部 120px，避开 Navbar */
+
+            animation: slideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            border: none;
+            outline: none;
+        }
+
+        /* 下滑动画 */
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 1024px) {
+            .kb-sidebar { display: none; }
+            .chat-layout { padding-left: 20px; }
+        }
         @media (max-width: 768px) {
-            .sidebar { display: none; }
+            .main-nav-sidebar { display: none; }
             .chat-container { width: 100%; height: 100%; border-radius: 0; }
             .chat-layout { padding: 80px 0 0 0; }
         }
@@ -232,18 +242,48 @@
         <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
         Treasure<span>Go</span>
     </a>
-    <a href="../../index.html" style="text-decoration: none; color: var(--text-gray); font-weight: 600;">Back to Home</a>
+
+    <div class="nav-actions">
+        <button class="nav-btn" onclick="alert('Top Up Feature')">Top Up</button>
+        <button class="nav-btn" onclick="window.location.href='../../Pages/Order_System/orders.html'">Orders</button>
+
+        <button id="nav-login-btn" class="btn-primary" onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'">Login</button>
+
+        <div id="nav-user-menu" class="menu-container" style="display: none;">
+            <div id="nav-avatar" class="dots-btn" onclick="window.location.href='../../Module_User_Account_Management/pages/profile.php'">
+                👤
+            </div>
+            <div class="dropdown-content">
+                <a href="../../Module_User_Account_Management/pages/profile.php" class="dropdown-item">My Profile</a>
+                <a href="#" class="dropdown-item">Settings</a>
+                <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
+            </div>
+        </div>
+    </div>
 </nav>
 
-<div class="sidebar left">
-    <a href="../../index.html" class="sidebar-item" title="Home">🏠</a>
-
-    <a href="#" class="sidebar-item" style="color: var(--primary);" title="Chat Support">💬</a>
-
-    <a href="report.html" class="sidebar-item" title="Report Issue">🏴</a>
+<div class="main-nav-sidebar">
+    <a href="../../index.html" class="nav-item" title="Home">🏠</a>
+    <a href="#" class="nav-item" style="color: var(--primary);" title="Chat Support">💬</a>
+    <a href="report.html" class="nav-item" title="Report Issue">🏴</a>
 </div>
 
 <div class="chat-layout">
+    <div class="kb-sidebar">
+        <div class="kb-header">🔥 Hot Topics</div>
+        <div class="faq-list">
+            <div class="faq-item" onclick="autoAsk('How to request a refund?')"><span>💰 How to request a refund?</span><span class="faq-arrow">➤</span></div>
+            <div class="faq-item" onclick="autoAsk('Seller is not shipping?')"><span>📦 Seller not shipping</span><span class="faq-arrow">➤</span></div>
+            <div class="faq-item" onclick="autoAsk('Change shipping address')"><span>📍 Change shipping address</span><span class="faq-arrow">➤</span></div>
+            <div class="faq-item" onclick="autoAsk('Forgot/Reset Password')"><span>🔑 Forgot/Reset Password</span><span class="faq-arrow">➤</span></div>
+            <div class="faq-item" onclick="autoAsk('Report a user/scam')"><span>🚨 Report User/Scam</span><span class="faq-arrow">➤</span></div>
+        </div>
+        <div class="human-support-area">
+            <p style="font-size: 12px; color: #6B7280; margin-bottom: 10px;">Unresolved?</p>
+            <button onclick="window.location.href='report.html'" class="btn-human"><span>🎧</span> Human Support / Report</button>
+        </div>
+    </div>
+
     <div class="chat-container">
         <div class="chat-header">
             <div class="bot-avatar">🤖</div>
@@ -252,16 +292,12 @@
                 <div><span class="status-dot"></span><span class="status-text">Online | Powered by DeepSeek</span></div>
             </div>
         </div>
-
         <div class="chat-messages" id="chatMessages">
             <div class="message bot">
                 <div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px;">🤖</div>
-                <div class="bubble">
-                    Hello! I'm your AI assistant. Ask me anything about finding treasures or your orders!
-                </div>
+                <div class="bubble">Hello! I'm your AI assistant.<br>Pick a topic from the left or type your question below!</div>
             </div>
         </div>
-
         <div class="input-area">
             <div class="chat-input-wrapper">
                 <input type="text" id="userInput" class="chat-input" placeholder="Type your question here..." autocomplete="off">
@@ -271,74 +307,103 @@
     </div>
 </div>
 
+<dialog id="loginDialog" style="border-radius:24px; padding:30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); text-align:center; width: 320px;">
+    <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+    <h3 style="margin-bottom:10px; color: var(--text-dark); font-size: 1.2rem;">Login Required</h3>
+    <p style="margin-bottom:25px; color:#6B7280; font-size: 0.95rem; line-height: 1.5;">
+        You need to log in to chat with our AI Assistant.
+    </p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+        <button onclick="document.getElementById('loginDialog').close()"
+                style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer; font-weight: 600;">
+            Cancel
+        </button>
+        <button onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'"
+                style="padding:10px 20px; border:none; background:#4F46E5; color:white; border-radius:12px; cursor:pointer; font-weight: 600;">
+            Go to Login
+        </button>
+    </div>
+</dialog>
+
 <script>
     // ============================================
-    // ✅ Core Configuration
+    // ✅ 1. Check Session Status
+    // ============================================
+    document.addEventListener('DOMContentLoaded', async () => {
+        const loginBtn = document.getElementById('nav-login-btn');
+        const userMenu = document.getElementById('nav-user-menu');
+        const avatarBtn = document.getElementById('nav-avatar');
+
+        try {
+            const res = await fetch('../../Module_User_Account_Management/api/session_status.php');
+            const data = await res.json();
+
+            if (data.is_logged_in) {
+                // Logged in
+                loginBtn.style.display = 'none';
+                userMenu.style.display = 'inline-block';
+
+                if (data.user) {
+                    if (data.user.avatar_url) {
+                        avatarBtn.innerHTML = `<img src="${data.user.avatar_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                        avatarBtn.style.background = 'transparent';
+                    } else if (data.user.username) {
+                        avatarBtn.innerText = data.user.username.charAt(0).toUpperCase();
+                        avatarBtn.style.background = '#EEF2FF';
+                        avatarBtn.style.color = '#4F46E5';
+                    }
+                }
+            } else {
+                // Not logged in
+                loginBtn.style.display = 'inline-block';
+                userMenu.style.display = 'none';
+            }
+        } catch (err) {
+            console.error("Session check failed:", err);
+            loginBtn.style.display = 'inline-block';
+            userMenu.style.display = 'none';
+        }
+    });
+
+    // ============================================
+    // ✅ 2. Chat Logic (With Top-Positioned Dialog)
     // ============================================
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
 
-    // ============================================
-    // ✅ Function 1: Add message to UI
-    // ============================================
     function addMessage(text, sender) {
-        // Create message container
         const msgDiv = document.createElement('div');
-
-        // CSS class mapping: if sender is 'ai' or 'bot', map to 'bot' class
         const cssClass = (sender === 'ai' || sender === 'bot') ? 'bot' : 'user';
         msgDiv.className = `message ${cssClass}`;
-
-        // Generate unique ID (used to remove "Thinking..." message)
         const msgId = Date.now() + Math.random().toString(36).substr(2, 9);
         msgDiv.setAttribute('data-id', msgId);
 
-        // Build HTML content
         let avatarHtml = '';
         if (cssClass === 'bot') {
             avatarHtml = `<div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px;">🤖</div>`;
         }
 
-        // Simple HTML escaping to prevent injection
         const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
-
-        msgDiv.innerHTML = `
-            ${avatarHtml}
-            <div class="bubble">${safeText}</div>
-        `;
-
-        // Add to UI and scroll to bottom
+        msgDiv.innerHTML = `${avatarHtml}<div class="bubble">${safeText}</div>`;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        return msgId; // Return ID for future use
+        return msgId; // Return ID for future removal
     }
 
-    // ============================================
-    // ✅ Function 2: Send message logic
-    // ============================================
     async function handleSend() {
         const userMessage = userInput.value.trim();
-
         if (!userMessage) return;
 
-        // 1. Display user message
-        addMessage(userMessage, 'user');
-        userInput.value = ''; // Clear input field
+        // 1. Optimistic UI: Add user message immediately
+        const userMsgId = addMessage(userMessage, 'user');
+        userInput.value = '';
 
-        // 2. Show loading state
         const loadingId = addMessage('Thinking...', 'ai');
 
         try {
-            // Use relative path (NAS friendly)
             const apiUrl = '../api/support.php';
-
-            const payload = {
-                messages: [
-                    { role: "user", content: userMessage }
-                ]
-            };
+            const payload = { messages: [{ role: "user", content: userMessage }] };
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -346,44 +411,47 @@
                 body: JSON.stringify(payload)
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+            // 🛑 Check for 401 Unauthorized
+            if (response.status === 401) {
+                // Remove "Thinking..."
+                document.querySelector(`[data-id="${loadingId}"]`)?.remove();
+
+                // 🌟 Rollback: Remove the user's message bubble
+                document.querySelector(`[data-id="${userMsgId}"]`)?.remove();
+
+                // 🌟 Show the custom Dialog (it will appear at top now)
+                document.getElementById('loginDialog').showModal();
+                return;
             }
+
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
             const data = await response.json();
 
-            // 3. Remove "Thinking..." message
-            const loadingElement = document.querySelector(`[data-id="${loadingId}"]`);
-            if (loadingElement) loadingElement.remove();
+            // Remove loading
+            document.querySelector(`[data-id="${loadingId}"]`)?.remove();
 
-            // 4. Display AI response
             if (data.choices && data.choices.length > 0) {
-                const aiContent = data.choices[0].message.content;
-                addMessage(aiContent, 'ai');
+                addMessage(data.choices[0].message.content, 'ai');
             } else {
-                addMessage("Received empty response from AI.", 'ai');
+                addMessage("Empty response.", 'ai');
             }
-
         } catch (error) {
             console.error('Chat Error:', error);
+            document.querySelector(`[data-id="${loadingId}"]`)?.remove();
 
-            // Remove loading message
-            const loadingElement = document.querySelector(`[data-id="${loadingId}"]`);
-            if (loadingElement) loadingElement.remove();
-
-            addMessage(`Error: ${error.message}. Please ensure php -S localhost:8000 is running.`, 'ai');
+            // Show error
+            addMessage(`System Error: ${error.message}`, 'ai');
         }
     }
 
-    // ============================================
-    // ✅ Event Listeners
-    // ============================================
-    sendBtn.addEventListener('click', handleSend);
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSend();
-    });
+    function autoAsk(text) {
+        userInput.value = text;
+        handleSend();
+    }
 
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
 </script>
 
 </body>

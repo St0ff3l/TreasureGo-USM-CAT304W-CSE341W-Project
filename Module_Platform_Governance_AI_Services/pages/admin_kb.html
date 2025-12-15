@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>TreasureGo - KB Manager</title>
+  <style>
+    /* 简化的 CSS，建议复用你之前的 */
+    body { font-family: 'Poppins', sans-serif; background: #F3F6F9; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    h2 { color: #4F46E5; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; color: #374151; }
+    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; font-family: inherit; }
+    textarea { height: 100px; resize: vertical; }
+
+    .btn { padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    .btn:hover { background: #4338CA; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #F9FAFB; color: #6B7280; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📚 知识库管理 (Knowledge Base Admin)</h2>
+
+  <form id="kbForm">
+    <div class="form-group">
+      <label>常见问题 (Question / Keyword)</label>
+      <input type="text" id="question" placeholder="例如：如何申请退款？" required>
+    </div>
+
+    <div class="form-group">
+      <label>标准回答 (Answer)</label>
+      <textarea id="answer" placeholder="请在此输入 AI 参考的标准答案..." required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>分类 (Category)</label>
+      <select id="category">
+        <option value="Refund">退款 (Refund)</option>
+        <option value="Order">订单 (Order)</option>
+        <option value="Account">账户 (Account)</option>
+        <option value="Safety">安全 (Safety)</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn">💾 保存到数据库</button>
+  </form>
+
+  <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+  <h3>现有条目</h3>
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>问题</th>
+      <th>分类</th>
+      <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="kbList">
+    <tr>
+      <td>10001</td>
+      <td>如何重置密码?</td>
+      <td>Account</td>
+      <td><button style="color:red; background:none; border:none; cursor:pointer;">删除</button></td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 这里你需要写一段 JS：
+  // 1. 页面加载时，fetch('../api/get_kb_list.php') 填充表格
+  // 2. 表单提交时，fetch('../api/save_kb.php') 发送 POST 请求
+</script>
+
+</body>
+</html>
