@@ -87,7 +87,19 @@
             height: 40px;
             border-radius: 8px;
             object-fit: cover;
-            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+            /* 呼吸发光动画 */
+            animation: glowAnimation 3s infinite alternate;
+        }
+
+        @keyframes glowAnimation {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.2),
+                0 0 10px rgba(245, 158, 11, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(245, 158, 11, 0.8),
+                0 0 25px rgba(245, 158, 11, 0.5);
+            }
         }
 
         .nav-actions {
@@ -635,13 +647,13 @@
 
 <script>
     // ==================== API CONFIGURATION ====================
-    const API_BASE_URL = '../api/TXN.php';
+    const API_BASE_URL = '../api/Fund_Request.php';
     const CURRENT_USER_ID = 12345678; // TODO: Get from session/login
 
     // API Helper Functions
     async function apiCall(action, data = {}, method = 'POST') {
         try {
-            const url = `${API_BASE_URL}?action=${action}`;
+            let url = `${API_BASE_URL}?action=${action}`;
             const options = {
                 method: method,
                 headers: {
@@ -649,7 +661,13 @@
                 },
             };
 
-            if (method === 'POST' || method === 'PUT') {
+            // For GET requests, add parameters to URL
+            if (method === 'GET') {
+                Object.keys(data).forEach(key => {
+                    url += `&${key}=${encodeURIComponent(data[key])}`;
+                });
+            } else {
+                // For POST/PUT, add parameters to body
                 options.body = JSON.stringify(data);
             }
 
@@ -679,11 +697,11 @@
     // Load Statistics
     async function loadStatistics() {
         try {
-            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'POST');
+            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'GET');
             const stats = result.data;
 
             // Update statistics cards
-            document.getElementById('availableBalance').textContent = '$' + stats.balance;
+            document.getElementById('availableBalance').textContent = '$' + parseFloat(stats.balance).toFixed(2);
             document.getElementById('pendingRequests').textContent = stats.pending_requests;
         } catch (error) {
             console.error('Failed to load statistics:', error);
@@ -693,7 +711,7 @@
     // Load Fund Requests
     async function loadFundRequests() {
         try {
-            const result = await apiCall('get_fund_requests', { user_id: CURRENT_USER_ID }, 'POST');
+            const result = await apiCall('get_fund_requests', { user_id: CURRENT_USER_ID }, 'GET');
             const requests = result.data;
 
             const tbody = document.getElementById('fundRequestsBody');
@@ -790,7 +808,7 @@
 
         const type = document.getElementById('requestType').value;
         const amount = document.getElementById('requestAmount').value;
-        const proofImage = document.getElementById('proofImage').value;
+        const proofImage = document.getElementById('requestImage').value;
         const adminRemark = document.getElementById('adminRemark').value;
 
         try {
@@ -820,7 +838,7 @@
     // View Fund Request Details (API-based)
     async function viewFundRequestDetails(requestId) {
         try {
-            const result = await apiCall('get_fund_request', { request_id: requestId }, 'POST');
+            const result = await apiCall('get_fund_request', { request_id: requestId }, 'GET');
             const request = result.data;
 
             const modal = document.getElementById('detailModal');

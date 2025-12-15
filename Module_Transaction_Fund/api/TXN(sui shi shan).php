@@ -144,9 +144,9 @@ function createFundRequest($conn, $request) {
             sendResponse(false, 'Amount must be greater than 0', null, 400);
         }
 
-        $validTypes = ['deposit', 'withdrawal', 'refund', 'transfer'];
+        $validTypes = ['deposit', 'withdrawal'];
         if (!in_array($type, $validTypes)) {
-            sendResponse(false, 'Invalid type. Must be: deposit, withdrawal, refund, or transfer', null, 400);
+            sendResponse(false, 'Invalid type. Must be: deposit or withdrawal', null, 400);
         }
 
         // Insert fund request

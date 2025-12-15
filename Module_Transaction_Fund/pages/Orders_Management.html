@@ -87,7 +87,19 @@
             height: 40px;
             border-radius: 8px;
             object-fit: cover;
-            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+            /* 呼吸发光动画 */
+            animation: glowAnimation 3s infinite alternate;
+        }
+
+        @keyframes glowAnimation {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.2),
+                0 0 10px rgba(245, 158, 11, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(245, 158, 11, 0.8),
+                0 0 25px rgba(245, 158, 11, 0.5);
+            }
         }
 
         .nav-actions {
@@ -616,7 +628,7 @@
 
 <script>
     // ==================== API CONFIGURATION ====================
-    const API_BASE_URL = '../api/TXN.php';
+    const API_BASE_URL = '../api/Orders_Management.php';
     const CURRENT_USER_ID = 12345678; // TODO: Get from session/login
 
     // Store order confirmation status (in real app, this would be from database)
@@ -625,7 +637,7 @@
     // API Helper Functions
     async function apiCall(action, data = {}, method = 'POST') {
         try {
-            const url = `${API_BASE_URL}?action=${action}`;
+            let url = `${API_BASE_URL}?action=${action}`;
             const options = {
                 method: method,
                 headers: {
@@ -633,7 +645,13 @@
                 },
             };
 
-            if (method === 'POST' || method === 'PUT') {
+            // For GET requests, add parameters to URL
+            if (method === 'GET') {
+                Object.keys(data).forEach(key => {
+                    url += `&${key}=${encodeURIComponent(data[key])}`;
+                });
+            } else {
+                // For POST/PUT, add parameters to body
                 options.body = JSON.stringify(data);
             }
 
@@ -663,7 +681,7 @@
     // Load Statistics
     async function loadStatistics() {
         try {
-            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'POST');
+            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'GET');
             const stats = result.data;
 
             // Update statistics cards
@@ -676,7 +694,7 @@
     // Load Orders
     async function loadOrders() {
         try {
-            const result = await apiCall('get_orders', { user_id: CURRENT_USER_ID }, 'POST');
+            const result = await apiCall('get_orders', { user_id: CURRENT_USER_ID }, 'GET');
             const orders = result.data;
 
             const tbody = document.getElementById('ordersBody');
