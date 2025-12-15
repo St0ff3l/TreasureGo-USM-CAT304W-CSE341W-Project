@@ -21,7 +21,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); padding-bottom: 50px; }
 
-    /* --- 2. Navbar (Pixel Perfect Match with Homepage) --- */
+    /* --- Navbar --- */
     .navbar {
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
@@ -41,7 +41,6 @@
 
     .nav-actions { display: flex; align-items: center; gap: 20px; }
 
-    /* 统一按钮样式 */
     .nav-btn {
       border: none; background: transparent; font-weight: 600; color: var(--text-gray);
       padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
@@ -79,16 +78,16 @@
       font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; transform: rotate(5deg);
     }
 
-    /* --- Pricing Cards Container (调整尺寸) --- */
+    /* --- Pricing Cards Container --- */
     .pricing-container {
-      max-width: 850px; /* 缩小宽度，原1000px */
+      max-width: 850px;
       margin: 0 auto; padding: 0 20px;
       display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
     }
 
-    /* Card Styles (调整内边距) */
+    /* Card Styles */
     .plan-card {
-      background: white; border-radius: 20px; padding: 30px 25px; /* 缩小Padding，原40px 30px */
+      background: white; border-radius: 20px; padding: 30px 25px;
       position: relative; transition: 0.3s; border: 2px solid transparent;
       box-shadow: 0 10px 30px rgba(0,0,0,0.05);
       display: flex; flex-direction: column;
@@ -98,17 +97,28 @@
     .plan-card.vip:hover { border-color: var(--primary); }
     .plan-card.svip { border: 2px solid var(--gold); background: linear-gradient(to bottom, #FFFCF5, #FFFFFF); }
 
+    /* ★★★ MOST POPULAR 标签样式 ★★★ */
     .popular-tag {
-      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-      background: var(--gold-gradient); color: white; padding: 4px 12px;
-      border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
-      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4); width: max-content;
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold-gradient);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+      width: max-content;
+      z-index: 1;
     }
 
-    /* Content (调整字体大小) */
+    /* Content */
     .plan-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     .price-area { margin-bottom: 25px; }
-    .price { font-size: 2.5rem; font-weight: 800; color: var(--text-dark); } /* 缩小价格字体 */
+    .price { font-size: 2.5rem; font-weight: 800; color: var(--text-dark); }
     .period { color: var(--text-gray); font-size: 0.9rem; }
 
     .features { list-style: none; margin-bottom: 30px; flex-grow: 1; }
@@ -126,8 +136,8 @@
     /* Mobile Adaptation */
     @media (max-width: 768px) {
       .navbar { padding: 1rem 20px; }
-      .nav-btn { display: none; } /* Mobile hide text links */
-      .pricing-container { grid-template-columns: 1fr; gap: 30px; max-width: 400px; } /* 手机端单列且限宽 */
+      .nav-btn { display: none; }
+      .pricing-container { grid-template-columns: 1fr; gap: 30px; max-width: 400px; }
       .hero h1 { font-size: 1.8rem; }
       .plan-card.svip { order: -1; }
     }
@@ -160,7 +170,7 @@
   <div class="billing-toggle">
     <button class="toggle-btn active" onclick="setCycle('monthly', this)">Monthly</button>
     <button class="toggle-btn" onclick="setCycle('quarterly', this)">Quarterly <span class="discount-badge">-10%</span></button>
-    <button class="toggle-btn" onclick="setCycle('yearly', this)">Yearly <span class="discount-badge">-20%</span></button>
+    <button class="toggle-btn" onclick="setCycle('yearly', this)">Yearly <span class="discount-badge">-15%</span></button>
   </div>
 </div>
 
@@ -171,7 +181,7 @@
       <span style="color:#4F46E5;">💎</span> VIP Member
     </div>
     <div class="price-area">
-      <span class="price" id="price-vip">$9.9</span>
+      <span class="price" id="price-vip">Loading...</span>
       <span class="period" id="period-text">/ month</span>
     </div>
     <ul class="features">
@@ -185,11 +195,12 @@
 
   <div class="plan-card svip">
     <div class="popular-tag">MOST POPULAR 🔥</div>
+
     <div class="plan-name">
       <span style="color:#F59E0B;">👑</span> SVIP Member
     </div>
     <div class="price-area">
-      <span class="price" id="price-svip">$19.9</span>
+      <span class="price" id="price-svip">Loading...</span>
       <span class="period" id="period-text-svip">/ month</span>
     </div>
     <ul class="features">
@@ -209,22 +220,37 @@
 </div>
 
 <script>
-  // 1. Pricing Configuration
-  const pricingData = {
-    'monthly': { vip: 9.9, svip: 19.9, label: '/ month' },
-    'quarterly': { vip: 26.9, svip: 53.9, label: '/ quarter' },
-    'yearly': { vip: 95.0, svip: 190.0, label: '/ year' }
-  };
-
+  let pricingData = {};
   let currentCycle = 'monthly';
 
-  // 2. Switch Cycle Function
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await fetch('../api/get_membership_plans.php');
+      const result = await response.json();
+
+      if (result.success) {
+        pricingData = result.data;
+        const activeBtn = document.querySelector('.toggle-btn.active');
+        setCycle('monthly', activeBtn);
+      } else {
+        console.error("API Error:", result.message);
+        document.getElementById('price-vip').innerText = "Error";
+      }
+    } catch (error) {
+      console.error("Connection Failed:", error);
+    }
+  });
+
   function setCycle(cycle, btnElement) {
+    if (!pricingData[cycle]) return;
+
     currentCycle = cycle;
     document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-    btnElement.classList.add('active');
+    if(btnElement) btnElement.classList.add('active');
+
     updatePrice('price-vip', pricingData[cycle].vip);
     updatePrice('price-svip', pricingData[cycle].svip);
+
     document.getElementById('period-text').innerText = pricingData[cycle].label;
     document.getElementById('period-text-svip').innerText = pricingData[cycle].label;
   }
@@ -233,14 +259,15 @@
     const el = document.getElementById(id);
     el.style.opacity = 0;
     setTimeout(() => {
-      el.innerText = '$' + newPrice;
+      el.innerText = newPrice; // 不加 $
       el.style.opacity = 1;
     }, 200);
   }
 
   function purchase(plan) {
+    if (!pricingData[currentCycle]) return;
     const price = plan === 'VIP' ? pricingData[currentCycle].vip : pricingData[currentCycle].svip;
-    showToast(`Selected ${plan} - ${currentCycle} ($${price})`);
+    showToast(`Selected ${plan} - ${currentCycle} (${price})`);
   }
 
   function showToast(message) {

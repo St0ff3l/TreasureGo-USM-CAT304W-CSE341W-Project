@@ -2,64 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction & Fund Management - TreasureGO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TreasureGO Membership</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        /* --- Core Variables --- */
         :root {
             --bg-color: #F3F6F9;
             --primary: #4F46E5;
             --primary-hover: #4338CA;
-            --accent: #F59E0B;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
             --text-dark: #1F2937;
             --text-gray: #6B7280;
             --glass-bg: rgba(255, 255, 255, 0.95);
-            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            --gold: #F59E0B;
+            --gold-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); padding-bottom: 50px; }
 
-        body {
-            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            min-height: 100vh;
-            overflow-x: hidden;
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
-        }
-
-        #floating-container {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .floating-item {
-            position: absolute;
-            font-size: 4rem;
-            opacity: 0.6;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
-            animation: floatUp 15s linear infinite;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.8; }
-            90% { opacity: 0.8; }
-            100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
-        }
-
+        /* --- 2. Navbar --- */
         .navbar {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             padding: 1rem 5%;
             display: flex;
             justify-content: space-between;
@@ -70,1895 +35,215 @@
             border-bottom: 1px solid rgba(255,255,255,0.5);
         }
 
-        .logo {
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .logo span { color: var(--text-dark); }
+        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .logo-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .nav-actions button {
-            border: none;
-            background: transparent;
-            font-weight: 600;
-            color: var(--text-gray);
-            padding: 0.6rem 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 8px;
-        }
-
-        .nav-actions .btn-primary {
-            background-color: var(--text-dark);
-            color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .nav-actions .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        }
-
-        .nav-actions button:not(.btn-primary):hover {
-            color: var(--primary);
-            background: rgba(79, 70, 229, 0.05);
-        }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .page-title {
-            font-size: 3rem;
-            line-height: 1.1;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-subtitle {
-            font-size: 1.1rem;
-            color: var(--text-gray);
-        }
-
-        /* Tab Navigation */
-        .tab-nav {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: white;
-            border: 2px solid transparent;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--card-shadow);
-            font-size: 1rem;
-        }
-
-        .tab-btn:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 3rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid rgba(0,0,0,0.04);
-            transition: all 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1);
-        }
-
-        .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-gray);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        /* Action Section */
-        .action-section {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-        }
-
-        .form-input, .form-select, .form-textarea {
-            padding: 12px 16px;
-            border: 2px solid #E5E7EB;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.2s;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-        }
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
 
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-            color: white;
-            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+        .nav-btn {
+            border: none; background: transparent; font-weight: 600; color: var(--text-gray);
+            padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
         }
+        .nav-btn:hover { color: var(--text-dark); }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px -5px rgba(79, 70, 229, 0.4);
+        .btn-primary {
+            border: none; background-color: var(--text-dark); color: white; font-weight: 600;
+            padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
 
-        /* Table Styles */
-        .table-container {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #F9FAFB;
-        }
-
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-            border-bottom: 2px solid #E5E7EB;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #F3F4F6;
-            font-size: 0.95rem;
-        }
-
-        tr:hover {
-            background: #F9FAFB;
-        }
-
-        .order-type-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .status-approved {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .status-processing {
-            background: #DBEAFE;
-            color: #1E40AF;
-        }
-
-        .status-completed {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .status-rejected {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .status-cancelled {
-            background: #F3F4F6;
-            color: #6B7280;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            border-radius: 8px;
-        }
-
-        .btn-view {
-            background: #EFF6FF;
-            color: #1E40AF;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-view:hover {
-            background: #DBEAFE;
-        }
-
-        .btn-refund {
-            background: #FEF3C7;
-            color: #92400E;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-refund:hover {
-            background: #FDE68A;
-        }
-
-        .btn-contact {
-            background: #E0E7FF;
-            color: #3730A3;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-contact:hover {
-            background: #C7D2FE;
-        }
-
-        .btn-confirm {
-            background: #D1FAE5;
-            color: #065F46;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-confirm:hover {
-            background: #A7F3D0;
-        }
-
-        .btn-confirm:disabled,
-        .btn-refund:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .btn-admin {
-            background: #FCE7F3;
-            color: #831843;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-admin:hover {
-            background: #FBCFE8;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-gray);
-        }
+        .menu-container { position: relative; display: inline-block; }
+        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: var(--text-dark); font-weight: bold; }
 
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+        /* --- Hero Section --- */
+        .hero { text-align: center; padding: 40px 20px 30px; }
+        .hero h1 { font-size: 2.2rem; margin-bottom: 8px; }
+        .hero p { color: var(--text-gray); font-size: 1rem; }
 
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            overflow-y: auto;
+        /* --- Billing Toggle --- */
+        .billing-toggle {
+            background: white; display: inline-flex; padding: 4px; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px; position: relative;
         }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s;
+        .toggle-btn {
+            padding: 8px 20px; border-radius: 40px; border: none; background: transparent;
+            font-weight: 600; color: var(--text-gray); cursor: pointer; transition: 0.3s; position: relative; font-size: 0.9rem;
         }
+        .toggle-btn.active { background: var(--text-dark); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            position: relative;
+        .discount-badge {
+            position: absolute; top: -10px; right: -5px; background: #EF4444; color: white;
+            font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; transform: rotate(5deg);
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
+        /* --- Pricing Cards Container --- */
+        .pricing-container {
+            max-width: 850px;
+            margin: 0 auto; padding: 0 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
         }
 
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
+        /* Card Styles */
+        .plan-card {
+            background: white; border-radius: 20px; padding: 30px 25px;
+            position: relative; transition: 0.3s; border: 2px solid transparent;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
         }
+        .plan-card:hover { transform: translateY(-8px); }
+        .plan-card.vip { border-color: #E5E7EB; }
+        .plan-card.vip:hover { border-color: var(--primary); }
+        .plan-card.svip { border: 2px solid var(--gold); background: linear-gradient(to bottom, #FFFCF5, #FFFFFF); }
 
-        .close-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #F3F4F6;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
+        /* Content */
+        .plan-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .price-area { margin-bottom: 25px; }
 
-        .close-btn:hover {
-            background: #E5E7EB;
-            transform: rotate(90deg);
-        }
+        /* 修改：价格字体大小稍微调整以适应无符号显示 */
+        .price { font-size: 2.5rem; font-weight: 800; color: var(--text-dark); }
 
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #F3F4F6;
-        }
+        .period { color: var(--text-gray); font-size: 0.9rem; }
 
-        .detail-label {
-            font-weight: 600;
-            color: var(--text-gray);
-        }
+        .features { list-style: none; margin-bottom: 30px; flex-grow: 1; }
+        .features li { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: #4B5563; font-size: 0.9rem; }
+        .check-icon { color: var(--success); font-weight: bold; font-size: 1.1rem; }
+        .check-icon.gold { color: var(--gold); }
 
-        .detail-value {
-            color: var(--text-dark);
-            font-weight: 600;
-        }
+        /* Buttons */
+        .btn-plan { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-vip { background: #F3F4F6; color: var(--text-dark); }
+        .btn-vip:hover { background: #E5E7EB; }
+        .btn-svip { background: var(--text-dark); color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .btn-svip:hover { background: black; transform: scale(1.02); }
 
+        /* Mobile Adaptation */
         @media (max-width: 768px) {
-            .page-title { font-size: 2rem; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-            .tab-nav { gap: 8px; }
-            .tab-btn { padding: 10px 20px; font-size: 0.9rem; }
-
-            table {
-                font-size: 0.85rem;
-            }
-
-            th, td {
-                padding: 10px 8px;
-            }
+            .navbar { padding: 1rem 20px; }
+            .nav-btn { display: none; }
+            .pricing-container { grid-template-columns: 1fr; gap: 30px; max-width: 400px; }
+            .hero h1 { font-size: 1.8rem; }
+            .plan-card.svip { order: -1; }
         }
     </style>
 </head>
 <body>
 
-<div id="floating-container"></div>
-
 <nav class="navbar">
     <a href="../../index.html" class="logo">
-        <img src="../../Public_Assets/images/ChatGPT%20Image%202025年12月12日%2013_20_32.png" alt="TreasureGO Logo" class="logo-img">
+        <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
         Treasure<span>Go</span>
     </a>
     <div class="nav-actions">
-        <button onclick="window.location.href='../../index.html'">Market</button>
-        <button class="btn-primary">Login</button>
+        <button class="nav-btn" onclick="alert('Top Up Page')">Top Up</button>
+        <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
+        <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
+
+        <div class="menu-container">
+            <div class="dots-btn">•••</div>
+        </div>
     </div>
 </nav>
 
-<div class="main-container">
-    <div class="page-header">
-        <h1 class="page-title">Transaction & Fund Management</h1>
-        <p class="page-subtitle">Manage your funds, orders, and transactions securely</p>
-    </div>
+<section class="hero">
+    <h1>Unlock More Power</h1>
+    <p>Save fees and trade faster with TreasureGo Membership.</p>
+</section>
 
-    <!-- Statistics Dashboard -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-label">Available Balance</div>
-            <div class="stat-value">$2,458.50</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-label">Total Orders</div>
-            <div class="stat-value">24</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">⏳</div>
-            <div class="stat-label">Pending Requests</div>
-            <div class="stat-value">3</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-label">Completed Transactions</div>
-            <div class="stat-value">18</div>
-        </div>
-    </div>
-
-    <!-- Tab Navigation -->
-    <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('fund-requests')">💳 Fund Requests</button>
-        <button class="tab-btn" onclick="switchTab('orders')">📦 Orders Management</button>
-        <button class="tab-btn" onclick="switchTab('transactions')">📊 Transaction History</button>
-    </div>
-
-    <!-- Fund Requests Tab -->
-    <div id="fund-requests" class="tab-content active">
-        <!-- Create Fund Request Form -->
-        <div class="action-section">
-            <h2 class="section-title">
-                <span>💸</span>
-                Create Fund Request
-            </h2>
-            <form id="fundRequestForm">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="requestType">Request Type *</label>
-                        <select class="form-select" id="requestType" required>
-                            <option value="">Select Type</option>
-                            <option value="deposit">Deposit</option>
-                            <option value="withdrawal">Withdrawal</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="requestAmount">Amount *</label>
-                        <input type="number" class="form-input" id="requestAmount" placeholder="0.00" step="0.01" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="proofImage">Proof Image URL</label>
-                        <input type="text" class="form-input" id="proofImage" placeholder="https://...">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="adminRemark">Admin Remark (Optional)</label>
-                    <textarea class="form-textarea" id="adminRemark" placeholder="Add any additional notes..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-submit">
-                    <span>✓</span>
-                    Submit Request
-                </button>
-            </form>
-        </div>
-
-        <!-- Fund Requests Table -->
-        <div class="table-container">
-            <h2 class="section-title">
-                <span>📋</span>
-                My Fund Requests
-            </h2>
-            <table id="fundRequestsTable">
-                <thead>
-                    <tr>
-                        <th>Request ID</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th>Processed At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="fundRequestsBody">
-                    <!-- Sample Data -->
-                    <tr>
-                        <td>#FR001</td>
-                        <td>Withdrawal</td>
-                        <td><strong>$150.00</strong></td>
-                        <td><span class="status-badge status-pending">Pending</span></td>
-                        <td>2025-12-12 10:30</td>
-                        <td>-</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewFundRequest('FR001')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#FR002</td>
-                        <td>Deposit</td>
-                        <td><strong>$500.00</strong></td>
-                        <td><span class="status-badge status-approved">Approved</span></td>
-                        <td>2025-12-11 14:20</td>
-                        <td>2025-12-11 15:45</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewFundRequest('FR002')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#FR003</td>
-                        <td>Refund</td>
-                        <td><strong>$45.50</strong></td>
-                        <td><span class="status-badge status-processing">Processing</span></td>
-                        <td>2025-12-10 09:15</td>
-                        <td>-</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewFundRequest('FR003')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Orders Tab -->
-    <div id="orders" class="tab-content">
-        <div class="action-section" style="margin-bottom: 2rem; padding: 1.5rem;">
-            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-dark);">📋 Order Type Legend</h3>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.5rem;">📦</span>
-                    <div>
-                        <strong style="color: #10B981;">Product Orders (#ORD)</strong>
-                        <div style="font-size: 0.85rem; color: var(--text-gray);">Buy/sell items, contact seller for support</div>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.5rem;">💰</span>
-                    <div>
-                        <strong style="color: #F59E0B;">Fund Deposits (#FND)</strong>
-                        <div style="font-size: 0.85rem; color: var(--text-gray);">Account top-ups, contact admin for support</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <h2 class="section-title">
-                <span>📦</span>
-                Order Management
-            </h2>
-            <table id="ordersTable">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Buyer ID</th>
-                        <th>Seller ID</th>
-                        <th>Total Amount</th>
-                        <th>Platform Fee</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersBody">
-                    <!-- Product Transaction Orders -->
-                    <tr>
-                        <td><strong>#ORD001</strong><br><small style="color: #10B981;">📦 Product Order</small></td>
-                        <td>12345678</td>
-                        <td>87654321</td>
-                        <td><strong>$125.00</strong></td>
-                        <td>$6.25</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        <td>2025-12-12 11:20</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewOrder('ORD001', 'product', 'completed')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#FND001</strong><br><small style="color: #F59E0B;">💰 Fund Deposit</small></td>
-                        <td>23456789</td>
-                        <td>-</td>
-                        <td><strong>$500.00</strong></td>
-                        <td>$0.00</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        <td>2025-12-11 15:45</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewOrder('FND001', 'deposit', 'completed')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#ORD002</strong><br><small style="color: #10B981;">📦 Product Order</small></td>
-                        <td>34567890</td>
-                        <td>98765432</td>
-                        <td><strong>$80.00</strong></td>
-                        <td>$4.00</td>
-                        <td><span class="status-badge status-processing">Processing</span></td>
-                        <td>2025-12-11 16:45</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewOrder('ORD002', 'product', 'processing')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#FND002</strong><br><small style="color: #F59E0B;">💰 Fund Deposit</small></td>
-                        <td>12345678</td>
-                        <td>-</td>
-                        <td><strong>$200.00</strong></td>
-                        <td>$0.00</td>
-                        <td><span class="status-badge status-pending">Pending Review</span></td>
-                        <td>2025-12-10 14:20</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewOrder('FND002', 'deposit', 'pending')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>#ORD003</strong><br><small style="color: #10B981;">📦 Product Order</small></td>
-                        <td>45678901</td>
-                        <td>76543210</td>
-                        <td><strong>$45.50</strong></td>
-                        <td>$2.28</td>
-                        <td><span class="status-badge status-pending">Pending Payment</span></td>
-                        <td>2025-12-10 13:30</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewOrder('ORD003', 'product', 'pending')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Transactions Tab -->
-    <div id="transactions" class="tab-content">
-        <div class="table-container">
-            <h2 class="section-title">
-                <span>📊</span>
-                Transaction History
-            </h2>
-            <table id="transactionsTable">
-                <thead>
-                    <tr>
-                        <th>Transaction ID</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Related Order</th>
-                        <th>Status</th>
-                        <th>Date & Time</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionsBody">
-                    <!-- Sample Data -->
-                    <tr>
-                        <td>#TXN001</td>
-                        <td>Purchase</td>
-                        <td><strong style="color: #EF4444;">-$125.00</strong></td>
-                        <td>#ORD001</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        <td>2025-12-12 11:25</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewTransaction('TXN001')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#TXN002</td>
-                        <td>Deposit</td>
-                        <td><strong style="color: #10B981;">+$500.00</strong></td>
-                        <td>-</td>
-                        <td><span class="status-badge status-completed">Completed</span></td>
-                        <td>2025-12-11 15:45</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewTransaction('TXN002')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#TXN003</td>
-                        <td>Sale</td>
-                        <td><strong style="color: #10B981;">+$80.00</strong></td>
-                        <td>#ORD002</td>
-                        <td><span class="status-badge status-processing">Processing</span></td>
-                        <td>2025-12-11 16:50</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-small btn-view" onclick="viewTransaction('TXN003')">View</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+<div style="text-align: center;">
+    <div class="billing-toggle">
+        <button class="toggle-btn active" onclick="setCycle('monthly', this)">Monthly</button>
+        <button class="toggle-btn" onclick="setCycle('quarterly', this)">Quarterly <span class="discount-badge">-10%</span></button>
+        <button class="toggle-btn" onclick="setCycle('yearly', this)">Yearly <span class="discount-badge">-15%</span></button>
     </div>
 </div>
 
-<!-- Detail Modal -->
-<div id="detailModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title" id="modalTitle">Detail Information</h3>
-            <button class="close-btn" onclick="closeModal()">&times;</button>
+<div class="pricing-container">
+
+    <div class="plan-card vip">
+        <div class="plan-name">
+            <span style="color:#4F46E5;">💎</span> VIP Member
         </div>
-        <div id="modalBody">
-            <!-- Dynamic content will be inserted here -->
+        <div class="price-area">
+            <span class="price" id="price-vip">9.9</span>
+            <span class="period" id="period-text">/ month</span>
         </div>
+        <ul class="features">
+            <li><span class="check-icon">✓</span> <strong>0% Service Fee</strong> on Sales</li>
+            <li><span class="check-icon">✓</span> Exclusive Profile Badge</li>
+            <li><span class="check-icon">✓</span> Priority Customer Support</li>
+            <li style="color:#ccc; text-decoration:line-through;"><span class="check-icon" style="color:#ccc;">×</span> Free Withdrawal Fee</li>
+        </ul>
+        <button class="btn-plan btn-vip" onclick="purchase('VIP')">Choose VIP</button>
     </div>
+
+    <div class="plan-card svip">
+        <div class="plan-name">
+            <span style="color:#F59E0B;">👑</span> SVIP Member
+        </div>
+        <div class="price-area">
+            <span class="price" id="price-svip">19.9</span>
+            <span class="period" id="period-text-svip">/ month</span>
+        </div>
+        <ul class="features">
+            <li><span class="check-icon gold">✓</span> <strong>0% Service Fee</strong> on Sales</li>
+            <li><span class="check-icon gold">✓</span> <strong>0% Withdrawal Fee</strong></li>
+            <li><span class="check-icon gold">✓</span> Gold Profile Badge</li>
+            <li><span class="check-icon gold">✓</span> 24/7 Dedicated Support</li>
+            <li><span class="check-icon gold">✓</span> Faster Withdrawal Speed</li>
+        </ul>
+        <button class="btn-plan btn-svip" onclick="purchase('SVIP')">Get SVIP Access</button>
+    </div>
+
+</div>
+
+<div id="toast" style="visibility:hidden; min-width:250px; background:#333; color:#fff; text-align:center; border-radius:50px; padding:16px; position:fixed; z-index:10000; left:50%; bottom:30px; transform:translateX(-50%); opacity:0; transition:0.3s;">
+    Processing...
 </div>
 
 <script>
-    // ==================== API CONFIGURATION ====================
-    const API_BASE_URL = '../api/TXN.php';
-    const CURRENT_USER_ID = 12345678; // TODO: Get from session/login
+    const pricingData = {
+        'monthly': { vip: 9.9, svip: 19.9, label: '/ month' },
+        'quarterly': { vip: 26.9, svip: 53.9, label: '/ quarter' },
+        'yearly': { vip: 95.0, svip: 190.0, label: '/ year' }
+    };
 
-    // API Helper Functions
-    async function apiCall(action, data = {}, method = 'POST') {
-        try {
-            const url = `${API_BASE_URL}?action=${action}`;
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            };
+    let currentCycle = 'monthly';
 
-            if (method === 'POST' || method === 'PUT') {
-                options.body = JSON.stringify(data);
-            }
-
-            const response = await fetch(url, options);
-            const result = await response.json();
-
-            if (!result.success) {
-                throw new Error(result.message || 'API request failed');
-            }
-
-            return result;
-        } catch (error) {
-            console.error('API Error:', error);
-            alert('Error: ' + error.message);
-            throw error;
-        }
+    function setCycle(cycle, btnElement) {
+        currentCycle = cycle;
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        updatePrice('price-vip', pricingData[cycle].vip);
+        updatePrice('price-svip', pricingData[cycle].svip);
+        document.getElementById('period-text').innerText = pricingData[cycle].label;
+        document.getElementById('period-text-svip').innerText = pricingData[cycle].label;
     }
 
-    // Load initial data on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadStatistics();
-        loadFundRequests();
-        loadOrders();
-        loadTransactions();
-    });
-
-    // ==================== DATA LOADING FUNCTIONS ====================
-
-    // Load Statistics
-    async function loadStatistics() {
-        try {
-            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'POST');
-            const stats = result.data;
-
-            // Update statistics cards
-            document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = '$' + stats.balance;
-            document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = stats.total_orders;
-            document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = stats.pending_requests;
-            document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = stats.completed_transactions;
-        } catch (error) {
-            console.error('Failed to load statistics:', error);
-        }
-    }
-
-    // Load Fund Requests
-    async function loadFundRequests() {
-        try {
-            const result = await apiCall('get_fund_requests', { user_id: CURRENT_USER_ID }, 'POST');
-            const requests = result.data;
-
-            const tbody = document.getElementById('fundRequestsBody');
-            tbody.innerHTML = '';
-
-            if (requests && requests.length > 0) {
-                requests.forEach(request => {
-                    const row = createFundRequestRow(request);
-                    tbody.appendChild(row);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No fund requests found</td></tr>';
-            }
-        } catch (error) {
-            console.error('Failed to load fund requests:', error);
-        }
-    }
-
-    // Create Fund Request Table Row
-    function createFundRequestRow(request) {
-        const row = document.createElement('tr');
-        const statusClass = getStatusClass(request.Status);
-        const processedAt = request.Processed_AT || '-';
-
-        row.innerHTML = `
-            <td>#FR${request.REQUEST_ID}</td>
-            <td>${capitalizeFirst(request.Type)}</td>
-            <td><strong>$${parseFloat(request.Amount).toFixed(2)}</strong></td>
-            <td><span class="status-badge ${statusClass}">${capitalizeFirst(request.Status)}</span></td>
-            <td>${formatDateTime(request.Created_AT)}</td>
-            <td>${processedAt === '-' ? '-' : formatDateTime(processedAt)}</td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-small btn-view" onclick="viewFundRequestDetails(${request.REQUEST_ID})">View</button>
-                </div>
-            </td>
-        `;
-        return row;
-    }
-
-    // Load Orders
-    async function loadOrders() {
-        try {
-            const result = await apiCall('get_orders', { user_id: CURRENT_USER_ID }, 'POST');
-            const orders = result.data;
-
-            const tbody = document.getElementById('ordersBody');
-            tbody.innerHTML = '';
-
-            if (orders && orders.length > 0) {
-                orders.forEach(order => {
-                    const row = createOrderRow(order);
-                    tbody.appendChild(row);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-gray);">No orders found</td></tr>';
-            }
-        } catch (error) {
-            console.error('Failed to load orders:', error);
-        }
-    }
-
-    // Create Order Table Row
-    function createOrderRow(order) {
-        const row = document.createElement('tr');
-        const statusClass = getStatusClass(order.Orders_Status);
-        const isProduct = order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-';
-        const orderType = isProduct ? 'product' : 'deposit';
-        const orderPrefix = isProduct ? 'ORD' : 'FND';
-        const orderIcon = isProduct ? '📦 Product Order' : '💰 Fund Deposit';
-        const orderColor = isProduct ? '#10B981' : '#F59E0B';
-
-        row.innerHTML = `
-            <td><strong>#${orderPrefix}${order.Orders_Order_ID}</strong><br><small style="color: ${orderColor};">${orderIcon}</small></td>
-            <td>${order.Orders_Buyer_ID}</td>
-            <td>${order.Orders_Seller_ID || '-'}</td>
-            <td><strong>$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</strong></td>
-            <td>$${parseFloat(order.Orders_Platform_Fee).toFixed(2)}</td>
-            <td><span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span></td>
-            <td>${formatDateTime(order.Orders_Created_AT)}</td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-small btn-view" onclick="viewOrderDetails(${order.Orders_Order_ID}, '${orderType}', '${order.Orders_Status}')">View</button>
-                </div>
-            </td>
-        `;
-        return row;
-    }
-
-    // Load Transactions (Wallet Logs)
-    async function loadTransactions() {
-        try {
-            const result = await apiCall('get_wallet_logs', { user_id: CURRENT_USER_ID }, 'POST');
-            const transactions = result.data;
-
-            const tbody = document.getElementById('transactionsBody');
-            tbody.innerHTML = '';
-
-            if (transactions && transactions.length > 0) {
-                transactions.forEach(transaction => {
-                    const row = createTransactionRow(transaction);
-                    tbody.appendChild(row);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No transactions found</td></tr>';
-            }
-        } catch (error) {
-            console.error('Failed to load transactions:', error);
-        }
-    }
-
-    // Create Transaction Table Row
-    function createTransactionRow(transaction) {
-        const row = document.createElement('tr');
-        const amount = parseFloat(transaction.Amount);
-        const amountColor = amount >= 0 ? '#10B981' : '#EF4444';
-        const amountSign = amount >= 0 ? '+' : '';
-        const statusClass = 'status-completed'; // Wallet logs are always completed
-
-        row.innerHTML = `
-            <td>#TXN${transaction.Log_ID}</td>
-            <td>${transaction.Description || 'Transaction'}</td>
-            <td><strong style="color: ${amountColor};">${amountSign}$${Math.abs(amount).toFixed(2)}</strong></td>
-            <td>${transaction.Reference_ID ? '#' + transaction.Reference_Type.toUpperCase() + transaction.Reference_ID : '-'}</td>
-            <td><span class="status-badge ${statusClass}">Completed</span></td>
-            <td>${formatDateTime(transaction.Created_AT)}</td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-small btn-view" onclick="viewTransactionDetails(${transaction.Log_ID})">View</button>
-                </div>
-            </td>
-        `;
-        return row;
-    }
-
-    // ==================== HELPER FUNCTIONS ====================
-
-    function getStatusClass(status) {
-        const statusLower = status.toLowerCase();
-        if (statusLower === 'completed' || statusLower === 'approved') return 'status-completed';
-        if (statusLower === 'processing' || statusLower === 'shipped') return 'status-processing';
-        if (statusLower === 'pending') return 'status-pending';
-        if (statusLower === 'cancelled' || statusLower === 'rejected') return 'status-cancelled';
-        return 'status-pending';
-    }
-
-    function capitalizeFirst(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    function formatDateTime(dateStr) {
-        if (!dateStr) return '-';
-        const date = new Date(dateStr);
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-    }
-
-    // ==================== EXISTING CODE ====================
-
-    // Background floating items
-    const container = document.getElementById('floating-container');
-    const items = ['💳', '💰', '💸', '🏦', '💵', '💴', '💶', '💷', '📊', '📈', '💹', '🔒', '🛡️'];
-    const count = 12;
-
-    for (let i = 0; i < count; i++) {
-        createFloater();
-    }
-
-    function createFloater() {
-        const el = document.createElement('div');
-        el.classList.add('floating-item');
-        el.innerText = items[Math.floor(Math.random() * items.length)];
-        el.style.left = Math.random() * 100 + 'vw';
-        el.style.fontSize = (Math.random() * 3 + 3) + 'rem';
-        el.style.animationDuration = (Math.random() * 10 + 15) + 's';
-        el.style.animationDelay = '-' + (Math.random() * 15) + 's';
-        container.appendChild(el);
-    }
-
-    // Tab Switching
-    function switchTab(tabName) {
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-
-        // Remove active class from all buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-
-        // Add active class to clicked button
-        event.target.classList.add('active');
-    }
-
-    // Fund Request Form Submission
-    document.getElementById('fundRequestForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const type = document.getElementById('requestType').value;
-        const amount = document.getElementById('requestAmount').value;
-        const proofImage = document.getElementById('proofImage').value;
-        const adminRemark = document.getElementById('adminRemark').value;
-
-        try {
-            // Submit to API
-            const result = await apiCall('create_fund_request', {
-                user_id: CURRENT_USER_ID,
-                type: type,
-                amount: parseFloat(amount),
-                proof_image: proofImage,
-                admin_remark: adminRemark
-            });
-
-            alert(`✅ Fund Request Submitted Successfully!\n\nRequest ID: #FR${result.data.request_id}\nType: ${type}\nAmount: $${amount}\nStatus: ${result.data.status}`);
-
-            // Reset form
-            this.reset();
-
-            // Reload data
-            loadFundRequests();
-            loadStatistics();
-
-        } catch (error) {
-            alert('❌ Failed to submit fund request: ' + error.message);
-        }
-    });
-
-    // View Fund Request Details (API-based)
-    async function viewFundRequestDetails(requestId) {
-        try {
-            const result = await apiCall('get_fund_request', { request_id: requestId }, 'POST');
-            const request = result.data;
-
-            const modal = document.getElementById('detailModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            modalTitle.textContent = `Fund Request Details - #FR${request.REQUEST_ID}`;
-
-            const statusClass = getStatusClass(request.Status);
-            const processedAt = request.Processed_AT ? formatDateTime(request.Processed_AT) : 'Not yet processed';
-
-            modalBody.innerHTML = `
-                <div class="detail-row">
-                    <span class="detail-label">Request ID:</span>
-                    <span class="detail-value">#FR${request.REQUEST_ID}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">User ID:</span>
-                    <span class="detail-value">${request.User_ID}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Type:</span>
-                    <span class="detail-value">${capitalizeFirst(request.Type)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Amount:</span>
-                    <span class="detail-value">$${parseFloat(request.Amount).toFixed(2)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="status-badge ${statusClass}">${capitalizeFirst(request.Status)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Created At:</span>
-                    <span class="detail-value">${formatDateTime(request.Created_AT)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Processed At:</span>
-                    <span class="detail-value">${processedAt}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Proof Image:</span>
-                    <span class="detail-value">${request.Proof_Image || 'N/A'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Admin Remark:</span>
-                    <span class="detail-value">${request.Admin_Remark || 'Pending verification'}</span>
-                </div>
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                <div class="modal-actions">
-                    <button class="btn btn-admin" onclick="contactAdmin()">
-                        👨‍💼 Contact Administrator
-                    </button>
-                    <button class="btn btn-view" onclick="contactCustomerService()">
-                        🎧 Customer Service
-                    </button>
-                </div>
-            `;
-
-            modal.classList.add('active');
-
-        } catch (error) {
-            alert('Failed to load fund request details: ' + error.message);
-        }
-    }
-
-    // View Fund Request Details (Legacy - kept for compatibility)
-    function viewFundRequest(id) {
-        const modal = document.getElementById('detailModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-
-        modalTitle.textContent = `Fund Request Details - ${id}`;
-
-        // Sample data - in real app, fetch from API
-        modalBody.innerHTML = `
-            <div class="detail-row">
-                <span class="detail-label">Request ID:</span>
-                <span class="detail-value">${id}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">User ID:</span>
-                <span class="detail-value">12345678</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Type:</span>
-                <span class="detail-value">Withdrawal</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount:</span>
-                <span class="detail-value">$150.00</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Status:</span>
-                <span class="status-badge status-pending">Pending</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Created At:</span>
-                <span class="detail-value">2025-12-12 10:30:00</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Processed At:</span>
-                <span class="detail-value">Not yet processed</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Admin Remark:</span>
-                <span class="detail-value">Pending verification</span>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-admin" onclick="contactAdmin()">
-                    👨‍💼 Contact Administrator
-                </button>
-                <button class="btn btn-view" onclick="contactCustomerService()">
-                    🎧 Customer Service
-                </button>
-            </div>
-        `;
-
-        modal.classList.add('active');
-    }
-
-    // Store order confirmation status (in real app, this would be from database)
-    const orderConfirmationStatus = {};
-
-    /**
-     * View Order Details (API-based)
-     * @param {number} orderId - The order ID to view
-     * @param {string} _type - Order type (kept for API compatibility)
-     * @param {string} _status - Order status (kept for API compatibility)
-     */
-    async function viewOrderDetails(orderId, _type, _status) {
-        try {
-            const result = await apiCall('get_order', { order_id: orderId }, 'POST');
-            const order = result.data;
-
-            const modal = document.getElementById('detailModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            const isConfirmed = orderConfirmationStatus[orderId] === true || order.Orders_Status === 'completed';
-            const isProduct = order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-';
-
-            if (!isProduct) {
-                // Fund Deposit Order
-                modalTitle.textContent = `💰 Fund Deposit Details - #FND${order.Orders_Order_ID}`;
-
-                const statusClass = getStatusClass(order.Orders_Status);
-
-                modalBody.innerHTML = `
-                    <div class="detail-row">
-                        <span class="detail-label">Order Type:</span>
-                        <span class="detail-value" style="color: #F59E0B; font-weight: 700;">💰 Fund Deposit</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Order ID:</span>
-                        <span class="detail-value">#FND${order.Orders_Order_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">User ID:</span>
-                        <span class="detail-value">${order.Orders_Buyer_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Deposit Amount:</span>
-                        <span class="detail-value" style="color: #10B981; font-weight: 700;">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Platform Fee:</span>
-                        <span class="detail-value">$${parseFloat(order.Orders_Platform_Fee).toFixed(2)} (No fee for deposits)</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Status:</span>
-                        <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Created At:</span>
-                        <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Payment Method:</span>
-                        <span class="detail-value">Bank Transfer</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Note:</span>
-                        <span class="detail-value">This is a fund deposit order, managed by platform administrators.</span>
-                    </div>
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                    <div class="modal-actions">
-                        <button class="btn btn-admin" onclick="contactAdmin()">
-                            👨‍💼 Contact Administrator
-                        </button>
-                        <button class="btn btn-view" onclick="contactCustomerService()">
-                            🎧 Customer Service
-                        </button>
-                    </div>
-                `;
-            } else {
-                // Product Transaction Order
-                modalTitle.textContent = `📦 Product Order Details - #ORD${order.Orders_Order_ID}`;
-
-                const statusClass = getStatusClass(order.Orders_Status);
-
-                modalBody.innerHTML = `
-                    <div class="detail-row">
-                        <span class="detail-label">Order Type:</span>
-                        <span class="detail-value" style="color: #10B981; font-weight: 700;">📦 Product Transaction</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Order ID:</span>
-                        <span class="detail-value">#ORD${order.Orders_Order_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Buyer ID:</span>
-                        <span class="detail-value">${order.Orders_Buyer_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Seller ID:</span>
-                        <span class="detail-value">${order.Orders_Seller_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Total Amount:</span>
-                        <span class="detail-value">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Platform Fee:</span>
-                        <span class="detail-value">$${parseFloat(order.Orders_Platform_Fee).toFixed(2)} (5%)</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Status:</span>
-                        <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Created At:</span>
-                        <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
-                    </div>
-                    ${isConfirmed ? `
-                    <div class="detail-row" style="background: #D1FAE5; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                        <span class="detail-label">✅ Receipt Confirmed:</span>
-                        <span class="detail-value">You have confirmed receipt of this order</span>
-                    </div>
-                    ` : ''}
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
-                    <div class="modal-actions" style="flex-direction: column; gap: 12px;">
-                        <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                            ✅ Confirm Receipt
-                        </button>
-                        ${isConfirmed ? `
-                        <div style="background: #D1FAE5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065F46;">
-                            ✅ Receipt confirmed
-                        </div>
-                        ` : ''}
-                    </div>
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                    <div class="modal-actions">
-                        <button class="btn btn-contact" onclick="contactSeller('${order.Orders_Seller_ID}')">
-                            💬 Contact Seller
-                        </button>
-                        <button class="btn btn-view" onclick="contactCustomerService()">
-                            🎧 Customer Service
-                        </button>
-                    </div>
-                `;
-            }
-
-            modal.classList.add('active');
-
-        } catch (error) {
-            alert('Failed to load order details: ' + error.message);
-        }
-    }
-
-    // Confirm Receipt with API
-    async function confirmReceiptAPI(orderId) {
-        if (orderConfirmationStatus[orderId]) {
-            alert('⚠️ This order has already been confirmed!');
-            return;
-        }
-
-        if (confirm(`Confirm that you have received the product for order #ORD${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n⚠️ This action cannot be undone`)) {
-            try {
-                const result = await apiCall('confirm_receipt', {
-                    order_id: orderId,
-                    buyer_id: CURRENT_USER_ID
-                });
-
-                orderConfirmationStatus[orderId] = true;
-
-                alert(`✅ Receipt confirmed successfully!\n\nOrder ID: #ORD${orderId}\nStatus: ${result.data.status}\n\nFunds have been released to the seller. Thank you for your purchase!`);
-
-                closeModal();
-
-                // Reload data
-                loadOrders();
-                loadStatistics();
-
-            } catch (error) {
-                alert('❌ Failed to confirm receipt: ' + error.message);
-            }
-        }
-    }
-
-    /**
-     * View Order Details (Legacy - kept for compatibility)
-     * @deprecated Use viewOrderDetails instead
-     */
-    function viewOrder(id, type, _status) {
-        const modal = document.getElementById('detailModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-
-        // Check if order has been confirmed
-        const isConfirmed = orderConfirmationStatus[id] === true;
-
-        // Check if it's a fund deposit order or product order
-        if (type === 'deposit' || id.includes('FND')) {
-            // Fund Deposit Order
-            modalTitle.textContent = `💰 Fund Deposit Details - ${id}`;
-
-            // Sample data for fund deposit
-            const depositData = {
-                'FND001': { amount: '$500.00', status: 'Completed', date: '2025-12-11 15:45:00', userId: '23456789' },
-                'FND002': { amount: '$200.00', status: 'Pending Review', date: '2025-12-10 14:20:00', userId: '12345678' }
-            };
-            const data = depositData[id.replace('#', '')] || depositData['FND001'];
-
-            modalBody.innerHTML = `
-                <div class="detail-row">
-                    <span class="detail-label">Order Type:</span>
-                    <span class="detail-value" style="color: #F59E0B; font-weight: 700;">💰 Fund Deposit</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Order ID:</span>
-                    <span class="detail-value">${id}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">User ID:</span>
-                    <span class="detail-value">${data.userId}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Deposit Amount:</span>
-                    <span class="detail-value" style="color: #10B981; font-weight: 700;">${data.amount}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Platform Fee:</span>
-                    <span class="detail-value">$0.00 (No fee for deposits)</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="status-badge ${data.status === 'Completed' ? 'status-completed' : 'status-pending'}">${data.status}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Created At:</span>
-                    <span class="detail-value">${data.date}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Payment Method:</span>
-                    <span class="detail-value">Bank Transfer</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Note:</span>
-                    <span class="detail-value">This is a fund deposit order, managed by platform administrators.</span>
-                </div>
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                <div class="modal-actions">
-                    <button class="btn btn-admin" onclick="contactAdmin()">
-                        👨‍💼 Contact Administrator
-                    </button>
-                    <button class="btn btn-view" onclick="contactCustomerService()">
-                        🎧 Customer Service
-                    </button>
-                </div>
-            `;
-        } else {
-            // Product Transaction Order
-            modalTitle.textContent = `📦 Product Order Details - ${id}`;
-
-            // Sample data - in real app, this would determine the seller ID and product info
-            const orderData = {
-                'ORD001': {
-                    sellerId: '87654321',
-                    product: 'Vintage Camera Lens',
-                    amount: '$125.00',
-                    fee: '$6.25',
-                    status: 'Completed',
-                    date: '2025-12-12 11:20:00'
-                },
-                'ORD002': {
-                    sellerId: '98765432',
-                    product: 'Retro Vinyl Record Player',
-                    amount: '$80.00',
-                    fee: '$4.00',
-                    status: 'Processing',
-                    date: '2025-12-11 16:45:00'
-                },
-                'ORD003': {
-                    sellerId: '76543210',
-                    product: 'Antique Pocket Watch',
-                    amount: '$45.50',
-                    fee: '$2.28',
-                    status: 'Pending Payment',
-                    date: '2025-12-10 13:30:00'
-                }
-            };
-            const data = orderData[id.replace('#', '')] || orderData['ORD001'];
-
-            modalBody.innerHTML = `
-                <div class="detail-row">
-                    <span class="detail-label">Order Type:</span>
-                    <span class="detail-value" style="color: #10B981; font-weight: 700;">📦 Product Transaction</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Order ID:</span>
-                    <span class="detail-value">${id}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Buyer ID:</span>
-                    <span class="detail-value">12345678</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Seller ID:</span>
-                    <span class="detail-value">${data.sellerId}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Product Name:</span>
-                    <span class="detail-value">${data.product}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Total Amount:</span>
-                    <span class="detail-value">${data.amount}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Platform Fee:</span>
-                    <span class="detail-value">${data.fee} (5%)</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="status-badge ${data.status === 'Completed' ? 'status-completed' : data.status === 'Processing' ? 'status-processing' : 'status-pending'}">${data.status}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Created At:</span>
-                    <span class="detail-value">${data.date}</span>
-                </div>
-                ${isConfirmed ? `
-                <div class="detail-row" style="background: #D1FAE5; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                    <span class="detail-label">✅ Receipt Confirmed:</span>
-                    <span class="detail-value">You have confirmed receipt of this order</span>
-                </div>
-                ` : ''}
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
-                <div class="modal-actions" style="flex-direction: column; gap: 12px;">
-                    <button class="btn btn-confirm" onclick="confirmReceiptInModal('${id}')" id="confirmBtn-${id}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                        ✅ Confirm Receipt
-                    </button>
-                    ${isConfirmed ? `
-                    <div style="background: #D1FAE5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065F46;">
-                        ✅ Receipt confirmed
-                    </div>
-                    ` : ''}
-                </div>
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                <div class="modal-actions">
-                    <button class="btn btn-contact" onclick="contactSeller('${data.sellerId}')">
-                        💬 Contact Seller
-                    </button>
-                    <button class="btn btn-view" onclick="contactCustomerService()">
-                        🎧 Customer Service
-                    </button>
-                </div>
-            `;
-        }
-
-        modal.classList.add('active');
-    }
-
-    // View Transaction Details (API-based)
-    async function viewTransactionDetails(logId) {
-        try {
-            // Get all wallet logs and find the specific one
-            const result = await apiCall('get_wallet_logs', { user_id: CURRENT_USER_ID }, 'POST');
-            const transaction = result.data.find(log => log.Log_ID === logId);
-
-            if (!transaction) {
-                alert('Transaction not found');
-                return;
-            }
-
-            const modal = document.getElementById('detailModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            modalTitle.textContent = `Transaction Details - #TXN${transaction.Log_ID}`;
-
-            const amount = parseFloat(transaction.Amount);
-            const amountColor = amount >= 0 ? '#10B981' : '#EF4444';
-            const amountSign = amount >= 0 ? '+' : '';
-
-            modalBody.innerHTML = `
-                <div class="detail-row">
-                    <span class="detail-label">Transaction ID:</span>
-                    <span class="detail-value">#TXN${transaction.Log_ID}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">User ID:</span>
-                    <span class="detail-value">${transaction.User_id}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Description:</span>
-                    <span class="detail-value">${transaction.Description}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Amount:</span>
-                    <span class="detail-value" style="color: ${amountColor}; font-weight: 700;">${amountSign}$${Math.abs(amount).toFixed(2)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Balance After:</span>
-                    <span class="detail-value">$${parseFloat(transaction.Balance_After).toFixed(2)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Reference Type:</span>
-                    <span class="detail-value">${transaction.Reference_Type || 'N/A'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Reference ID:</span>
-                    <span class="detail-value">${transaction.Reference_ID ? '#' + transaction.Reference_ID : 'N/A'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Date & Time:</span>
-                    <span class="detail-value">${formatDateTime(transaction.Created_AT)}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="status-badge status-completed">Completed</span>
-                </div>
-            `;
-
-            modal.classList.add('active');
-
-        } catch (error) {
-            alert('Failed to load transaction details: ' + error.message);
-        }
-    }
-
-    // View Transaction Details (Legacy - kept for compatibility)
-    function viewTransaction(id) {
-        const modal = document.getElementById('detailModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-
-        modalTitle.textContent = `Transaction Details - ${id}`;
-
-        modalBody.innerHTML = `
-            <div class="detail-row">
-                <span class="detail-label">Transaction ID:</span>
-                <span class="detail-value">${id}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Type:</span>
-                <span class="detail-value">Purchase</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount:</span>
-                <span class="detail-value" style="color: #EF4444;">-$125.00</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Related Order:</span>
-                <span class="detail-value">#ORD001</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Status:</span>
-                <span class="status-badge status-completed">Completed</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Date & Time:</span>
-                <span class="detail-value">2025-12-12 11:25:00</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Balance After:</span>
-                <span class="detail-value">$2,458.50</span>
-            </div>
-        `;
-
-        modal.classList.add('active');
-    }
-
-    // Close Modal
-    function closeModal() {
-        document.getElementById('detailModal').classList.remove('active');
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('detailModal');
-        if (event.target === modal) {
-            closeModal();
-        }
-    }
-
-    // Close modal with ESC key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            closeModal();
-        }
-    });
-
-    // Confirm Receipt from Modal
-    function confirmReceiptInModal(orderId) {
-        // Check if already confirmed
-        if (orderConfirmationStatus[orderId]) {
-            alert('⚠️ This order has already been confirmed!');
-            return;
-        }
-
-        if (confirm(`Confirm that you have received the product for order ${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n⚠️ This action cannot be undone`)) {
-            // Mark as confirmed
-            orderConfirmationStatus[orderId] = true;
-
-            alert(`✅ Receipt confirmed successfully!\n\nOrder ID: ${orderId}\nStatus: Completed\n\nFunds have been released to the seller. Thank you for your purchase!`);
-
-            // Close and reopen modal to refresh the view
-            closeModal();
-            setTimeout(() => {
-                // Determine order type
-                const type = orderId.includes('FND') ? 'deposit' : 'product';
-                viewOrder(orderId, type, 'completed');
-            }, 300);
-
-            // In real application:
-            // 1. Update order status to completed
-            // 2. Release funds to seller
-            // 3. Update wallet balances
-            // 4. Send notifications
-            // 5. Update database
-        }
-    }
-
-
-    /**
-     * @deprecated Use confirmReceiptInModal instead
-     */
-    function confirmReceipt(orderId) {
-        confirmReceiptInModal(orderId);
-    }
-
-    // Contact Seller
-    function contactSeller(sellerId) {
-        // Close current modal first
-        closeModal();
-
-        // In real application, this would:
-        // 1. Open a chat window/messaging system
-        // 2. Redirect to messaging page with seller ID
-        // 3. Or open WhatsApp/WeChat with seller contact
-
-        alert(`💬 Opening chat with Seller #${sellerId}...\n\n🔄 Redirecting to messaging system...`);
-
-        // Simulate redirect
+    function updatePrice(id, newPrice) {
+        const el = document.getElementById(id);
+        el.style.opacity = 0;
         setTimeout(() => {
-            // window.location.href = `/messages?seller=${sellerId}`;
-            console.log(`Redirecting to chat with seller: ${sellerId}`);
-        }, 1000);
+            // ★★★ 修改 3: JS 更新价格时不再加 $ 符号 ★★★
+            el.innerText = newPrice;
+            el.style.opacity = 1;
+        }, 200);
     }
 
-    // Contact Administrator (for fund requests)
-    function contactAdmin() {
-        // Close current modal first
-        closeModal();
-
-        alert(`👨‍💼 Contacting Administrator...\n\n📧 You can reach our admin team:\n• Email: admin@treasurego.com\n• Phone: +1-234-567-8900\n• Or submit a ticket through customer service\n\n🔄 Redirecting to admin contact page...`);
-
-        // In real application:
-        // window.location.href = '/contact-admin';
-        setTimeout(() => {
-            console.log('Redirecting to admin contact page');
-        }, 1000);
+    function purchase(plan) {
+        const price = plan === 'VIP' ? pricingData[currentCycle].vip : pricingData[currentCycle].svip;
+        // ★★★ 修改 4: 提示信息中去掉 $ 符号 ★★★
+        showToast(`Selected ${plan} - ${currentCycle} (${price})`);
     }
 
-    // Contact Customer Service
-    function contactCustomerService() {
-        // Close current modal first
-        closeModal();
-
-        alert(`🎧 Opening Customer Service...\n\n📞 Support available 24/7:\n• Live Chat: Available now\n• Email: support@treasurego.com\n• Hotline: +1-800-TREASURE\n\n🔄 Opening chat window...`);
-
-        // In real application:
-        // 1. Open live chat widget
-        // 2. Redirect to support page
-        // 3. Or integrate with third-party chat service
-
-        setTimeout(() => {
-            // window.open('/customer-service', '_blank');
-            console.log('Opening customer service chat');
-        }, 1000);
+    function showToast(message) {
+        var x = document.getElementById("toast");
+        x.innerText = message;
+        x.style.visibility = "visible"; x.style.opacity = "1"; x.style.bottom = "50px";
+        setTimeout(function(){ x.style.visibility = "hidden"; x.style.opacity = "0"; x.style.bottom = "30px"; }, 3000);
     }
 </script>
 
 </body>
 </html>
-
