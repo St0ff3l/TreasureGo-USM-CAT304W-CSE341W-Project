@@ -202,6 +202,53 @@
         }
         .send-btn:hover { background: var(--primary-hover); transform: scale(1.05); }
 
+        /* --- FEEDBACK BUTTONS UI --- */
+        .feedback-container {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            margin-left: 50px; /* Align with bot bubble */
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .feedback-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .btn-feedback {
+            padding: 6px 14px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .btn-feedback.yes:hover {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .btn-feedback.no:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .feedback-thanks {
+            color: #10b981;
+            font-weight: 600;
+            display: none;
+            margin-top: 5px;
+        }
+
         @media (max-width: 1024px) {
             .kb-sidebar { display: none; }
             .chat-layout { padding-left: 20px; }
@@ -328,12 +375,13 @@
     });
 
     // ============================================
-    // 2. Chat Logic (With Shared Auth Modal)
+    // 2. Chat Logic
     // ============================================
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
 
+    // Helper: Add visual message bubble
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
         const cssClass = (sender === 'ai' || sender === 'bot') ? 'bot' : 'user';
@@ -350,18 +398,68 @@
         msgDiv.innerHTML = `${avatarHtml}<div class="bubble">${safeText}</div>`;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        return msgId; // Return ID for future removal
+
+        // Return ID and element for further manipulation if needed
+        return { msgId, msgDiv };
+    }
+
+    // Helper: Add Feedback Buttons (Yes/No)
+    function addFeedbackUI(logId) {
+        if (!logId) return;
+
+        const feedbackDiv = document.createElement('div');
+        feedbackDiv.className = 'feedback-container';
+        feedbackDiv.innerHTML = `
+            <div>Is this problem resolved?</div>
+            <div class="feedback-buttons" id="fb-btns-${logId}">
+                <button class="btn-feedback yes" onclick="handleResolution(${logId}, 1)">✅ Yes, Resolved</button>
+                <button class="btn-feedback no" onclick="handleResolution(${logId}, 0)">❌ No, Need Human</button>
+            </div>
+            <div class="feedback-thanks" id="fb-thanks-${logId}">Status Updated!</div>
+        `;
+        chatMessages.appendChild(feedbackDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Handler: Process Resolution Click
+    async function handleResolution(logId, isResolved) {
+        const btnContainer = document.getElementById(`fb-btns-${logId}`);
+        const thanksMsg = document.getElementById(`fb-thanks-${logId}`);
+
+        // Hide buttons immediately
+        if(btnContainer) btnContainer.style.display = 'none';
+
+        if (thanksMsg) {
+            thanksMsg.style.display = 'block';
+            if (isResolved === 1) {
+                thanksMsg.innerText = "Glad I could help! ✅";
+            } else {
+                thanksMsg.style.color = '#ef4444';
+                thanksMsg.innerHTML = `Sorry about that. <a href="report.html" style="color: #4F46E5; text-decoration: underline;">Click here to contact Support</a>.`;
+            }
+        }
+
+        // Call Backend API
+        try {
+            await fetch('../api/support_resolve_chat.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ log_id: logId, is_resolved: isResolved })
+            });
+        } catch (e) {
+            console.error("Failed to update resolution status", e);
+        }
     }
 
     async function handleSend() {
         const userMessage = userInput.value.trim();
         if (!userMessage) return;
 
-        // 1. Optimistic UI: Add user message immediately
-        const userMsgId = addMessage(userMessage, 'user');
+        // 1. Optimistic UI: Add user message
+        const { msgId: userMsgId } = addMessage(userMessage, 'user');
         userInput.value = '';
 
-        const loadingId = addMessage('Thinking...', 'ai');
+        const { msgId: loadingId } = addMessage('Thinking...', 'ai');
 
         try {
             const apiUrl = '../api/support.php';
@@ -373,15 +471,10 @@
                 body: JSON.stringify(payload)
             });
 
-            // 🛑 Check for 401 Unauthorized
+            // 🛑 Handle Unauthorized (401)
             if (response.status === 401) {
-                // Remove "Thinking..."
                 document.querySelector(`[data-id="${loadingId}"]`)?.remove();
-
-                // Rollback: Remove the user's message bubble
                 document.querySelector(`[data-id="${userMsgId}"]`)?.remove();
-
-                // ✅ Show the SHARED Global Auth Modal
                 AuthModal.show();
                 return;
             }
@@ -393,16 +486,20 @@
             // Remove loading
             document.querySelector(`[data-id="${loadingId}"]`)?.remove();
 
+            // Display AI Response
             if (data.choices && data.choices.length > 0) {
                 addMessage(data.choices[0].message.content, 'ai');
+
+                // *** Display Feedback Buttons using the returned DB ID ***
+                if (data.db_log_id) {
+                    addFeedbackUI(data.db_log_id);
+                }
             } else {
                 addMessage("Empty response.", 'ai');
             }
         } catch (error) {
             console.error('Chat Error:', error);
             document.querySelector(`[data-id="${loadingId}"]`)?.remove();
-
-            // Show error
             addMessage(`System Error: ${error.message}`, 'ai');
         }
     }
