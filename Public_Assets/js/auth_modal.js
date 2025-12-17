@@ -19,7 +19,7 @@ const AuthModal = {
                 You need to log in to access this feature.
             </p>
             <div style="display:flex; gap:10px; justify-content:center;">
-                <button onclick="AuthModal.close()" 
+                <button onclick="AuthModal.close()"
                         style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer; font-weight: 600;">
                     Cancel
                 </button>
