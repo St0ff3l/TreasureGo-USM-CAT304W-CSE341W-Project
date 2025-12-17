@@ -6,15 +6,17 @@
   <title>TreasureGO - Smart Search</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* --- 1. Core Variables --- */
+    /* =========================================
+       1. 全局样式 & Navbar
+       ========================================= */
     :root {
-      --bg-color: #F3F6F9;
       --primary: #4F46E5;
       --primary-hover: #4338CA;
       --text-dark: #1F2937;
       --text-gray: #6B7280;
-      --glass-bg: rgba(255, 255, 255, 0.95);
       --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      --bg-color: #F3F6F9;
+      --glass-bg: rgba(255, 255, 255, 0.95);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -27,7 +29,7 @@
       overflow-x: hidden;
     }
 
-    /* --- 2. Navbar --- */
+    /* Navbar */
     .navbar {
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
@@ -43,63 +45,24 @@
     .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo span { color: var(--text-dark); }
     .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; }
-
     .nav-actions { display: flex; align-items: center; gap: 20px; }
     .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem; }
-    .nav-btn:hover { color: var(--text-dark); }
-
     .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
 
-    /* Dots Menu */
-    .menu-container { position: relative; display: inline-block; }
-    .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: var(--text-dark); font-weight: bold; padding-bottom: 6px; }
-    .dots-btn:hover { background: #eee; }
-    .dropdown-content { display: none; position: absolute; right: 0; top: 130%; background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 16px; z-index: 1001; padding: 8px; }
-    .menu-container:hover .dropdown-content { display: block; }
-    .dropdown-item { color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; font-weight: 500; border-radius: 10px; }
-    .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
-
-    /* --- 3. Search Header --- */
+    /* Search Header */
     .search-header-bg { background: white; padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.05); position: relative; z-index: 900; }
     .search-wrapper { max-width: 800px; margin: 0 auto; display: flex; gap: 10px; padding: 0 20px; align-items: center; }
     .search-input { flex: 1; padding: 14px 24px; border-radius: 50px; border: 2px solid #eee; background: #f9f9fb; outline: none; transition: 0.2s; font-size: 16px; }
     .search-input:focus { border-color: var(--primary); background: white; }
     .search-btn-small { padding: 0 30px; height: 50px; border-radius: 50px; background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 600; white-space: nowrap; }
 
-    /* Mobile Filter Trigger */
-    .mobile-filter-trigger {
-      display: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #f0f0f0;
-      color: var(--text-dark);
-      border: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 24px;
-      font-weight: 800;
-      line-height: 0;
-      padding-bottom: 12px;
-      flex-shrink: 0;
-    }
-    .mobile-filter-trigger:active { background: #e5e5e5; }
+    .mobile-filter-trigger { display: none; width: 50px; height: 50px; border-radius: 50%; background: #f0f0f0; color: var(--text-dark); border: none; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; font-weight: 800; line-height: 0; padding-bottom: 12px; flex-shrink: 0; }
 
-    /* --- 4. Main Layout --- */
-    .main-container {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 40px;
-      align-items: start;
-    }
+    /* Main Layout */
+    .main-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: start; }
 
     /* =========================================
-       Sidebar: Categories + Filters Combined
+       2. Sidebar Styles
        ========================================= */
     .filter-sidebar {
       background: white;
@@ -110,11 +73,12 @@
       top: 100px;
       z-index: 900;
       transition: transform 0.3s ease;
+      min-width: 280px;
     }
 
     .mobile-sidebar-close { display: none; text-align: right; font-size: 1.5rem; color: #999; cursor: pointer; margin-bottom: 10px; }
 
-    /* --- Categories Menu --- */
+    /* Categories Menu */
     .category-list {
       list-style: none;
       display: flex;
@@ -135,7 +99,7 @@
     .category-trigger:hover { background-color: #f3f4f6; color: var(--primary); }
     .category-trigger.active { background-color: var(--primary); color: white; }
 
-    /* --- Submenu Panel --- */
+    /* --- Submenu Panel (Hover/Popup) --- */
     .submenu-panel {
       visibility: hidden;
       opacity: 0;
@@ -149,14 +113,16 @@
       box-shadow: 0 20px 50px rgba(0,0,0,0.15);
       padding: 25px;
       margin-left: 10px;
-      z-index: 999;
+      z-index: 1100;
       border: 1px solid #f0f0f0;
       transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
     }
+
     .submenu-panel::before {
       content: ""; position: absolute; left: -20px; top: 0; height: 100%; width: 20px; background: transparent;
     }
 
+    /* Hover effect only on desktop */
     @media (min-width: 769px) {
       .sidebar-item-wrapper:hover .submenu-panel {
         visibility: visible; opacity: 1; transform: translateX(0);
@@ -172,18 +138,13 @@
       color: var(--text-dark); cursor: pointer; transition: 0.2s; border: 1px solid transparent;
     }
     .sub-tag:hover { background: white; border-color: var(--primary); color: var(--primary); }
-
     .sub-tag.active {
-      background: white;
-      border-color: var(--primary);
-      color: var(--primary);
-      font-weight: 600;
-      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.1);
+      background: white; border-color: var(--primary); color: var(--primary); font-weight: 600; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.1);
     }
 
     .sidebar-divider { height: 1px; background: #eee; margin: 10px 0 20px 0; }
 
-    /* --- Filters --- */
+    /* Filters (Checkbox & Price) */
     .filter-group { margin-bottom: 25px; }
     .filter-title { font-weight: 800; font-size: 1rem; margin-bottom: 12px; display: block; }
     .filter-option { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; color: var(--text-gray); font-size: 0.95rem; }
@@ -192,94 +153,54 @@
     .price-inputs { display: flex; gap: 10px; align-items: center; }
     .price-input { width: 100%; padding: 8px; border: 1px solid #eee; border-radius: 8px; outline: none; background: #f9f9fb; }
 
+    /* Buttons */
     .btn-apply-filter { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
     .btn-apply-filter:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
 
-    /* Clear/Reset Button */
     .btn-clear-filter {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      background: transparent;
-      border: 1px dashed #ccc;
-      border-radius: 12px;
-      color: #888;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s;
+      width: 100%; padding: 10px; margin-bottom: 10px; background: transparent; border: 1px dashed #ccc; border-radius: 12px; color: #888; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
     }
-    .btn-clear-filter:hover {
-      background: #f3f3f3;
-      color: var(--text-dark);
-      border-color: #999;
-    }
+    .btn-clear-filter:hover { background: #f3f3f3; color: var(--text-dark); border-color: #999; }
 
-    /* --- Grid & Cards --- */
+    /* Results Grid */
     .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
-    .product-card { background: white; border-radius: 20px; box-shadow: var(--card-shadow); overflow: hidden; transition: 0.3s; }
+    .product-card { background: white; border-radius: 20px; box-shadow: var(--card-shadow); overflow: hidden; transition: 0.3s; cursor: pointer; display: block; text-decoration: none; color: inherit; }
     .product-card:hover { transform: translateY(-5px); }
-    .card-img-container { height: 180px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+    .card-img-container { height: 180px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; font-size: 4rem; overflow: hidden; }
     .card-info { padding: 1.2rem; }
-    .card-footer { display: flex; justify-content: space-between; margin-top: 10px; color: var(--primary); font-weight: 800; }
+    .card-footer { display: flex; justify-content: space-between; margin-top: 10px; color: var(--primary); font-weight: 800; align-items: center; }
 
-    .overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 899;
-      display: none; opacity: 0; transition: opacity 0.3s;
-    }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 899; display: none; opacity: 0; transition: opacity 0.3s; }
 
-    /* =========================================
-       ★ MOBILE ADAPTATION (Max-Width: 768px) ★
-       ========================================= */
+    /* Mobile Adaptation */
     @media (max-width: 768px) {
       .navbar { padding: 1rem; }
       .nav-actions .nav-btn, .nav-actions .btn-primary { display: none; }
       .mobile-filter-trigger { display: flex; margin-left: 8px; }
       .search-wrapper { padding: 0 15px; }
-      .search-btn-small { padding: 0 20px; font-size: 0.9rem; }
       .main-container { display: block; margin-top: 20px; }
 
       .filter-sidebar {
-        position: fixed; top: 0; left: -100%;
-        width: 85%; height: 100vh;
-        overflow-y: auto;
-        border-radius: 0 20px 20px 0;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 2000;
-        padding-bottom: 80px;
+        position: fixed; top: 0; left: -100%; width: 85%; height: 100vh; overflow-y: auto;
+        border-radius: 0 20px 20px 0; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2000; padding-bottom: 80px;
       }
       .filter-sidebar.active { left: 0; }
       .mobile-sidebar-close { display: block; }
 
       .submenu-panel {
-        position: static;
-        width: 100%;
-        margin-left: 0;
-        box-shadow: none; border: none;
-        background: transparent;
-        padding: 10px 0 10px 15px;
-        display: none;
-        visibility: visible; opacity: 1; transform: none;
+        position: static; width: 100%; margin-left: 0; box-shadow: none; border: none;
+        background: transparent; padding: 10px 0 10px 15px; display: none; visibility: visible; opacity: 1; transform: none;
       }
       .submenu-panel::before { display: none; }
-
       .sidebar-item-wrapper { overflow: visible; }
-      .sidebar-item-wrapper.mobile-expanded .submenu-panel { display: block; }
 
-      .category-trigger.active {
-        border-radius: 12px;
-        margin-bottom: 5px;
-      }
+      .sidebar-item-wrapper.mobile-expanded .submenu-panel { display: block; }
+      .category-trigger.active { border-radius: 12px; margin-bottom: 5px; }
 
       .product-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-      .card-img-container { height: 140px; font-size: 3rem; }
-      .card-info { padding: 10px; }
-      .card-info h4 { font-size: 0.9rem; }
-      .card-footer { font-size: 0.9rem; }
     }
-
   </style>
 </head>
 <body>
@@ -295,14 +216,6 @@
     <button class="nav-btn" onclick="alert('Top Up')">Top Up</button>
     <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
     <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
-    <div class="menu-container">
-      <div class="dots-btn">•••</div>
-      <div class="dropdown-content">
-        <a href="#" class="dropdown-item">My Profile</a>
-        <a href="#" class="dropdown-item">Settings</a>
-        <a href="#" class="dropdown-item" style="color: #ef4444;">Log Out</a>
-      </div>
-    </div>
   </div>
 </nav>
 
@@ -331,9 +244,9 @@
 
     <div class="filter-group">
       <span class="filter-title">Condition</span>
-      <label class="filter-option"><input type="checkbox" class="filter-checkbox"> Brand New</label>
-      <label class="filter-option"><input type="checkbox" class="filter-checkbox" checked> Like New</label>
-      <label class="filter-option"><input type="checkbox" class="filter-checkbox"> Used</label>
+      <label class="filter-option"><input type="checkbox" class="filter-checkbox" value="New"> Brand New</label>
+      <label class="filter-option"><input type="checkbox" class="filter-checkbox" value="Like New"> Like New</label>
+      <label class="filter-option"><input type="checkbox" class="filter-checkbox" value="Used"> Used</label>
     </div>
 
     <div class="filter-group">
@@ -346,7 +259,6 @@
     </div>
 
     <button class="btn-clear-filter" onclick="clearAllFilters()">Reset / Clear All</button>
-
     <button class="btn-apply-filter" onclick="applyAllFilters()">Apply All Filters</button>
 
   </aside>
@@ -354,58 +266,151 @@
   <main>
     <div class="results-header">
       <h3 id="result-status">Showing All Results</h3>
-      <span style="color:#666;">Found 12 items</span>
+      <span style="color:#666;" id="result-count">Searching...</span>
     </div>
 
-    <div class="product-grid">
-      <div class="product-card">
-        <div class="card-img-container">📸</div>
-        <div class="card-info">
-          <h4>Polaroid Camera</h4>
-          <div class="card-footer"><span>$45</span> <small style="color:#999;font-weight:400;">Like New</small></div>
-        </div>
-      </div>
-      <div class="product-card">
-        <div class="card-img-container">💻</div>
-        <div class="card-info">
-          <h4>MacBook Air M1</h4>
-          <div class="card-footer"><span>$650</span> <small style="color:#999;font-weight:400;">Used</small></div>
-        </div>
-      </div>
-      <div class="product-card">
-        <div class="card-img-container">👟</div>
-        <div class="card-info">
-          <h4>Nike Air Jordan</h4>
-          <div class="card-footer"><span>$120</span> <small style="color:#999;font-weight:400;">Brand New</small></div>
-        </div>
-      </div>
-      <div class="product-card">
-        <div class="card-img-container">🚲</div>
-        <div class="card-info">
-          <h4>Mountain Bike</h4>
-          <div class="card-footer"><span>$200</span> <small style="color:#999;font-weight:400;">Used</small></div>
-        </div>
-      </div>
-      <div class="product-card">
-        <div class="card-img-container">🛋️</div>
-        <div class="card-info">
-          <h4>IKEA Sofa</h4>
-          <div class="card-footer"><span>$150</span> <small style="color:#999;font-weight:400;">Good</small></div>
-        </div>
-      </div>
+    <div class="product-grid" id="product-grid-container">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">Loading treasures... ⏳</div>
     </div>
   </main>
 </div>
 
 <script>
-  let currentCategory = "All";
+  let currentCategory = "All"; // 这里存的现在是 ID 了
   let currentSubCategory = "";
 
-  // 1. Mobile Logic: Sidebar Toggle
+  const iconMap = { 'Digital': '📱', 'Fashion': '👗', 'Home': '🏠', 'Books': '📚', 'Transport': '🚲', 'default': '📦' };
+
+  /* --- 1. Load Categories --- */
+  async function loadCategories() {
+    try {
+      const response = await fetch('../api/Get_Categories.php');
+      const result = await response.json();
+
+      if (result.success) {
+        renderCategories(result.data);
+      } else {
+        console.error("API Error:", result.message);
+        document.getElementById('dynamic-category-list').innerHTML =
+                `<li style="text-align:center;padding:10px;color:red">Error loading data</li>`;
+      }
+    } catch (error) {
+      console.error("Fetch Error:", error);
+      document.getElementById('dynamic-category-list').innerHTML =
+              `<li style="text-align:center;padding:10px;color:red">Connection Failed</li>`;
+    }
+  }
+
+  /* --- 2. 🔥 Render Categories (核心修复：传递 ID) 🔥 --- */
+  function renderCategories(categories) {
+    const listContainer = document.getElementById('dynamic-category-list');
+    listContainer.innerHTML = '';
+
+    categories.forEach(parent => {
+      const icon = iconMap[parent.Category_Name] || iconMap['default'];
+      const li = document.createElement('li');
+      li.className = 'sidebar-item-wrapper';
+      li.setAttribute('onclick', 'toggleMobileSubmenu(this)');
+
+      let subHtml = '';
+      if (parent.children && parent.children.length > 0) {
+
+        // 处理父级名称中的单引号，用于 UI 高亮逻辑
+        const safeParentName = parent.Category_Name.replace(/'/g, "\\'");
+
+        const subTags = parent.children.map(child => {
+          // 🔥 这里是重点修改：
+          // 我们传递 child.Category_ID (数字) 给 setCategory 函数
+          // safeParentName 只是为了保持侧边栏图标的高亮
+          return `
+                <span class="sub-tag"
+                      onclick="setCategory(event, ${child.Category_ID}, '${safeParentName}')">
+                    ${child.Category_Name}
+                </span>
+            `;
+        }).join('');
+
+        subHtml += `
+            <div class="submenu-panel">
+                <div class="submenu-group">
+                    <div class="submenu-title">Explore</div>
+                    <div class="submenu-tags">
+                        ${subTags}
+                    </div>
+                </div>
+            </div>`;
+      }
+
+      li.innerHTML = `
+            <div class="category-trigger" id="cat-${parent.Category_Name.toLowerCase()}">
+                ${icon} ${parent.Category_Name}
+            </div>
+            ${subHtml}
+        `;
+      listContainer.appendChild(li);
+    });
+  }
+
+  /* --- 3. Filter Actions --- */
+  function clearAllFilters() {
+    document.querySelectorAll('.category-trigger').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sub-tag').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.price-input').forEach(input => input.value = "");
+    document.querySelectorAll('.filter-checkbox').forEach(cb => cb.checked = false);
+    currentCategory = "All";
+    loadProducts();
+  }
+
+  function applyAllFilters() {
+    loadProducts();
+    if (window.innerWidth <= 768) {
+      const sidebar = document.getElementById('filterSidebar');
+      if(sidebar.classList.contains('active')) toggleMobileSidebar();
+    }
+  }
+
+  // 🔥 核心修复：接收 ID 进行筛选
+  function setCategory(event, categoryId, parentName) {
+    if (event) event.stopPropagation();
+
+    // 1. 设置当前分类为 ID (例如 100000012)
+    currentCategory = categoryId;
+
+    // 2. 清空搜索框！绝对不要把名字填进去，否则会干扰筛选
+    document.getElementById('mainSearchInput').value = "";
+
+    // 3. UI 高亮逻辑 (使用 parentName 找到对应的侧边栏图标)
+    document.querySelectorAll('.category-trigger').forEach(el => el.classList.remove('active'));
+    let triggerId = 'cat-' + parentName.toLowerCase();
+    let trigger = document.getElementById(triggerId);
+    if(trigger) trigger.classList.add('active');
+
+    // 4. 高亮子菜单项
+    document.querySelectorAll('.sub-tag').forEach(tag => tag.classList.remove('active'));
+    if (event && event.target) event.target.classList.add('active');
+
+    // 5. 执行筛选
+    applyAllFilters();
+  }
+
+  /* --- 4. Mobile Submenu Toggle --- */
+  function toggleMobileSubmenu(element) {
+    if (window.innerWidth <= 768) {
+      const currentExpanded = document.querySelector('.sidebar-item-wrapper.mobile-expanded');
+      if (element.classList.contains('mobile-expanded')) {
+        element.classList.remove('mobile-expanded');
+        return;
+      }
+      if (currentExpanded && currentExpanded !== element) {
+        currentExpanded.classList.remove('mobile-expanded');
+      }
+      element.classList.add('mobile-expanded');
+    }
+  }
+
   function toggleMobileSidebar() {
     const sidebar = document.getElementById('filterSidebar');
     const overlay = document.getElementById('sidebarOverlay');
-
     if (sidebar.classList.contains('active')) {
       sidebar.classList.remove('active');
       overlay.style.display = 'none';
@@ -419,185 +424,113 @@
     }
   }
 
-  // 2. Mobile Logic: Accordion Submenu
-  function toggleMobileSubmenu(element) {
-    if (window.innerWidth <= 768) {
-      const currentExpanded = document.querySelector('.sidebar-item-wrapper.mobile-expanded');
-      if (currentExpanded && currentExpanded !== element) {
-        currentExpanded.classList.remove('mobile-expanded');
-      }
-      element.classList.toggle('mobile-expanded');
-    }
-  }
+  /* --- 5. Data Fetching --- */
+  async function loadProducts() {
+    const container = document.getElementById('product-grid-container');
+    const statusText = document.getElementById('result-status');
+    const countText = document.getElementById('result-count');
 
-  // 3. Select Category
-  function setCategory(event, main, sub) {
-    if (event) event.stopPropagation();
-
-    currentCategory = main;
-    currentSubCategory = sub;
-
-    // Fill Input
-    document.getElementById('mainSearchInput').value = sub;
-
-    // Highlighting Logic
-    document.querySelectorAll('.category-trigger').forEach(el => el.classList.remove('active'));
-    // 这里因为是动态生成的，ID规则是 'cat-' + name.toLowerCase()
-    let triggerId = 'cat-' + main.toLowerCase();
-    let trigger = document.getElementById(triggerId);
-    if(trigger) trigger.classList.add('active');
-
-    document.querySelectorAll('.sub-tag').forEach(tag => tag.classList.remove('active'));
-    if (event && event.target) {
-      event.target.classList.add('active');
-    }
-
-    // Update Status Text
-    document.getElementById('result-status').innerText = `Selected: ${main} > ${sub} (Pending Apply)`;
-  }
-
-  // 4. Click Apply button
-  function applyAllFilters() {
-    let searchText = document.getElementById('mainSearchInput').value || currentSubCategory || 'All Items';
-    let statusText = `Searching for: "${searchText}"`;
-
-    const checkedConditions = Array.from(document.querySelectorAll('.filter-checkbox:checked')).map(cb => cb.parentNode.innerText.trim());
-    if(checkedConditions.length > 0) {
-      statusText += ` + Conditions: [${checkedConditions.join(', ')}]`;
-    }
-
+    const query = document.getElementById('mainSearchInput').value;
     const minPrice = document.querySelector('input[placeholder="Min"]').value;
     const maxPrice = document.querySelector('input[placeholder="Max"]').value;
-    if(minPrice || maxPrice) {
-      statusText += ` + Price: $${minPrice || 0} - $${maxPrice || '∞'}`;
-    }
+    const conditions = Array.from(document.querySelectorAll('.filter-checkbox:checked')).map(cb => cb.value);
 
-    document.getElementById('result-status').innerText = statusText;
+    const params = new URLSearchParams();
+    if(query) params.append('q', query);
 
-    // Close sidebar on mobile
-    if (window.innerWidth <= 768) {
-      const sidebar = document.getElementById('filterSidebar');
-      if(sidebar.classList.contains('active')) toggleMobileSidebar();
-    }
+    // 这里 currentCategory 已经是数字 ID 了，传给后台正好！
+    if(currentCategory && currentCategory !== 'All') params.append('category', currentCategory);
 
-    console.log("Search Payload:", {
-      q: searchText,
-      category: currentCategory,
-      conditions: checkedConditions,
-      priceMin: minPrice,
-      priceMax: maxPrice
-    });
+    if(minPrice) params.append('min_price', minPrice);
+    if(maxPrice) params.append('max_price', maxPrice);
+    conditions.forEach(c => params.append('conditions[]', c));
 
-    alert("Filter Applied! Check console for details.");
-  }
+    statusText.innerText = query ? `Searching for "${query}"...` : "Loading items...";
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">Loading treasures... ⏳</div>`;
 
-  // 5. Clear / Reset Logic
-  function clearAllFilters() {
-    currentCategory = "All";
-    currentSubCategory = "";
-
-    document.querySelectorAll('.category-trigger').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sub-tag').forEach(el => el.classList.remove('active'));
-
-    document.getElementById('mainSearchInput').value = "";
-    document.querySelectorAll('.price-input').forEach(input => input.value = "");
-
-    document.querySelectorAll('.filter-checkbox').forEach(cb => cb.checked = false);
-
-    document.getElementById('result-status').innerText = "Filters Cleared.";
-
-    if (window.innerWidth <= 768) {
-      document.querySelectorAll('.sidebar-item-wrapper.mobile-expanded').forEach(el => el.classList.remove('mobile-expanded'));
-    }
-  }
-
-  document.getElementById('mainSearchInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-      applyAllFilters();
-    }
-  });
-
-  // ==========================================
-  // ★ NEW: 动态加载分类 Logic
-  // ==========================================
-
-  // Emoji 映射表 (保持你的设计风格)
-  const iconMap = {
-    'Digital': '📱',
-    'Fashion': '👗',
-    'Home': '🏠',
-    'Books': '📚',
-    'Transport': '🚲',
-    'default': '📦'
-  };
-
-  async function loadCategories() {
     try {
-      // 请求路径：从 pages/ 目录去访问上一级的 api/ 目录
-      const response = await fetch('../api/get_categories.php');
+      const response = await fetch(`../api/Get_Products.php?${params.toString()}`);
+      if (!response.ok) throw new Error("Server Error");
       const result = await response.json();
 
       if (result.success) {
-        renderCategories(result.data);
+        renderProducts(result.data);
+        statusText.innerText = query ? `Results for "${query}"` : "All Items";
+        countText.innerText = `Found ${result.data.length} items`;
       } else {
-        console.error("API Error:", result.message);
-        document.getElementById('dynamic-category-list').innerHTML = `<li style="text-align:center;padding:10px;color:red">Error loading data</li>`;
+        container.innerHTML = `<div style="grid-column:1/-1;text-align:center;">${result.message}</div>`;
       }
     } catch (error) {
-      console.error("Fetch Error:", error);
-      document.getElementById('dynamic-category-list').innerHTML = `<li style="text-align:center;padding:10px;color:red">Connection Failed</li>`;
+      console.error(error);
+      container.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:red;">Connection Failed</div>`;
     }
   }
 
-  function renderCategories(categories) {
-    const listContainer = document.getElementById('dynamic-category-list');
-    listContainer.innerHTML = ''; // 清空 Loading
+  function renderProducts(products) {
+    const container = document.getElementById('product-grid-container');
+    container.innerHTML = '';
 
-    categories.forEach(parent => {
-      // 1. 获取图标
-      const icon = iconMap[parent.Category_Name] || iconMap['default'];
+    if (products.length === 0) {
+      container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px;"><h3>No items found</h3></div>`;
+      return;
+    }
 
-      // 2. 创建 HTML 结构
-      const li = document.createElement('li');
-      li.className = 'sidebar-item-wrapper';
-      li.setAttribute('onclick', 'toggleMobileSubmenu(this)'); // 绑定手机端点击事件
-
-      // 构建子分类 HTML
-      let subHtml = '';
-      if (parent.children && parent.children.length > 0) {
-        subHtml += `
-            <div class="submenu-panel">
-                <div class="submenu-group">
-                    <div class="submenu-title">Explore</div>
-                    <div class="submenu-tags">
-                        ${parent.children.map(child => `
-                            <span class="sub-tag"
-                                  onclick="setCategory(event, '${parent.Category_Name}', '${child.Category_Name}')">
-                                ${child.Category_Name}
-                            </span>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>`;
+    products.forEach(item => {
+      let imgHtml = '';
+      if (item.Main_Image) {
+        // 处理图片路径
+        const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+        imgHtml = `<img src="../${cleanPath}" alt="${item.Product_Title}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        imgHtml = `<div style="font-size:3rem;">📦</div>`;
       }
 
-      // 组装完整 HTML
-      li.innerHTML = `
-            <div class="category-trigger" id="cat-${parent.Category_Name.toLowerCase()}">
-                ${icon} ${parent.Category_Name}
-            </div>
-            ${subHtml}
-        `;
+      // 成色颜色逻辑
+      let condColor = item.Product_Condition.includes('New') ? '#10B981' : '#4F46E5';
 
-      listContainer.appendChild(li);
+      // 处理位置信息 (如果数据库里是 NULL，就显示 Unknown)
+      const location = item.Product_Location ? item.Product_Location : 'Unknown';
+
+      const html = `
+            <a href="Product_Detail.html?id=${item.Product_ID}" class="product-card">
+                <div class="card-img-container" style="${!item.Main_Image ? 'background:linear-gradient(135deg,#f8f9fa,#e9ecef);' : ''}">
+                    ${imgHtml}
+                </div>
+
+                <div class="card-info">
+                    <h4 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;">
+                        ${item.Product_Title}
+                    </h4>
+
+                    <div class="card-footer" style="margin-bottom: 12px;">
+                        <span>$${parseFloat(item.Product_Price).toFixed(2)}</span>
+                        <small style="color:${condColor};background:#f3f4f6;padding:2px 8px;border-radius:10px;">
+                            ${item.Product_Condition}
+                        </small>
+                    </div>
+
+                    <div style="height:1px; background:#f0f0f0; margin-bottom:8px;"></div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#6B7280;">
+                        <span style="display:flex; align-items:center; gap:4px; max-width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                            👤 ${item.User_Username}
+                        </span>
+                        <span style="display:flex; align-items:center; gap:4px; max-width: 45%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                            📍 ${location}
+                        </span>
+                    </div>
+                </div>
+            </a>`;
+
+      container.insertAdjacentHTML('beforeend', html);
     });
   }
 
-  // 页面加载完成后，自动执行加载函数
+  // Initialize
   document.addEventListener('DOMContentLoaded', () => {
     loadCategories();
+    loadProducts();
   });
-
 </script>
 
 </body>

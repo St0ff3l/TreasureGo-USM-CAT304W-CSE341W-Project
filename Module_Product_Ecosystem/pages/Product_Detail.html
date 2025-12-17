@@ -77,7 +77,62 @@
 
         /* Info */
         .product-info { padding-top: 10px; }
-        .product-tag { display: inline-block; background: #DEF7EC; color: var(--success); padding: 6px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; }
+
+        /* Wrapper for Tag and Report Button alignment */
+        .tag-report-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .product-tag {
+            display: inline-block;
+            background: #DEF7EC;
+            color: var(--success);
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* 🔥 UPDATED: Inline Report Button Styles (Pill Shape with Text) 🔥 */
+        .report-inline-btn {
+            /* Removed fixed width, added padding and gap */
+            height: 36px;
+            padding: 0 12px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 30px; /* Pill shape */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between text and icon */
+            text-decoration: none;
+            color: #9CA3AF;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .report-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .report-icon {
+            font-size: 1.1rem;
+        }
+
+        .report-inline-btn:hover {
+            color: #EF4444;
+            border-color: #EF4444;
+            transform: translateY(-2px); /* Slight lift effect instead of scale */
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+        }
+        /* -------------------------------------------------- */
+
+
         .product-title { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
         .product-price { font-size: 2rem; color: var(--primary); font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
         .original-price { font-size: 1.2rem; color: #ccc; text-decoration: line-through; font-weight: 400; }
@@ -155,7 +210,14 @@
     </div>
 
     <div class="product-info">
-        <div class="product-tag">Condition: Like New</div>
+        <div class="tag-report-wrapper">
+            <div class="product-tag">Condition: Like New</div>
+            <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="report-inline-btn" title="Report this item">
+                <span class="report-text">Report</span>
+                <span class="report-icon">🏴</span>
+            </a>
+        </div>
+
         <h1 class="product-title">Sony WH-1000XM4 Wireless Noise Cancelling Headphones</h1>
         <div class="product-price">$200.00 <span class="original-price">$348.00</span></div>
 

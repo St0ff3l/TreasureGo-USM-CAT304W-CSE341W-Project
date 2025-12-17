@@ -108,35 +108,129 @@
       margin-bottom: 8px; color: var(--text-dark);
     }
 
-    /* Inputs & Textareas */
+    /* Inputs Hover Effects */
     input[type="text"], input[type="number"], textarea, select {
       width: 100%; padding: 14px 16px; background: var(--input-bg);
       border: 2px solid transparent; border-radius: 16px;
       font-size: 1rem; font-family: inherit; outline: none;
-      transition: all 0.2s; color: var(--text-dark);
+      color: var(--text-dark);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    input:hover, textarea:hover, select:hover {
+      background: #fff; border-color: #a5b4fc;
+      transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
 
     input:focus, textarea:focus, select:focus {
       background: #fff; border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+      transform: translateY(-3px);
     }
 
     textarea { resize: vertical; min-height: 120px; }
-
-    /* Layout for dual selects (Category & Price/Condition) */
     .row-group { display: flex; gap: 15px; }
     .row-group .half-width { flex: 1; }
 
-    /* Image Upload Area */
+    /* =========================================
+       4. Image Upload Styles (With Delete Feature)
+       ========================================= */
     .upload-area {
-      border: 2px dashed #d1d5db; border-radius: 20px; padding: 40px 20px;
-      text-align: center; background: var(--input-bg); cursor: pointer;
-      transition: all 0.2s; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 10px;
+      border: 2px dashed #d1d5db; border-radius: 20px;
+      padding: 20px; min-height: 200px;
+      text-align: center; background: var(--input-bg);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 15px;
+      position: relative;
     }
-    .upload-area:hover { border-color: var(--primary); background: #eef2ff; }
-    .upload-icon { font-size: 2.5rem; color: var(--primary); }
+
+    .upload-area:hover {
+      border-color: var(--primary); background: #eef2ff;
+      transform: translateY(-5px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.15);
+    }
+    .upload-icon { font-size: 2.5rem; color: var(--primary); transition: transform 0.3s; }
+    .upload-area:hover .upload-icon { transform: scale(1.1); }
     .upload-text { color: var(--text-gray); font-size: 0.9rem; }
+
+    /* Clear All Button */
+    .clear-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(239, 68, 68, 0.1); color: #ef4444;
+      border: none; padding: 5px 12px; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      z-index: 10; display: none; transition: 0.2s;
+    }
+    .clear-btn:hover { background: rgba(239, 68, 68, 0.2); transform: scale(1.05); }
+
+    /* Preview Container */
+    #imagePreview {
+      display: none; width: 100%; gap: 15px;
+      flex-wrap: wrap; justify-content: center;
+      padding-right: 50px;
+    }
+
+    /* Single Image Wrapper (New for positioning the X button) */
+    .preview-wrapper {
+      position: relative;
+      width: 100px; height: 100px;
+      animation: popIn 0.3s ease;
+    }
+
+    .preview-item {
+      width: 100%; height: 100%; border-radius: 12px;
+      object-fit: cover; border: 2px solid #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .preview-wrapper:hover .preview-item {
+      transform: scale(1.05);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Single Delete Button (X) */
+    .delete-single-btn {
+      position: absolute;
+      top: -8px; right: -8px;
+      width: 24px; height: 24px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      border: 2px solid white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: bold;
+      cursor: pointer;
+      opacity: 0; transition: all 0.2s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 20;
+    }
+
+    /* Show X button only on hover */
+    .preview-wrapper:hover .delete-single-btn {
+      opacity: 1; transform: scale(1.1);
+    }
+    .delete-single-btn:hover {
+      background: #dc2626; transform: scale(1.2);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Add More Button (+) */
+    .add-more-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--primary); color: white;
+      border: none; font-size: 24px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+      transition: all 0.2s;
+      position: absolute; bottom: 20px; right: 20px;
+      display: none; z-index: 10;
+    }
+    .add-more-btn:hover { background: var(--primary-hover); transform: scale(1.1) rotate(90deg); }
 
     /* Action Buttons */
     .btn-group { display: flex; gap: 15px; margin-top: 40px; }
@@ -146,14 +240,14 @@
       font-weight: 700; cursor: pointer; transition: 0.2s;
       box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
     }
-    .btn-submit:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    .btn-submit:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.35); }
     .btn-cancel {
       flex: 1; padding: 16px; background: #f3f4f6; color: var(--text-gray);
       border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 600;
       cursor: pointer; transition: 0.2s; text-align: center;
       text-decoration: none; display: flex; align-items: center; justify-content: center;
     }
-    .btn-cancel:hover { background: #e5e7eb; color: var(--text-dark); }
+    .btn-cancel:hover { background: #e5e7eb; color: var(--text-dark); transform: translateY(-3px); }
   </style>
 </head>
 <body>
@@ -177,12 +271,21 @@
 
     <div class="form-group">
       <label>Product Images</label>
-      <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">Click or drag photos here to upload</div>
+      <div class="upload-area" id="uploadArea">
+
+        <button type="button" class="clear-btn" id="clearBtn" onclick="clearImages(event)">Clear All</button>
+
+        <div id="uploadPlaceholder" onclick="triggerUpload()" style="cursor: pointer;">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Click to add photos<br>(Supports multiple)</div>
+        </div>
+
+        <div id="imagePreview"></div>
+
+        <button type="button" class="add-more-btn" id="addMoreBtn" onclick="triggerUpload()">+</button>
+
         <input type="file" id="fileInput" name="images[]" multiple style="display: none;">
       </div>
-      <div id="imagePreview" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;"></div>
     </div>
 
     <div class="form-group">
@@ -297,13 +400,9 @@
     }
   };
 
-  // ==========================================
-  // 2. Logic to populate dropdowns
-  // ==========================================
   const parentSelect = document.getElementById('parentCategory');
   const subSelect = document.getElementById('subCategory');
 
-  // Populate Parent Categories
   for (const [id, data] of Object.entries(categoryData)) {
     const option = document.createElement('option');
     option.value = id;
@@ -311,59 +410,123 @@
     parentSelect.appendChild(option);
   }
 
-  // Handle Parent Change
   parentSelect.addEventListener('change', function() {
     const parentId = this.value;
     const subCategories = categoryData[parentId].subs;
-
     subSelect.innerHTML = '<option value="" disabled selected>Select Sub-Category</option>';
     subSelect.disabled = false;
-
     subCategories.forEach(sub => {
       const option = document.createElement('option');
-      option.value = sub.id; // This value is sent as category_id
+      option.value = sub.id;
       option.textContent = sub.name;
       subSelect.appendChild(option);
     });
   });
 
-
   // ==========================================
-  // 3. Existing Feature: Image Preview
+  // 3. Feature: Cumulative Image Upload + Delete Single
   // ==========================================
-  document.getElementById('fileInput').addEventListener('change', function(e) {
-    const preview = document.getElementById('imagePreview');
-    preview.innerHTML = '';
 
-    for (let file of this.files) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const img = document.createElement('img');
-          img.src = event.target.result;
-          img.style.width = '80px';
-          img.style.height = '80px';
-          img.style.borderRadius = '12px';
-          img.style.objectFit = 'cover';
-          img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-          preview.appendChild(img);
-        };
-        reader.readAsDataURL(file);
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('imagePreview');
+  const placeholder = document.getElementById('uploadPlaceholder');
+  const clearBtn = document.getElementById('clearBtn');
+  const addMoreBtn = document.getElementById('addMoreBtn');
+
+  // Global DataTransfer to store files
+  let dt = new DataTransfer();
+
+  window.triggerUpload = function() {
+    fileInput.click();
+  }
+
+  window.clearImages = function(e) {
+    e.stopPropagation();
+    dt.items.clear();
+    fileInput.files = dt.files;
+    renderPreview();
+  }
+
+  // 【新增功能】删除单个图片
+  window.removeImage = function(index) {
+    const newDt = new DataTransfer();
+    const files = dt.files;
+
+    // 遍历当前所有文件，如果下标不是要删除的那个，就加到新的 DataTransfer 里
+    for(let i = 0; i < files.length; i++) {
+      if(i !== index) {
+        newDt.items.add(files[i]);
       }
     }
+
+    // 更新全局 dt 和 input
+    dt = newDt;
+    fileInput.files = dt.files;
+    renderPreview();
+  }
+
+  fileInput.addEventListener('change', function(e) {
+    for (let file of this.files) {
+      dt.items.add(file);
+    }
+    this.files = dt.files;
+    renderPreview();
   });
 
+  function renderPreview() {
+    preview.innerHTML = '';
+
+    if (dt.files.length > 0) {
+      placeholder.style.display = 'none';
+      clearBtn.style.display = 'block';
+      addMoreBtn.style.display = 'flex';
+      preview.style.display = 'flex';
+
+      // 遍历文件，带上索引 index，方便删除
+      Array.from(dt.files).forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+
+            // 创建一个 Wrapper 容器
+            const wrapper = document.createElement('div');
+            wrapper.className = 'preview-wrapper';
+
+            // 创建图片
+            const img = document.createElement('img');
+            img.src = event.target.result;
+            img.className = 'preview-item';
+
+            // 创建删除按钮 (X)
+            const delBtn = document.createElement('div');
+            delBtn.className = 'delete-single-btn';
+            delBtn.innerHTML = '✕';
+            delBtn.onclick = function() { removeImage(index); };
+
+            // 组装
+            wrapper.appendChild(img);
+            wrapper.appendChild(delBtn);
+            preview.appendChild(wrapper);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    } else {
+      placeholder.style.display = 'block';
+      clearBtn.style.display = 'none';
+      addMoreBtn.style.display = 'none';
+      preview.style.display = 'none';
+    }
+  }
+
   // ==========================================
-  // 4. Form Submission (Secure Version)
+  // 4. Form Submission
   // ==========================================
   document.getElementById('publishForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(this);
 
-    // SECURITY UPDATE: We do NOT append 'user_id' here anymore.
-    // The backend (PHP) will check the session.
-
-    // Basic Validation
     if (!formData.get('product_name').trim()) { alert('Please enter product name'); return; }
     if (!formData.get('category_id')) { alert('Please select a category'); return; }
     if (!formData.get('address').trim()) { alert('Please enter an address'); return; }
@@ -378,10 +541,8 @@
         body: formData
       });
 
-      // Handle "Not Logged In" error (401)
       if (response.status === 401) {
         alert('❌ Session expired or not logged in. Redirecting to login...');
-        // Adjust this path if your login page is somewhere else
         window.location.href = '../../login.html';
         return;
       }
