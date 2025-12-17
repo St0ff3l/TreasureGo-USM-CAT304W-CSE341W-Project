@@ -301,7 +301,7 @@
     }
   }
 
-  /* --- 2. 🔥 Render Categories (核心修复：传递 ID) 🔥 --- */
+  /* --- 2. 🔥 Render Categories (修复：支持点击大分类筛选) 🔥 --- */
   function renderCategories(categories) {
     const listContainer = document.getElementById('dynamic-category-list');
     listContainer.innerHTML = '';
@@ -312,16 +312,13 @@
       li.className = 'sidebar-item-wrapper';
       li.setAttribute('onclick', 'toggleMobileSubmenu(this)');
 
+      // ✅ 提前处理名字中的单引号，供大分类和子分类使用
+      const safeParentName = parent.Category_Name.replace(/'/g, "\\'");
+
       let subHtml = '';
       if (parent.children && parent.children.length > 0) {
-
-        // 处理父级名称中的单引号，用于 UI 高亮逻辑
-        const safeParentName = parent.Category_Name.replace(/'/g, "\\'");
-
         const subTags = parent.children.map(child => {
-          // 🔥 这里是重点修改：
-          // 我们传递 child.Category_ID (数字) 给 setCategory 函数
-          // safeParentName 只是为了保持侧边栏图标的高亮
+          // 子分类点击事件
           return `
                 <span class="sub-tag"
                       onclick="setCategory(event, ${child.Category_ID}, '${safeParentName}')">
@@ -341,8 +338,12 @@
             </div>`;
       }
 
+      // ✅ 关键修改：给大分类文字也加上 onclick 事件！
+      // 传入 parent.Category_ID (比如 100000000)
       li.innerHTML = `
-            <div class="category-trigger" id="cat-${parent.Category_Name.toLowerCase()}">
+            <div class="category-trigger"
+                 id="cat-${parent.Category_Name.toLowerCase()}"
+                 onclick="setCategory(event, ${parent.Category_ID}, '${safeParentName}')">
                 ${icon} ${parent.Category_Name}
             </div>
             ${subHtml}
@@ -369,25 +370,25 @@
     }
   }
 
-  // 🔥 核心修复：接收 ID 进行筛选
+  // 🔥 核心修复：移除冒泡阻止，让手机端点击也能展开菜单
   function setCategory(event, categoryId, parentName) {
-    if (event) event.stopPropagation();
-
-    // 1. 设置当前分类为 ID (例如 100000012)
+    // 1. 设置当前分类为 ID
     currentCategory = categoryId;
 
-    // 2. 清空搜索框！绝对不要把名字填进去，否则会干扰筛选
+    // 2. 清空搜索框
     document.getElementById('mainSearchInput').value = "";
 
-    // 3. UI 高亮逻辑 (使用 parentName 找到对应的侧边栏图标)
+    // 3. UI 高亮逻辑
     document.querySelectorAll('.category-trigger').forEach(el => el.classList.remove('active'));
     let triggerId = 'cat-' + parentName.toLowerCase();
     let trigger = document.getElementById(triggerId);
     if(trigger) trigger.classList.add('active');
 
-    // 4. 高亮子菜单项
+    // 4. 高亮子菜单项 (如果是点击大分类，这里自然就没有子菜单项被高亮，符合逻辑)
     document.querySelectorAll('.sub-tag').forEach(tag => tag.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
+    if (event && event.target && event.target.classList.contains('sub-tag')) {
+      event.target.classList.add('active');
+    }
 
     // 5. 执行筛选
     applyAllFilters();
@@ -528,8 +529,36 @@
 
   // Initialize
   document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // 1. 获取 URL 中的参数
+    const q = urlParams.get('q');
+    const urlCatId = urlParams.get('category'); // 获取 ID
+    const urlCatName = urlParams.get('name');   // 获取名字 (用于高亮侧边栏)
+
+    // 2. 如果有搜索词，填入搜索框
+    if (q) document.getElementById('mainSearchInput').value = q;
+
+    // 3. 🔥 关键修复：如果有分类 ID，直接设置给全局变量
+    if (urlCatId) {
+      currentCategory = urlCatId; // 这样 loadProducts 就会带上 ID 去请求
+
+      // 顺便让 UI 把对应的大分类高亮起来
+      // 我们由于还没 loadCategories，这里只是预设。
+      // 实际的高亮会在 loadCategories 完成后，或者我们可以等一下手动高亮
+      setTimeout(() => {
+        if(urlCatName) {
+          // 清除所有高亮
+          document.querySelectorAll('.category-trigger').forEach(el => el.classList.remove('active'));
+          // 尝试找到 ID 为 cat-fashion 的元素并高亮
+          const trigger = document.getElementById('cat-' + urlCatName.toLowerCase());
+          if(trigger) trigger.classList.add('active');
+        }
+      }, 500); // 延迟一点点等待侧边栏加载
+    }
+
     loadCategories();
-    loadProducts();
+    loadProducts(); // 这里现在会带着正确的 currentCategory (ID) 去后台了
   });
 </script>
 

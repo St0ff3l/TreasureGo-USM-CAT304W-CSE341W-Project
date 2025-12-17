@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sony Headphones - TreasureGO</title>
+    <title>Product Detail - TreasureGO</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- 1. Global Styles --- */
@@ -68,17 +68,85 @@
 
         .product-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: start; }
 
-        /* Gallery */
+        /* --- Gallery Styles (已优化) --- */
         .gallery-wrapper { position: sticky; top: 100px; }
-        .main-image-box { width: 100%; height: 500px; background: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 8rem; box-shadow: var(--card-shadow); margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05); }
-        .thumbnails { display: flex; gap: 15px; }
-        .thumb { width: 80px; height: 80px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+
+        .main-image-box {
+            width: 100%;
+            height: 500px;
+            background: #f3f4f6; /* ✅ 改为浅灰色背景 */
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+            overflow: hidden; /* ✅ 防止图片溢出圆角 */
+            position: relative;
+        }
+        /* 🔥 新增：左右切换箭头的样式 🔥 */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%); /* 垂直居中 */
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.9); /* 半透明白色背景 */
+            border-radius: 50%; /* 圆形 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 10; /* 保证在图片上面 */
+            opacity: 0; /* 默认隐藏 */
+            transition: all 0.3s ease;
+            border: none; /* 移除按钮默认边框 */
+            outline: none;
+        }
+
+        /* 鼠标悬停在主图区域时，显示箭头 */
+        .main-image-box:hover .nav-arrow {
+            opacity: 1;
+        }
+
+        .nav-arrow:hover {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .arrow-prev { left: 15px; padding-right: 3px; } /* 左箭头位置，微调padding让图标视觉居中 */
+        .arrow-next { right: 15px; padding-left: 3px; } /* 右箭头位置 */
+
+        /* (以下是原有的缩略图样式，保持不变) */
+        .thumbnails { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px; }
+
+        .thumb {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            flex-shrink: 0; /* ✅ 防止缩略图被挤压 */
+            overflow: hidden; /* ✅ 确保缩略图填充 */
+        }
+
         .thumb.active { border-color: var(--primary); transform: translateY(-2px); }
 
         /* Info */
         .product-info { padding-top: 10px; }
 
-        /* Wrapper for Tag and Report Button alignment */
         .tag-report-wrapper {
             display: flex;
             align-items: center;
@@ -97,41 +165,31 @@
             font-weight: 600;
         }
 
-        /* 🔥 UPDATED: Inline Report Button Styles (Pill Shape with Text) 🔥 */
         .report-inline-btn {
-            /* Removed fixed width, added padding and gap */
             height: 36px;
             padding: 0 12px;
             background: white;
             border: 1px solid #E5E7EB;
-            border-radius: 30px; /* Pill shape */
+            border-radius: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px; /* Space between text and icon */
+            gap: 8px;
             text-decoration: none;
             color: #9CA3AF;
             transition: all 0.2s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        .report-text {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .report-icon {
-            font-size: 1.1rem;
-        }
+        .report-text { font-size: 0.9rem; font-weight: 600; }
+        .report-icon { font-size: 1.1rem; }
 
         .report-inline-btn:hover {
             color: #EF4444;
             border-color: #EF4444;
-            transform: translateY(-2px); /* Slight lift effect instead of scale */
+            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
         }
-        /* -------------------------------------------------- */
-
 
         .product-title { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
         .product-price { font-size: 2rem; color: var(--primary); font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
@@ -203,23 +261,21 @@
     <div class="gallery-wrapper">
         <div class="main-image-box" id="mainImage">🎧</div>
         <div class="thumbnails">
-            <div class="thumb active" onclick="switchImage('🎧', this)">🎧</div>
-            <div class="thumb" onclick="switchImage('📦', this)">📦</div>
-            <div class="thumb" onclick="switchImage('🧾', this)">🧾</div>
+            <div class="thumb active">🎧</div>
         </div>
     </div>
 
     <div class="product-info">
         <div class="tag-report-wrapper">
-            <div class="product-tag">Condition: Like New</div>
+            <div class="product-tag">Condition: Loading...</div>
             <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="report-inline-btn" title="Report this item">
                 <span class="report-text">Report</span>
                 <span class="report-icon">🏴</span>
             </a>
         </div>
 
-        <h1 class="product-title">Sony WH-1000XM4 Wireless Noise Cancelling Headphones</h1>
-        <div class="product-price">$200.00 <span class="original-price">$348.00</span></div>
+        <h1 class="product-title">Loading Product...</h1>
+        <div class="product-price">$0.00</div>
 
         <div class="delivery-badges">
             <span class="badge badge-meet">🤝 Meet-up Available</span>
@@ -230,8 +286,8 @@
             <div class="seller-info">
                 <div class="seller-avatar">👤</div>
                 <div class="seller-details">
-                    <h4>Alex Chen</h4>
-                    <div class="seller-rating">★ 4.9 (52 Reviews)</div>
+                    <h4>Loading...</h4>
+                    <div class="seller-rating">...</div>
                 </div>
             </div>
             <button class="chat-btn-small" onclick="showToast('💬 Opening Chat...')">Chat</button>
@@ -239,15 +295,12 @@
 
         <div class="location-box">
             <span style="font-size: 1.3rem;">📍</span>
-            <div><span style="display:block; color:#666; font-size:0.85rem;">Seller Location:</span><strong>Seattle, WA (Downtown)</strong></div>
+            <div><span style="display:block; color:#666; font-size:0.85rem;">Seller Location:</span><strong>Loading...</strong></div>
         </div>
 
         <h3 class="section-title">Description</h3>
         <p class="description-text">
-            Selling my Sony XM4s because I upgraded to the XM5. <br><br>
-            - Bought 6 months ago, still under warranty.<br>
-            - Battery life is amazing (30 hours).<br>
-            - No scratches, ear pads are clean and sanitized.<br>
+            Loading description...
         </p>
 
         <div class="action-buttons">
@@ -265,11 +318,160 @@
 <div id="toast" class="toast">Action Successful</div>
 
 <script>
-    function switchImage(emoji, element) {
-        document.getElementById('mainImage').innerText = emoji;
-        document.querySelectorAll('.thumb').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
+    // 1. 获取 URL 中的商品 ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    // 🔥 全局变量：用于追踪当前显示的图片索引和图片列表
+    let currentImageIndex = 0;
+    let globalImageList = [];
+
+    // 2. 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!productId) {
+            alert("Product not found!");
+            window.location.href = '../../index.html';
+            return;
+        }
+        loadProductDetails(productId);
+    });
+
+    // 3. 加载商品详情
+    async function loadProductDetails(id) {
+        try {
+            const response = await fetch(`../api/Get_Products.php?product_id=${id}`);
+            const result = await response.json();
+
+            if (result.success && result.data.length > 0) {
+                const product = result.data[0];
+                renderProduct(product);
+            } else {
+                alert("Product details not found.");
+            }
+        } catch (error) {
+            console.error("Error loading product:", error);
+        }
     }
+
+    // 4. 渲染页面
+    function renderProduct(item) {
+        // --- 基础信息渲染 (保持不变) ---
+        document.querySelector('.product-title').innerText = item.Product_Title;
+        document.querySelector('.product-price').innerHTML = `$${parseFloat(item.Product_Price).toFixed(2)}`;
+        item.Product_Description ? document.querySelector('.description-text').innerText = item.Product_Description : document.querySelector('.description-text').innerText = "No description available.";
+        document.querySelector('.product-tag').innerText = `Condition: ${item.Product_Condition}`;
+        const location = item.Product_Location || 'Unknown Location';
+        document.querySelector('.location-box div strong').innerText = location;
+        document.querySelector('.seller-details h4').innerText = item.User_Username;
+        const rating = item.User_Average_Rating ? `★ ${item.User_Average_Rating}` : 'New Seller';
+        document.querySelector('.seller-rating').innerText = rating;
+
+        // ============================================
+        // 🔥 图片处理逻辑 (Gallery Logic) - 支持左右切换 🔥
+        // ============================================
+        const mainImgBox = document.getElementById('mainImage');
+        const thumbContainer = document.querySelector('.thumbnails');
+
+        // 清空旧内容
+        mainImgBox.innerHTML = '';
+        thumbContainer.innerHTML = '';
+
+        // 准备图片列表
+        globalImageList = []; // 重置全局列表
+        if (item.All_Images) {
+            globalImageList = item.All_Images.split(',');
+        } else if (item.Main_Image) {
+            globalImageList = [item.Main_Image];
+        }
+
+        if (globalImageList.length > 0) {
+            // 1. 渲染缩略图和初始主图
+            globalImageList.forEach((imgRawPath, index) => {
+                const cleanPath = imgRawPath.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+                const fullPath = `../${cleanPath}`;
+
+                // 创建缩略图元素
+                const thumbDiv = document.createElement('div');
+                thumbDiv.className = index === 0 ? 'thumb active' : 'thumb';
+                thumbDiv.dataset.index = index; // 存储索引方便调用
+                thumbDiv.innerHTML = `<img src="${fullPath}" style="width:100%;height:100%;object-fit:cover;">`;
+
+                // 点击缩略图切换
+                thumbDiv.onclick = function() {
+                    changeMainImage(index);
+                };
+                thumbContainer.appendChild(thumbDiv);
+            });
+
+            // 初始显示第一张图
+            changeMainImage(0);
+
+            // 🔥 2. 如果有多张图片，添加左右切换箭头
+            if (globalImageList.length > 1) {
+                // 插入左箭头
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'nav-arrow arrow-prev';
+                prevBtn.innerHTML = '&#10094;'; // 左箭头图标 (❮)
+                prevBtn.onclick = function() {
+                    let newIndex = currentImageIndex - 1;
+                    // 循环逻辑：如果是第一张，点左箭头跳到最后一张
+                    if (newIndex < 0) newIndex = globalImageList.length - 1;
+                    changeMainImage(newIndex);
+                };
+                mainImgBox.appendChild(prevBtn);
+
+                // 插入右箭头
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'nav-arrow arrow-next';
+                nextBtn.innerHTML = '&#10095;'; // 右箭头图标 (❯)
+                nextBtn.onclick = function() {
+                    let newIndex = currentImageIndex + 1;
+                    // 循环逻辑：如果是最后一张，点右箭头跳到第一张
+                    if (newIndex >= globalImageList.length) newIndex = 0;
+                    changeMainImage(newIndex);
+                };
+                mainImgBox.appendChild(nextBtn);
+            }
+
+        } else {
+            // 无图占位
+            mainImgBox.innerText = '📦';
+            thumbContainer.innerHTML = '<div class="thumb active" style="display:flex;align-items:center;justify-content:center;">📦</div>';
+        }
+    }
+
+    // 🔥 新增：统一切换主图的函数
+    function changeMainImage(index) {
+        currentImageIndex = index; // 更新当前索引
+
+        const mainImgBox = document.getElementById('mainImage');
+        const imgRawPath = globalImageList[index];
+        const cleanPath = imgRawPath.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+        const fullPath = `../${cleanPath}`;
+
+        // 1. 更新主图 (注意保留箭头按钮，所以这里不能用 innerHTML = '')
+        // 检查是否已经有图片元素，有则替换 src，没有则创建
+        let mainImgElement = mainImgBox.querySelector('img.main-pic');
+        if (!mainImgElement) {
+            mainImgElement = document.createElement('img');
+            mainImgElement.className = 'main-pic';
+            mainImgElement.style.width = '100%';
+            mainImgElement.style.height = '100%';
+            mainImgElement.style.objectFit = 'contain';
+            // 插入到最前面，确保在箭头下面
+            mainImgBox.insertBefore(mainImgElement, mainImgBox.firstChild);
+        }
+        mainImgElement.src = fullPath;
+
+
+        // 2. 更新缩略图选中状态
+        document.querySelectorAll('.thumb').forEach(t => {
+            t.classList.toggle('active', parseInt(t.dataset.index) === index);
+        });
+    }
+
+
+    // Toast & Fav Logic (保持不变)
     function toggleFav() {
         const btn = document.getElementById('favBtn');
         btn.classList.toggle('active');
