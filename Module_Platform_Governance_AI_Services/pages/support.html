@@ -188,6 +188,9 @@
         .message.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
         .message.bot .bubble { background: white; color: var(--text-dark); border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
+        /* Support links inside bot bubble */
+        .message.bot .bubble a { color: #4F46E5; font-weight: 600; text-decoration: underline; }
+
         .input-area { padding: 20px; background: white; border-top: 1px solid #f3f4f6; display: flex; align-items: center; gap: 15px; }
         .chat-input-wrapper {
             flex: 1; background: #F3F6F9; border-radius: 50px; padding: 5px 20px;
@@ -394,12 +397,21 @@
             avatarHtml = `<div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px;">🤖</div>`;
         }
 
-        const safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
-        msgDiv.innerHTML = `${avatarHtml}<div class="bubble">${safeText}</div>`;
+        // 🚨 核心修复：AI 的消息允许 HTML (为了让链接生效)，用户的消息依然转义
+        let contentHtml = '';
+        if (cssClass === 'bot') {
+            // AI 消息：允许 a 标签，替换换行符
+            contentHtml = text.replace(/\n/g, '<br>');
+        } else {
+            // 用户消息：严格转义，防止 XSS
+            contentHtml = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+        }
+
+        // 使用 innerHTML 渲染
+        msgDiv.innerHTML = `${avatarHtml}<div class="bubble">${contentHtml}</div>`;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Return ID and element for further manipulation if needed
         return { msgId, msgDiv };
     }
 
@@ -455,10 +467,11 @@
         const userMessage = userInput.value.trim();
         if (!userMessage) return;
 
-        // 1. Optimistic UI: Add user message
+        // 1. UI: Add user message
         const { msgId: userMsgId } = addMessage(userMessage, 'user');
         userInput.value = '';
 
+        // 2. UI: Add loading indicator
         const { msgId: loadingId } = addMessage('Thinking...', 'ai');
 
         try {
@@ -471,7 +484,7 @@
                 body: JSON.stringify(payload)
             });
 
-            // 🛑 Handle Unauthorized (401)
+            // Handle 401
             if (response.status === 401) {
                 document.querySelector(`[data-id="${loadingId}"]`)?.remove();
                 document.querySelector(`[data-id="${userMsgId}"]`)?.remove();
@@ -490,8 +503,8 @@
             if (data.choices && data.choices.length > 0) {
                 addMessage(data.choices[0].message.content, 'ai');
 
-                // *** Display Feedback Buttons using the returned DB ID ***
-                if (data.db_log_id) {
+                // 🚀 核心修复：只有当后端返回 true 时，才显示反馈按钮
+                if (data.db_log_id && data.show_resolution_buttons === true) {
                     addFeedbackUI(data.db_log_id);
                 }
             } else {
