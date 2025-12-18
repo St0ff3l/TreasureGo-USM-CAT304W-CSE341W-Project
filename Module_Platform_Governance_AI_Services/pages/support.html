@@ -188,8 +188,9 @@
         .message.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
         .message.bot .bubble { background: white; color: var(--text-dark); border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        /* Support links inside bot bubble */
+        /* Support links & Bold Text inside bot bubble */
         .message.bot .bubble a { color: #4F46E5; font-weight: 600; text-decoration: underline; }
+        .message.bot .bubble strong { font-weight: 700; color: #111827; }
 
         .input-area { padding: 20px; background: white; border-top: 1px solid #f3f4f6; display: flex; align-items: center; gap: 15px; }
         .chat-input-wrapper {
@@ -384,7 +385,7 @@
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
 
-    // Helper: Add visual message bubble
+    // Helper: Add visual message bubble with Markdown Support
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
         const cssClass = (sender === 'ai' || sender === 'bot') ? 'bot' : 'user';
@@ -397,17 +398,26 @@
             avatarHtml = `<div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px;">🤖</div>`;
         }
 
-        // 🚨 核心修复：AI 的消息允许 HTML (为了让链接生效)，用户的消息依然转义
         let contentHtml = '';
         if (cssClass === 'bot') {
-            // AI 消息：允许 a 标签，替换换行符
-            contentHtml = text.replace(/\n/g, '<br>');
+            // --- 🤖 AI 消息美化处理 ---
+            let formatted = text;
+
+            // 1. 处理加粗：把 **文字** 替换为 <strong>文字</strong>
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // 2. 处理列表点：把 - 项目 替换为 • 项目
+            formatted = formatted.replace(/^\s*[-•]\s+/gm, '• ');
+
+            // 3. 处理换行：把 \n 替换为 <br>
+            contentHtml = formatted.replace(/\n/g, '<br>');
         } else {
-            // 用户消息：严格转义，防止 XSS
+            // --- 👤 用户消息安全处理 ---
+            // 严格转义，防止 XSS 攻击
             contentHtml = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
         }
 
-        // 使用 innerHTML 渲染
+        // 渲染到页面
         msgDiv.innerHTML = `${avatarHtml}<div class="bubble">${contentHtml}</div>`;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -503,7 +513,7 @@
             if (data.choices && data.choices.length > 0) {
                 addMessage(data.choices[0].message.content, 'ai');
 
-                // 🚀 核心修复：只有当后端返回 true 时，才显示反馈按钮
+                // 🚀 核心逻辑：只有当后端返回 true 时，才显示反馈按钮
                 if (data.db_log_id && data.show_resolution_buttons === true) {
                     addFeedbackUI(data.db_log_id);
                 }

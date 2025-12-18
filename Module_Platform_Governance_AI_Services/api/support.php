@@ -1,6 +1,6 @@
 <?php
 // ============================================
-// TreasureGO AI Support API (V11: 智能语言跟随 + 链接修复版)
+// TreasureGO AI Support API (V30: 最终完美版 - 强制纠错 + 闲聊兼容)
 // ============================================
 
 session_start();
@@ -18,7 +18,7 @@ header("Content-Type: application/json; charset=UTF-8");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit(0); }
 
 try {
-    // 1. 权限检查
+    // 1. Auth Check
     if (!isset($_SESSION['user_id'])) {
         http_response_code(401);
         echo json_encode(['error' => 'Auth Required']);
@@ -26,35 +26,54 @@ try {
     }
     $currentUserId = $_SESSION['user_id'];
 
-    // 2. 接收数据
+    // 2. Input
     $inputJSON = file_get_contents('php://input');
     $input = json_decode($inputJSON, true);
-    if (!isset($input['messages'])) { throw new Exception("Missing messages"); }
 
-    $userMessages = $input['messages'];
-    $lastUserMessage = trim(end($userMessages)['content']);
+    $currentMsgContent = "";
+    if (isset($input['messages']) && is_array($input['messages'])) {
+        $currentMsgContent = trim(end($input['messages'])['content']);
+    } elseif (isset($input['message'])) {
+        $currentMsgContent = trim($input['message']);
+    }
 
-    // 3. 数据库连接
+    if (empty($currentMsgContent)) { throw new Exception("Empty message"); }
+
+    // 3. DB Connect
     if (!isset($conn) && isset($pdo)) { $conn = $pdo; }
     if (!isset($conn)) { throw new Exception("Database connection failed"); }
 
-    // =========================================================
-    // 🚀 特性 A: 极简输入拦截 (输入 "1" 时的处理)
-    // 这里保留三语，因为 "1" 无法判断用户语言，三语最稳妥
-    // =========================================================
-    if (strlen($lastUserMessage) <= 2 || is_numeric($lastUserMessage)) {
+    // ---------------------------------------------------------
+    // 🔍 读取知识库
+    // ---------------------------------------------------------
+    $kbStr = "";
+    try {
+        $conn->exec("SET NAMES utf8mb4");
+        $stmtKB = $conn->query("SELECT KB_Question, KB_Answer, KB_Category FROM KnowledgeBase");
+        $rows = $stmtKB->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            $q = trim($row['KB_Question']);
+            $a = trim($row['KB_Answer']);
+            $cat = !empty($row['KB_Category']) ? trim($row['KB_Category']) : 'General_Inquiry';
+
+            if (!empty($q) && !empty($a)) {
+                $kbStr .= "### [Category: $cat]\nQ: $q\nA: $a\n\n";
+            }
+        }
+    } catch (Exception $e) {
+        $kbStr = "Error loading KB.";
+    }
+
+    // 4. 极简输入拦截
+    if (mb_strlen($currentMsgContent, 'UTF-8') <= 1 || is_numeric($currentMsgContent)) {
         $recSql = "SELECT KB_Question FROM KnowledgeBase ORDER BY RAND() LIMIT 3";
         $recStmt = $conn->query($recSql);
         $questions = $recStmt->fetchAll(PDO::FETCH_COLUMN);
 
-        // 注意：这里使用 \n 换行，前端会自动转为 <br>
-        $replyText = "Hello! / 您好！ / Hai!\n";
-        $replyText .= "Are you looking for these? 👇\n\n";
-
+        $replyText = "Hello! / 您好！ / Hai!\nAre you looking for these? 👇\n\n";
         if ($questions) {
-            foreach ($questions as $q) {
-                $replyText .= "🔹 " . $q . "\n";
-            }
+            foreach ($questions as $q) { $replyText .= "🔹 " . $q . "\n"; }
         } else {
             $replyText .= "\nPlease type a keyword (e.g., Refund).";
         }
@@ -67,89 +86,107 @@ try {
         exit;
     }
 
-    // =========================================================
-    // 🧠 特性 B: AI 智能回复 (语言跟随 + 自动链接)
-    // =========================================================
+    // 5. 构建 System Prompt (大脑)
+    $finalMessages = [];
 
-    // 读取数据
-    $intentStr = "";
-    $kbStr = "";
-
-    try {
-        $stmtIntents = $conn->query("SELECT intent_code, description FROM AI_Intents WHERE is_active = 1");
-        while ($row = $stmtIntents->fetch(PDO::FETCH_ASSOC)) {
-            $intentStr .= "- " . $row['intent_code'] . ": " . $row['description'] . "\n";
-        }
-    } catch (Exception $e) {}
-
-    try {
-        $stmtKB = $conn->query("SELECT KB_Question, KB_Answer FROM KnowledgeBase");
-        while ($row = $stmtKB->fetch(PDO::FETCH_ASSOC)) {
-            $kbStr .= "Q: " . $row['KB_Question'] . "\nA: " . $row['KB_Answer'] . "\n---\n";
-        }
-    } catch (Exception $e) {}
-
-    // --- 构建 Prompt (核心修改) ---
-    // 我们不再让 PHP 负责道歉，而是让 AI 根据用户语言道歉
     $systemContent = "You are TreasureGo's AI Customer Support.
 
-【Official Knowledge Base】:
+【OFFICIAL KNOWLEDGE BASE (THE TRUTH)】:
 $kbStr
 
-【Language Protocol】:
-1. **Detect Language**: Identify if user speaks English, Chinese, or Malay.
-2. **Strictly Follow**: Answer in the EXACT SAME language as the user.
-3. **Translation**: If KB is English but user asks in Chinese, translate the answer to Chinese.
+【EXECUTION PROTOCOL】:
 
-【Instructions】:
-1. Answer ONLY based on the Knowledge Base.
-2. If user is greeting, reply politely in their language ({TYPE:CHAT}).
-3. **CRITICAL**: If the user asks a business question but it is NOT in the Knowledge Base:
-   - You must apologize **in the user's language**.
-   - Tell them you cannot find the info and ask them to click the link below.
-   - Mark this response as **{TYPE:FALLBACK}**.
+1. **STEP 1: SEARCH KNOWLEDGE BASE (Priority #1)**
+   - Check if the user's input matches ANY topic in the Knowledge Base above.
+   - **CRITICAL**: Even if you said 'I don't know' in the past history, check the KB *AGAIN* now. If found, ANSWER IT.
+   - Output: {TYPE:SOLUTION} {INTENT:Category} [Answer translated to User's Language].
 
-【Output Format】:
-{INTENT:Intent_Code} {TYPE:Type} Your_Message
+2. **STEP 2: CHECK MEMORY & CHAT (Priority #2)**
+   - If NOT found in KB, check if user is chatting ('Hello', 'Joke') or referencing past context ('Who am I?').
+   - Output: {TYPE:CHAT} {INTENT:General_Inquiry} [Natural Reply].
 
-Intent List:
-$intentStr";
+3. **STEP 3: FALLBACK (Priority #3)**
+   - If and ONLY if Step 1 and Step 2 fail.
+   - **CHINESE**: \"{TYPE:FALLBACK} {INTENT:General_Inquiry} 抱歉，我在知识库中找不到相关信息。请点击下方链接联系人工客服寻求帮助。\"
+   - **ENGLISH**: \"{TYPE:FALLBACK} {INTENT:General_Inquiry} I'm sorry, I couldn't find that information in our Knowledge Base. Please click the link below for human support.\"
+   - **MALAY**: \"{TYPE:FALLBACK} {INTENT:General_Inquiry} Maaf, saya tidak menjumpai maklumat tersebut. Sila klik pautan di bawah untuk bantuan manusia.\"";
 
-    array_unshift($userMessages, ["role" => "system", "content" => $systemContent]);
+    $finalMessages[] = ["role" => "system", "content" => $systemContent];
 
+    // -----------------------------------------------------
+    // 🔮 历史记录 (10条)
+    // -----------------------------------------------------
+    $historySql = "SELECT AILog_User_Query, AILog_Response 
+                   FROM AIChatLog 
+                   WHERE User_ID = ? 
+                   ORDER BY AILog_ID DESC LIMIT 10";
+
+    $stmtHistory = $conn->prepare($historySql);
+    $stmtHistory->execute([$currentUserId]);
+    $historyRows = array_reverse($stmtHistory->fetchAll(PDO::FETCH_ASSOC));
+
+    foreach ($historyRows as $row) {
+        $cleanResponse = preg_replace('/\{.*?\}/', '', $row['AILog_Response']);
+        $cleanResponse = trim($cleanResponse);
+        if (strpos($cleanResponse, 'System Debug') !== false) continue;
+
+        if (!empty($row['AILog_User_Query'])) {
+            $finalMessages[] = ["role" => "user", "content" => $row['AILog_User_Query']];
+        }
+        if (!empty($cleanResponse)) {
+            $finalMessages[] = ["role" => "assistant", "content" => $cleanResponse];
+        }
+    }
+
+    // -----------------------------------------------------
+    // 🛑 核心黑科技：动态纠错注入 (Injection)
+    // -----------------------------------------------------
+
+    // 1. 侦测语言
+    $isChinese = preg_match("/\p{Han}+/u", $currentMsgContent);
+    $langNote = $isChinese ? "User speaks CHINESE." : "User speaks ENGLISH/MALAY.";
+
+    // 2. 构造强力指令
+    // 这段话用户看不见，但 AI 能看见，并且在历史记录的最后面，权重最高！
+    $injection = <<<EOT
+User New Input: "$currentMsgContent"
+
+[SYSTEM INSTRUCTION]:
+1. $langNote Reply in this language.
+2. **FORCE RE-CHECK KNOWLEDGE BASE**: Ignore previous "I'm sorry" or "Fallback" messages in history.
+3. If "$currentMsgContent" is in the KB (e.g. Password, Refund), ANSWER IT NOW using the KB content.
+4. Only use Memory for personal chat.
+EOT;
+
+    $finalMessages[] = ["role" => "user", "content" => $injection];
+
+    // 6. Call AI
     $aiService = new DeepSeekService();
-    $result = $aiService->sendMessage($userMessages);
-    $rawAiContent = $result['choices'][0]['message']['content'] ?? "{INTENT:General} {TYPE:CHAT} Error";
+    $result = $aiService->sendMessage($finalMessages);
+    $rawAiContent = $result['choices'][0]['message']['content'] ?? "{TYPE:CHAT} Error";
 
-    // --- 解析结果 ---
-    $intent = 'General_Inquiry';
-    $msgType = 'CHAT';
-    $finalReply = $rawAiContent;
+    // 7. Parse Tags
+    $intent = 'General_Inquiry'; $msgType = 'CHAT'; $finalReply = $rawAiContent;
 
-    // 提取标签
     if (preg_match('/\{INTENT:(.*?)\}/', $rawAiContent, $matches)) {
-        $intent = trim($matches[1]);
-        $finalReply = str_replace($matches[0], '', $finalReply);
+        $intent = trim($matches[1]); $finalReply = str_replace($matches[0], '', $finalReply);
     }
     if (preg_match('/\{TYPE:(.*?)\}/', $rawAiContent, $matches)) {
-        $msgType = trim($matches[1]);
-        $finalReply = str_replace($matches[0], '', $finalReply);
+        $msgType = trim($matches[1]); $finalReply = str_replace($matches[0], '', $finalReply);
     }
-
     $finalReply = trim($finalReply);
+    $finalReply = preg_replace('/\(🛠️.*?\)/', '', $finalReply);
 
-    // 🛠️ 核心逻辑：如果 AI 说是 FALLBACK，PHP 负责贴上链接
+    // Button Logic
+    $showButtons = (strtoupper($msgType) === 'SOLUTION');
+
+    // Fallback Logic
     if (strtoupper($msgType) === 'FALLBACK') {
-        // 在 AI 的道歉语后面，追加 HTML 链接
-        // 前端修改后，这个 <a> 标签将会变成可点击的按钮
         $finalReply .= "\n\n🔗 <a href='report.html' style='color:#4F46E5; font-weight:bold; text-decoration:underline;'>Click for Human Support / 人工客服</a>";
         $showButtons = false;
-    } else {
-        // 只有给出 SOLUTION 时才显示 Yes/No 按钮
-        $showButtons = (strtoupper($msgType) === 'SOLUTION');
     }
 
-    // --- 存库 ---
+    // 8. Log
     $insertedLogId = null;
     $sqlLog = "INSERT INTO AIChatLog 
             (AILog_User_Query, AILog_Response, AILog_Intent_Recognized, AILog_Is_Resolved, AILog_Timestamp, User_ID) 
@@ -157,11 +194,10 @@ $intentStr";
 
     $stmtLog = $conn->prepare($sqlLog);
     if ($stmtLog) {
-        $stmtLog->execute([$lastUserMessage, $finalReply, $intent, $currentUserId]);
+        $stmtLog->execute([$currentMsgContent, $rawAiContent, $intent, $currentUserId]);
         $insertedLogId = $conn->lastInsertId();
     }
 
-    // --- 返回 ---
     $result['choices'][0]['message']['content'] = $finalReply;
     $result['db_log_id'] = $insertedLogId;
     $result['show_resolution_buttons'] = $showButtons;
