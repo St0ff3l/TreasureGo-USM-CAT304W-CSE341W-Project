@@ -185,6 +185,133 @@
 </div>
 
 <script>
+  // 1. 获取 URL 参数
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('id');
+  let currentProduct = {};
+
+  // 2. 初始化
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!productId) {
+      alert("No Product Specified.");
+      window.location.href = '../../index.html';
+      return;
+    }
+    loadProductData(productId);
+  });
+
+  // 3. 加载数据
+  async function loadProductData(id) {
+    try {
+      const response = await fetch(`../../Module_Product_Ecosystem/api/Get_Seller_Product_Detail.php?product_id=${id}`);
+      const result = await response.json();
+
+      if (result.success && result.data.length > 0) {
+        currentProduct = result.data[0];
+        renderManagePage(currentProduct);
+      } else {
+        alert("Product not found or access denied.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+  // 4. 渲染页面
+  function renderManagePage(item) {
+    document.querySelector('.product-title').innerText = item.Product_Title;
+    document.querySelector('.description-box').innerText = item.Product_Description || "No description.";
+
+    // 价格格式化
+    const price = parseFloat(item.Product_Price).toFixed(2);
+    document.getElementById('displayPrice').innerText = '$' + price;
+    document.getElementById('inputPrice').value = price;
+
+    // 🔥 关键修复：根据数据库真实状态初始化按钮颜色 🔥
+    const statusBadge = document.getElementById('statusBadge');
+    const unlistBtn = document.getElementById('btnUnlist');
+
+    // 注意：请确保数据库 Get_Products.php 返回了 Product_Status 字段
+    if (item.Product_Status === 'Active') {
+      // 当前是上架状态
+      statusBadge.className = 'status-badge status-active';
+      statusBadge.innerText = '● On Sale';
+
+      unlistBtn.innerText = '🔒 Pull Off Shelf (Unlist)';
+      unlistBtn.style.background = '#FFF7ED';
+      unlistBtn.style.color = '#F59E0B'; // 黄色警告色
+      unlistBtn.style.border = '1px solid #FFEDD5';
+    } else {
+      // 当前是下架状态
+      statusBadge.className = 'status-badge status-inactive';
+      statusBadge.innerText = '● Unlisted';
+
+      unlistBtn.innerText = '📢 Re-list Item';
+      unlistBtn.style.background = '#ECFDF5';
+      unlistBtn.style.color = '#059669'; // 绿色上架色
+      unlistBtn.style.border = '1px solid #A7F3D0';
+    }
+
+    // 图片处理
+    const mainImgBox = document.getElementById('mainImage');
+    const thumbContainer = document.querySelector('.thumbnails');
+    thumbContainer.innerHTML = '';
+
+    // 重新把 badge 放回去 (因为 innerHTML='' 会把它清掉)
+    mainImgBox.innerHTML = '';
+    mainImgBox.appendChild(statusBadge);
+
+    let imageList = [];
+    if (item.All_Images) imageList = item.All_Images.split(',');
+    else if (item.Main_Image) imageList = [item.Main_Image];
+
+    if (imageList.length > 0) {
+      imageList.forEach((imgRawPath, index) => {
+        const cleanPath = imgRawPath.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+        const fullPath = `../${cleanPath}`;
+
+        if(index === 0) {
+          const img = document.createElement('img');
+          img.src = fullPath;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'contain';
+          mainImgBox.appendChild(img);
+        }
+
+        const thumb = document.createElement('div');
+        thumb.className = index === 0 ? 'thumb active' : 'thumb';
+        thumb.innerHTML = `<img src="${fullPath}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+
+        thumb.onclick = () => {
+          // 切换大图时保留 Badge
+          const existingBadge = mainImgBox.querySelector('.status-badge');
+          mainImgBox.innerHTML = '';
+          mainImgBox.appendChild(existingBadge);
+
+          const newImg = document.createElement('img');
+          newImg.src = fullPath;
+          newImg.style.width = '100%';
+          newImg.style.height = '100%';
+          newImg.style.objectFit = 'contain';
+          mainImgBox.appendChild(newImg);
+
+          document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        };
+        thumbContainer.appendChild(thumb);
+      });
+    } else {
+      // 无图情况
+      const noImg = document.createElement('div');
+      noImg.innerText = '📦';
+      noImg.style.fontSize = '5rem';
+      mainImgBox.appendChild(noImg);
+    }
+  }
+
+  // --- 交互功能 ---
+
   function toggleEditMode() {
     document.getElementById('displayPrice').style.display = 'none';
     document.getElementById('inputPrice').style.display = 'block';
@@ -193,36 +320,113 @@
     document.getElementById('inputPrice').focus();
   }
 
-  function savePrice() {
+  // 🔥 修复：保存价格
+  async function savePrice() {
     const newPrice = document.getElementById('inputPrice').value;
-    document.getElementById('displayPrice').innerText = '$' + parseFloat(newPrice).toFixed(2);
-    document.getElementById('displayPrice').style.display = 'block';
-    document.getElementById('inputPrice').style.display = 'none';
-    document.getElementById('btnEdit').style.display = 'flex';
-    document.getElementById('btnSave').style.display = 'none';
-    alert('Price updated successfully!');
+
+    try {
+      const response = await fetch('../../Module_Product_Ecosystem/api/Update_Product.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: productId,
+          action: 'update_price',
+          value: newPrice
+        })
+      });
+
+      const result = await response.json();
+      console.log("Price Update Result:", result);
+
+      if (result.success) {
+        // UI 更新
+        document.getElementById('displayPrice').innerText = '$' + parseFloat(newPrice).toFixed(2);
+        document.getElementById('displayPrice').style.display = 'block';
+        document.getElementById('inputPrice').style.display = 'none';
+        document.getElementById('btnEdit').style.display = 'flex';
+        document.getElementById('btnSave').style.display = 'none';
+        alert('✅ Price updated successfully!');
+      } else {
+        alert('❌ Error: ' + result.message);
+      }
+    } catch (error) {
+      console.error('API Error:', error);
+      alert('Failed to connect to server.');
+    }
   }
 
-  let isListed = true;
-  function toggleStatus() {
+  // 🔥 修复：上下架切换
+  async function toggleStatus() {
     const badge = document.getElementById('statusBadge');
     const btn = document.getElementById('btnUnlist');
-    if (isListed) {
-      badge.className = 'status-badge status-inactive'; badge.innerText = '● Unlisted';
-      btn.innerText = '📢 Re-list Item'; btn.style.background = '#ECFDF5'; btn.style.color = '#059669';
-      alert('Item is now hidden from search results.');
-    } else {
-      badge.className = 'status-badge status-active'; badge.innerText = '● On Sale';
-      btn.innerText = '🔒 Pull Off Shelf (Unlist)'; btn.style.background = '#FFF7ED'; btn.style.color = '#F59E0B';
-      alert('Item is now live on the marketplace!');
+
+    try {
+      const response = await fetch('../../Module_Product_Ecosystem/api/Update_Product.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: productId,
+          action: 'toggle_status'
+        })
+      });
+
+      const result = await response.json();
+      console.log("Status Update Result:", result);
+
+      if (result.success) {
+        // 根据后端返回的新状态更新 UI
+        if (result.new_status === 'Unlisted') {
+          // 变成下架状态
+          badge.className = 'status-badge status-inactive';
+          badge.innerText = '● Unlisted';
+          btn.innerText = '📢 Re-list Item';
+          btn.style.background = '#ECFDF5';
+          btn.style.color = '#059669';
+          btn.style.border = '1px solid #A7F3D0';
+          alert('Item is now Hidden (Unlisted).');
+        } else {
+          // 变成上架状态
+          badge.className = 'status-badge status-active';
+          badge.innerText = '● On Sale';
+          btn.innerText = '🔒 Pull Off Shelf (Unlist)';
+          btn.style.background = '#FFF7ED';
+          btn.style.color = '#F59E0B';
+          btn.style.border = '1px solid #FFEDD5';
+          alert('Item is now Active (On Sale)!');
+        }
+      } else {
+        alert('❌ Error: ' + result.message);
+      }
+    } catch (error) {
+      console.error('API Error:', error);
+      alert('Connection error');
     }
-    isListed = !isListed;
   }
 
-  function confirmDelete() {
+  // 🔥 修复：删除商品
+  async function confirmDelete() {
     if (confirm("Are you sure you want to PERMANENTLY delete this item?\nThis action cannot be undone.")) {
-      alert('Item deleted.');
-      window.location.href = '../../index.html';
+      try {
+        const response = await fetch('../../Module_Product_Ecosystem/api/Update_Product.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: productId,
+            action: 'delete'
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('🗑️ Item deleted successfully.');
+          window.location.href = 'Search_Results_Page.html'; // 删完回列表页
+        } else {
+          alert('❌ Error: ' + result.message);
+        }
+      } catch (error) {
+        console.error('API Error:', error);
+      }
     }
   }
 </script>

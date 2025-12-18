@@ -24,9 +24,11 @@ try {
     // 🔥 修改点：新增了 All_Images 字段，获取该商品所有图片
     $sql = "SELECT 
                 p.Product_ID, 
+                p.User_ID,
                 p.Product_Title, 
                 p.Product_Description, 
                 p.Product_Price, 
+                p.Product_Status,
                 p.Product_Condition, 
                 p.Product_Created_Time,
                 p.Product_Location, 
