@@ -49,20 +49,20 @@ try {
     if (empty($location)) throw new Exception("请填写交易地址");
 
     // =========================================================
-    // 6. 处理图片文件 (路径已修改)
+    // 6. 处理图片文件 (核心修复部分)
     // =========================================================
     $image_paths = [];
 
-    // 【修改点 A】物理存储路径：从 api 文件夹往上一级找 Public_Product_Images
+    // 物理存储路径：从 api 文件夹往上一级找 Public_Product_Images
     $upload_base_dir = '../Public_Product_Images/';
 
-    // 【修改点 B】数据库路径前缀：相对于网站根目录的完整路径
+    // 数据库路径前缀：相对于网站根目录的完整路径
     $db_path_prefix = 'Module_Product_Ecosystem/Public_Product_Images/';
 
-    // 自动创建目录
+    // 【修改点 1】自动创建目录，权限改为 0777 以确保可写
     if (!is_dir($upload_base_dir)) {
-        if (!mkdir($upload_base_dir, 0755, true)) {
-            throw new Exception("服务器无法创建上传目录: " . $upload_base_dir);
+        if (!mkdir($upload_base_dir, 0777, true)) {
+            throw new Exception("服务器错误：无法创建图片上传目录，请检查文件夹权限。");
         }
     }
 
@@ -71,12 +71,20 @@ try {
         $file_count = count($_FILES['images']['name']);
 
         for ($i = 0; $i < $file_count; $i++) {
-            if ($_FILES['images']['error'][$i] === UPLOAD_ERR_OK) {
+            $error_code = $_FILES['images']['error'][$i];
+
+            // 【修改点 2】检查文件大小是否超过 php.ini 限制
+            if ($error_code === UPLOAD_ERR_INI_SIZE || $error_code === UPLOAD_ERR_FORM_SIZE) {
+                throw new Exception("上传失败：图片 " . $_FILES['images']['name'][$i] . " 太大，超过了服务器限制。");
+            }
+
+            if ($error_code === UPLOAD_ERR_OK) {
                 $file_tmp = $_FILES['images']['tmp_name'][$i];
                 $file_name = $_FILES['images']['name'][$i];
                 $file_type = $_FILES['images']['type'][$i];
 
                 if (!in_array($file_type, $allowed_types)) {
+                    // 如果格式不对，跳过该文件（或者也可以选择报错）
                     continue;
                 }
 
@@ -86,10 +94,17 @@ try {
 
                 $destination = $upload_base_dir . $new_filename;
 
+                // 【修改点 3】严格检查移动是否成功
+                // 如果移动失败（通常是权限问题），直接抛出异常，不再继续执行
                 if (move_uploaded_file($file_tmp, $destination)) {
                     // 成功后，存入数据库使用的是 "前缀 + 文件名"
                     $image_paths[] = $db_path_prefix . $new_filename;
+                } else {
+                    throw new Exception("上传失败：无法保存图片文件。请联系管理员检查文件夹写入权限。");
                 }
+            } else {
+                // 处理其他上传错误
+                throw new Exception("上传出错，错误代码: " . $error_code);
             }
         }
     }
@@ -152,6 +167,7 @@ try {
     ]);
 
 } catch (Exception $e) {
+    // 10. 如果出错，回滚事务（撤销刚才插入的商品）
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
