@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Funds - TreasureGO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F3F6F9;
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-dark: #1F2937;
+            --text-gray: #6B7280;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+        }
+
+        #floating-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-item {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.6;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+            animation: floatUp 15s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
+        }
+
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .logo span { color: var(--text-dark); }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            /* 呼吸发光动画 */
+            animation: glowAnimation 3s infinite alternate;
+        }
+
+        @keyframes glowAnimation {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.2),
+                0 0 10px rgba(245, 158, 11, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(245, 158, 11, 0.8),
+                0 0 25px rgba(245, 158, 11, 0.5);
+            }
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-actions button {
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            color: var(--text-gray);
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 8px;
+        }
+
+        .nav-actions .btn-primary {
+            background-color: var(--text-dark);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-actions .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .nav-actions button:not(.btn-primary):hover {
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 60px 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+        }
+
+        /* Action Section */
+        .action-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .required-mark {
+            color: var(--danger);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px -5px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-back {
+            position: absolute;
+            top: 0;
+            left: 20px;
+            background: white;
+            color: var(--text-gray);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f3f4f6;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        .btn-back:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateX(-5px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.15);
+            border-color: rgba(79, 70, 229, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .page-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="floating-container"></div>
+
+<nav class="navbar">
+    <a href="../../index.html" class="logo">
+        <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="TreasureGO Logo" class="logo-img">
+        Treasure<span>Go</span>
+    </a>
+    <div class="nav-actions">
+        <button onclick="window.location.href='../../index.html'">Market</button>
+        <button class="btn-primary">Login</button>
+    </div>
+</nav>
+
+<div class="main-container">
+    <button class="btn btn-back" onclick="window.location.href='Fund_Request.html'">← Back to Wallet</button>
+
+    <div class="page-header">
+        <h1 class="page-title">Withdraw Funds</h1>
+        <p class="page-subtitle">Withdraw funds from your wallet securely</p>
+    </div>
+
+    <!-- Create Fund Request Form -->
+    <div class="action-section">
+        <h2 class="section-title">
+            <span>💸</span>
+            Withdrawal Details
+        </h2>
+        <form id="fundRequestForm">
+            <input type="hidden" id="requestType" value="withdrawal">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="requestAmount">Amount <span class="required-mark">*</span></label>
+                    <input type="number" class="form-input" id="requestAmount" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="duitNowId">DuitNow Number <span class="required-mark">*</span></label>
+                    <input type="text" class="form-input" id="duitNowId" placeholder="Enter DuitNow / Phone Number" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="proofImage">Proof Image URL (Optional)</label>
+                    <input type="text" class="form-input" id="proofImage" placeholder="https://...">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="adminRemark">Admin Remark (Optional)</label>
+                <textarea class="form-textarea" id="adminRemark" placeholder="Add any additional notes..."></textarea>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-submit">
+                <span>✓</span>
+                Submit Withdrawal
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ==================== LOGIN MODAL SETUP ====================
+    const AuthModal = {
+        htmlContent: `
+            <dialog id="globalLoginDialog" class="tg-auth-modal">
+                <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+                <h3 style="margin-bottom:10px; color: #1F2937; font-size: 1.2rem; font-family: 'Poppins', sans-serif;">Login Required</h3>
+                <p style="margin-bottom:25px; color:#6B7280; font-size: 0.95rem; line-height: 1.5; font-family: 'Poppins', sans-serif;">
+                    You need to log in to access this feature.
+                </p>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button onclick="AuthModal.close()"
+                            style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer; font-weight: 600;">
+                        Cancel
+                    </button>
+                    <button onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'"
+                            style="padding:10px 20px; border:none; background:#4F46E5; color:white; border-radius:12px; cursor:pointer; font-weight: 600;">
+                        Go to Login
+                    </button>
+                </div>
+            </dialog>
+        `,
+        init: function() {
+            if (document.getElementById('globalLoginDialog')) return;
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .tg-auth-modal::backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+                .tg-auth-modal {
+                    position: fixed; top: 30%; bottom: auto; left: 0; right: 0; margin: 0 auto;
+                    border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+                    text-align: center; width: 320px; border: none; outline: none;
+                    animation: tgSlideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+                }
+                @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            `;
+            document.head.appendChild(style);
+            document.body.insertAdjacentHTML('beforeend', this.htmlContent);
+        },
+        show: function() {
+            this.init();
+            const dialog = document.getElementById('globalLoginDialog');
+            if (dialog) dialog.showModal();
+        },
+        close: function() {
+            const dialog = document.getElementById('globalLoginDialog');
+            if (dialog) dialog.close();
+            window.location.href = '../../index.html';
+        }
+    };
+
+    // Check login status on page load
+    let isUserLoggedIn = false;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('../../Module_User_Account_Management/api/session_status.php');
+            const data = await res.json();
+
+            if (data.is_logged_in) {
+                isUserLoggedIn = true;
+            } else {
+                isUserLoggedIn = false;
+                AuthModal.show();
+            }
+        } catch (error) {
+            console.error('Error checking login status:', error);
+            AuthModal.show();
+        }
+    });
+
+    // ==================== API CONFIGURATION ====================
+    const API_BASE_URL = '../api/Fund_Request.php';
+    const CURRENT_USER_ID = 12345678; // TODO: Get from session/login
+
+    // API Helper Functions
+    async function apiCall(action, data = {}, method = 'POST') {
+        try {
+            let url = `${API_BASE_URL}?action=${action}`;
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            if (method === 'GET') {
+                Object.keys(data).forEach(key => {
+                    url += `&${key}=${encodeURIComponent(data[key])}`;
+                });
+            } else {
+                options.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(url, options);
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'API request failed');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('API Error:', error);
+            alert('Error: ' + error.message);
+            throw error;
+        }
+    }
+
+    // ==================== BACKGROUND ANIMATION ====================
+    const container = document.getElementById('floating-container');
+    const items = ['💳', '💰', '💸', '🏦', '💵', '💴', '💶', '💷', '📊', '📈', '💹', '🔒', '🛡️'];
+    const count = 12;
+
+    for (let i = 0; i < count; i++) {
+        createFloater();
+    }
+
+    function createFloater() {
+        const el = document.createElement('div');
+        el.classList.add('floating-item');
+        el.innerText = items[Math.floor(Math.random() * items.length)];
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.fontSize = (Math.random() * 3 + 3) + 'rem';
+        el.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        el.style.animationDelay = '-' + (Math.random() * 15) + 's';
+        container.appendChild(el);
+    }
+
+    // Fund Request Form Submission
+    document.getElementById('fundRequestForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const type = document.getElementById('requestType').value;
+        const amount = document.getElementById('requestAmount').value;
+        const duitNowId = document.getElementById('duitNowId').value;
+        const proofImage = document.getElementById('proofImage').value;
+        const adminRemarkInput = document.getElementById('adminRemark').value;
+
+        const finalRemark = `DuitNow: ${duitNowId}\n\nUser Notes: ${adminRemarkInput}`;
+
+        try {
+            // Submit to API
+            const result = await apiCall('create_fund_request', {
+                user_id: CURRENT_USER_ID,
+                type: type,
+                amount: parseFloat(amount),
+                proof_image: proofImage,
+                admin_remark: finalRemark
+            });
+
+            alert(`✅ Withdrawal Submitted Successfully!\n\nRequest ID: #FR${result.data.request_id}\nAmount: $${amount}\nStatus: ${result.data.status}`);
+
+            // Redirect back to wallet
+            window.location.href = 'Fund_Request.html';
+
+        } catch (error) {
+            alert('❌ Failed to submit withdrawal: ' + error.message);
+        }
+    });
+</script>
+
+</body>
+</html>
+

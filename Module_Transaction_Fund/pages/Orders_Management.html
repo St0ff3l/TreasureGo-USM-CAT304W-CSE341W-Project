@@ -350,6 +350,22 @@
             background: #C7D2FE;
         }
 
+        .filter-select-small {
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            background-color: white;
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .filter-select-small:hover {
+            border-color: var(--primary);
+        }
+
         .modal-actions {
             display: flex;
             gap: 10px;
@@ -501,26 +517,7 @@
         </div>
     </div>
 
-    <!-- Order Type Legend -->
-    <div class="action-section">
-        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-dark);">📋 Order Type Legend</h3>
-        <div class="legend-section">
-            <div class="legend-item">
-                <span style="font-size: 1.5rem;">📦</span>
-                <div>
-                    <strong style="color: #10B981;">Product Orders (#ORD)</strong>
-                    <div style="font-size: 0.85rem; color: var(--text-gray);">Buy/sell items, contact seller for support</div>
-                </div>
-            </div>
-            <div class="legend-item">
-                <span style="font-size: 1.5rem;">💰</span>
-                <div>
-                    <strong style="color: #F59E0B;">Fund Deposits (#FND)</strong>
-                    <div style="font-size: 0.85rem; color: var(--text-gray);">Account top-ups, contact admin for support</div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Orders Table -->
     <div class="table-container">
@@ -536,83 +533,24 @@
                     <th>Seller ID</th>
                     <th>Total Amount</th>
                     <th>Platform Fee</th>
-                    <th>Status</th>
+                    <th>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            Status
+                            <select id="statusFilter" class="filter-select-small" onchange="filterOrders()" title="Filter by Status">
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </th>
                     <th>Created At</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="ordersBody">
-                <!-- Product Transaction Orders -->
-                <tr>
-                    <td><strong>#ORD001</strong><br><small style="color: #10B981;">📦 Product Order</small></td>
-                    <td>12345678</td>
-                    <td>87654321</td>
-                    <td><strong>$125.00</strong></td>
-                    <td>$6.25</td>
-                    <td><span class="status-badge status-completed">Completed</span></td>
-                    <td>2025-12-12 11:20</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-small btn-view" onclick="viewOrder('ORD001', 'product', 'completed')">View</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#FND001</strong><br><small style="color: #F59E0B;">💰 Fund Deposit</small></td>
-                    <td>23456789</td>
-                    <td>-</td>
-                    <td><strong>$500.00</strong></td>
-                    <td>$0.00</td>
-                    <td><span class="status-badge status-completed">Completed</span></td>
-                    <td>2025-12-11 15:45</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-small btn-view" onclick="viewOrder('FND001', 'deposit', 'completed')">View</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD002</strong><br><small style="color: #10B981;">📦 Product Order</small></td>
-                    <td>34567890</td>
-                    <td>98765432</td>
-                    <td><strong>$80.00</strong></td>
-                    <td>$4.00</td>
-                    <td><span class="status-badge status-processing">Processing</span></td>
-                    <td>2025-12-11 16:45</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-small btn-view" onclick="viewOrder('ORD002', 'product', 'processing')">View</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#FND002</strong><br><small style="color: #F59E0B;">💰 Fund Deposit</small></td>
-                    <td>12345678</td>
-                    <td>-</td>
-                    <td><strong>$200.00</strong></td>
-                    <td>$0.00</td>
-                    <td><span class="status-badge status-pending">Pending Review</span></td>
-                    <td>2025-12-10 14:20</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-small btn-view" onclick="viewOrder('FND002', 'deposit', 'pending')">View</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>#ORD003</strong><br><small style="color: #10B981;">📦 Product Order</small></td>
-                    <td>45678901</td>
-                    <td>76543210</td>
-                    <td><strong>$45.50</strong></td>
-                    <td>$2.28</td>
-                    <td><span class="status-badge status-pending">Pending Payment</span></td>
-                    <td>2025-12-10 13:30</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-small btn-view" onclick="viewOrder('ORD003', 'product', 'pending')">View</button>
-                        </div>
-                    </td>
-                </tr>
+                <!-- Orders will be loaded here dynamically -->
             </tbody>
         </table>
     </div>
@@ -686,6 +624,10 @@
     let isUserLoggedIn = false;
     let loginCheckComplete = false;
 
+    // ==================== API CONFIGURATION ====================
+    const API_BASE_URL = '../api/Orders_Management.php';
+    let CURRENT_USER_ID = null;
+
     // Check session immediately on script load
     async function checkLoginStatus() {
         try {
@@ -694,6 +636,10 @@
 
             if (data.is_logged_in) {
                 isUserLoggedIn = true;
+                CURRENT_USER_ID = data.user.id;
+                // Load data after login is confirmed
+                loadStatistics();
+                loadOrders();
             } else {
                 isUserLoggedIn = false;
                 AuthModal.show();
@@ -708,10 +654,6 @@
 
     // Check login before allowing other operations
     checkLoginStatus();
-
-    // ==================== API CONFIGURATION ====================
-    const API_BASE_URL = '../api/Orders_Management.php';
-    const CURRENT_USER_ID = 12345678; // TODO: Get from session/login
 
     // Store order confirmation status (in real app, this would be from database)
     const orderConfirmationStatus = {};
@@ -752,15 +694,6 @@
         }
     }
 
-    // Load initial data on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Only load data if user is logged in
-        if (isUserLoggedIn) {
-            loadStatistics();
-            loadOrders();
-        }
-    });
-
     // ==================== DATA LOADING FUNCTIONS ====================
 
     // Load Statistics
@@ -777,24 +710,44 @@
     }
 
     // Load Orders
+    let allOrdersData = [];
+
     async function loadOrders() {
         try {
             const result = await apiCall('get_orders', { user_id: CURRENT_USER_ID }, 'GET');
-            const orders = result.data;
-
-            const tbody = document.getElementById('ordersBody');
-            tbody.innerHTML = '';
-
-            if (orders && orders.length > 0) {
-                orders.forEach(order => {
-                    const row = createOrderRow(order);
-                    tbody.appendChild(row);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-gray);">No orders found</td></tr>';
-            }
+            allOrdersData = result.data;
+            filterOrders();
         } catch (error) {
             console.error('Failed to load orders:', error);
+        }
+    }
+
+    function filterOrders() {
+        const filterValue = document.getElementById('statusFilter').value;
+        const tbody = document.getElementById('ordersBody');
+        tbody.innerHTML = '';
+
+        let filteredOrders = allOrdersData;
+
+        // First filter out Fund Deposits (as per previous requirement)
+        filteredOrders = filteredOrders.filter(order => order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-');
+
+        // Then filter by status if selected
+        if (filterValue !== 'all') {
+            filteredOrders = filteredOrders.filter(order => {
+                const status = order.Orders_Status.toLowerCase();
+                if (filterValue === 'pending') return status.includes('pending');
+                return status === filterValue;
+            });
+        }
+
+        if (filteredOrders && filteredOrders.length > 0) {
+            filteredOrders.forEach(order => {
+                const row = createOrderRow(order);
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-gray);">No orders found</td></tr>';
         }
     }
 
@@ -1024,179 +977,6 @@
         }
     }
 
-    // View Order Details (Legacy - kept for compatibility)
-    function viewOrder(id, type, _status) {
-        const modal = document.getElementById('detailModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-
-        // Check if order has been confirmed
-        const isConfirmed = orderConfirmationStatus[id] === true;
-
-        // Check if it's a fund deposit order or product order
-        if (type === 'deposit' || id.includes('FND')) {
-            // Fund Deposit Order
-            modalTitle.textContent = `💰 Fund Deposit Details - ${id}`;
-
-            // Sample data for fund deposit
-            const depositData = {
-                'FND001': { amount: '$500.00', status: 'Completed', date: '2025-12-11 15:45:00', userId: '23456789' },
-                'FND002': { amount: '$200.00', status: 'Pending Review', date: '2025-12-10 14:20:00', userId: '12345678' }
-            };
-            const data = depositData[id.replace('#', '')] || depositData['FND001'];
-
-            modalBody.innerHTML = `
-                <div class="detail-row">
-                    <span class="detail-label">Order Type:</span>
-                    <span class="detail-value" style="color: #F59E0B; font-weight: 700;">💰 Fund Deposit</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Order ID:</span>
-                    <span class="detail-value">${id}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">User ID:</span>
-                    <span class="detail-value">${data.userId}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Deposit Amount:</span>
-                    <span class="detail-value" style="color: #10B981; font-weight: 700;">${data.amount}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Platform Fee:</span>
-                    <span class="detail-value">$0.00 (No fee for deposits)</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="status-badge ${data.status === 'Completed' ? 'status-completed' : 'status-pending'}">${data.status}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Created At:</span>
-                    <span class="detail-value">${data.date}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Payment Method:</span>
-                    <span class="detail-value">Bank Transfer</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Note:</span>
-                    <span class="detail-value">This is a fund deposit order, managed by platform administrators.</span>
-                </div>
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                <div class="modal-actions">
-                    <button class="btn btn-view" onclick="contactAdmin()">
-                        👨‍💼 Contact Administrator
-                    </button>
-                    <button class="btn btn-view" onclick="contactCustomerService()">
-                        🎧 Customer Service
-                    </button>
-                </div>
-            `;
-        } else {
-            // Product Transaction Order
-            modalTitle.textContent = `📦 Product Order Details - ${id}`;
-
-            // Sample data - in real app, this would determine the seller ID and product info
-            const orderData = {
-                'ORD001': {
-                    sellerId: '87654321',
-                    product: 'Vintage Camera Lens',
-                    amount: '$125.00',
-                    fee: '$6.25',
-                    status: 'Completed',
-                    date: '2025-12-12 11:20:00'
-                },
-                'ORD002': {
-                    sellerId: '98765432',
-                    product: 'Retro Vinyl Record Player',
-                    amount: '$80.00',
-                    fee: '$4.00',
-                    status: 'Processing',
-                    date: '2025-12-11 16:45:00'
-                },
-                'ORD003': {
-                    sellerId: '76543210',
-                    product: 'Antique Pocket Watch',
-                    amount: '$45.50',
-                    fee: '$2.28',
-                    status: 'Pending Payment',
-                    date: '2025-12-10 13:30:00'
-                }
-            };
-            const data = orderData[id.replace('#', '')] || orderData['ORD001'];
-
-            modalBody.innerHTML = `
-                <div class="detail-row">
-                    <span class="detail-label">Order Type:</span>
-                    <span class="detail-value" style="color: #10B981; font-weight: 700;">📦 Product Transaction</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Order ID:</span>
-                    <span class="detail-value">${id}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Buyer ID:</span>
-                    <span class="detail-value">12345678</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Seller ID:</span>
-                    <span class="detail-value">${data.sellerId}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Product Name:</span>
-                    <span class="detail-value">${data.product}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Total Amount:</span>
-                    <span class="detail-value">${data.amount}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Platform Fee:</span>
-                    <span class="detail-value">${data.fee} (5%)</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Status:</span>
-                    <span class="status-badge ${data.status === 'Completed' ? 'status-completed' : data.status === 'Processing' ? 'status-processing' : 'status-pending'}">${data.status}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Created At:</span>
-                    <span class="detail-value">${data.date}</span>
-                </div>
-                ${isConfirmed ? `
-                <div class="detail-row" style="background: #D1FAE5; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                    <span class="detail-label">✅ Receipt Confirmed:</span>
-                    <span class="detail-value">You have confirmed receipt of this order</span>
-                </div>
-                ` : ''}
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
-                <div class="modal-actions" style="flex-direction: column; gap: 12px;">
-                    <button class="btn btn-confirm" onclick="confirmReceiptInModal('${id}')" id="confirmBtn-${id}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                        ✅ Confirm Receipt
-                    </button>
-                    ${isConfirmed ? `
-                    <div style="background: #D1FAE5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065F46;">
-                        ✅ Receipt confirmed
-                    </div>
-                    ` : ''}
-                </div>
-                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                <div class="modal-actions">
-                    <button class="btn btn-contact" onclick="contactSeller('${data.sellerId}')">
-                        💬 Contact Seller
-                    </button>
-                    <button class="btn btn-view" onclick="contactCustomerService()">
-                        🎧 Customer Service
-                    </button>
-                </div>
-            `;
-        }
-
-        modal.classList.add('active');
-    }
-
     // Confirm Receipt with API
     async function confirmReceiptAPI(orderId) {
         if (orderConfirmationStatus[orderId]) {
@@ -1227,29 +1007,6 @@
         }
     }
 
-    // Confirm Receipt from Modal
-    function confirmReceiptInModal(orderId) {
-        // Check if already confirmed
-        if (orderConfirmationStatus[orderId]) {
-            alert('⚠️ This order has already been confirmed!');
-            return;
-        }
-
-        if (confirm(`Confirm that you have received the product for order ${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n⚠️ This action cannot be undone`)) {
-            // Mark as confirmed
-            orderConfirmationStatus[orderId] = true;
-
-            alert(`✅ Receipt confirmed successfully!\n\nOrder ID: ${orderId}\nStatus: Completed\n\nFunds have been released to the seller. Thank you for your purchase!`);
-
-            // Close and reopen modal to refresh the view
-            closeModal();
-            setTimeout(() => {
-                // Determine order type
-                const type = orderId.includes('FND') ? 'deposit' : 'product';
-                viewOrder(orderId, type, 'completed');
-            }, 300);
-        }
-    }
 
     // Close Modal
     function closeModal() {
