@@ -503,6 +503,48 @@
             border: none !important;
         }
 
+        /* User Avatar and Menu Styles */
+        .menu-container { position: relative; display: inline-block; }
+
+        .avatar-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer; color: white;
+            font-weight: bold; transition: all 0.3s;
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+        }
+        .avatar-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .dropdown-content {
+            display: none; position: absolute; right: 0;
+            top: 100%; margin-top: 10px;
+            background-color: white; min-width: 160px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 16px; z-index: 1001; padding: 8px;
+            animation: fadeInMenu 0.2s ease;
+        }
+        .dropdown-content::before {
+            content: ""; position: absolute; top: -20px; left: 0;
+            width: 100%; height: 20px; background: transparent;
+        }
+
+        .menu-container:hover .dropdown-content { display: block; }
+        .dropdown-item {
+            color: var(--text-dark); padding: 12px 16px; text-decoration: none;
+            display: block; font-size: 14px; font-weight: 500; border-radius: 10px;
+        }
+        .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
+
+        @keyframes fadeInMenu {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         @media (max-width: 768px) {
             .page-title { font-size: 2rem; }
             .stats-grid { grid-template-columns: 1fr; }
@@ -529,7 +571,19 @@
     </a>
     <div class="nav-actions">
         <button onclick="window.location.href='../../index.html'">Market</button>
-        <button class="btn-primary">Login</button>
+        <button id="nav-login-btn" class="btn-primary" onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'">Login</button>
+
+        <!-- User Avatar Menu (hidden by default, shown when logged in) -->
+        <div id="nav-user-menu" class="menu-container" style="display: none;">
+            <div id="nav-avatar" class="avatar-btn">
+                👤
+            </div>
+            <div class="dropdown-content">
+                <a href="../../Module_User_Account_Management/pages/profile.php" class="dropdown-item">My Profile</a>
+                <a href="#" class="dropdown-item">Settings</a>
+                <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -732,17 +786,43 @@
             const res = await fetch('../../Module_User_Account_Management/api/session_status.php');
             const data = await res.json();
 
+            const loginBtn = document.getElementById('nav-login-btn');
+            const userMenu = document.getElementById('nav-user-menu');
+            const avatarBtn = document.getElementById('nav-avatar');
+
             if (data.is_logged_in) {
                 isUserLoggedIn = true;
-                // User is logged in, allow page access
+
+                // Update navbar UI
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (userMenu) userMenu.style.display = 'inline-block';
+
+                // Set user avatar
+                if (avatarBtn && data.user) {
+                    if (data.user.avatar_url) {
+                        avatarBtn.innerHTML = `<img src="${data.user.avatar_url}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                        avatarBtn.style.background = 'transparent';
+                        avatarBtn.style.border = '2px solid #fff';
+                        avatarBtn.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.2)';
+                    } else if (data.user.username) {
+                        avatarBtn.innerText = data.user.username.charAt(0).toUpperCase();
+                        avatarBtn.style.background = '#EEF2FF';
+                        avatarBtn.style.color = '#4F46E5';
+                        avatarBtn.style.border = '2px solid #fff';
+                    }
+                }
             } else {
-                // User is not logged in, show login modal
                 isUserLoggedIn = false;
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (userMenu) userMenu.style.display = 'none';
                 AuthModal.show();
             }
         } catch (error) {
             console.error('Error checking login status:', error);
-            // If there's an error checking session, show login modal
+            const loginBtn = document.getElementById('nav-login-btn');
+            const userMenu = document.getElementById('nav-user-menu');
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (userMenu) userMenu.style.display = 'none';
             AuthModal.show();
         }
     });
