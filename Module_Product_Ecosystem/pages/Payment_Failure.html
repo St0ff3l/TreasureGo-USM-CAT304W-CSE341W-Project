@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Failed - TreasureGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* --- Core Variables --- */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --danger: #EF4444;
+      --danger-light: #FEE2E2;
+      --white: #FFFFFF;
+      --glass-border: rgba(255, 255, 255, 0.5);
+    }
+
+    body {
+      font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-dark);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--text-dark); }
+    .logo-img { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .status-card {
+      background: var(--white);
+      padding: 48px 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      max-width: 420px;
+      width: 100%;
+      animation: slideUp 0.5s ease-out, shake 0.4s ease 0.5s;
+      border: 1px solid rgba(255,255,255,1);
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+
+    /* Icon Styling */
+    .icon-box {
+      width: 72px;
+      height: 72px;
+      background: var(--danger-light);
+      color: var(--danger);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px auto;
+    }
+
+    .icon-box svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    h1 { margin: 0 0 12px 0; font-size: 1.75rem; font-weight: 700; color: #111; }
+
+    p { color: var(--text-gray); margin-bottom: 32px; line-height: 1.6; font-size: 0.95rem; }
+
+    /* Buttons */
+    .btn-group { display: flex; flex-direction: column; gap: 12px; }
+
+    .btn {
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      font-size: 1rem;
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .btn-primary {
+      background: var(--text-dark);
+      color: white;
+      box-shadow: 0 4px 12px rgba(31, 41, 55, 0.15);
+    }
+    .btn-primary:hover {
+      background: black;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(31, 41, 55, 0.25);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #E5E7EB;
+      color: var(--text-gray);
+    }
+    .btn-outline:hover {
+      border-color: var(--text-dark);
+      color: var(--text-dark);
+      background: #F9FAFB;
+    }
+
+    .link-home {
+      margin-top: 24px;
+      display: inline-block;
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .link-home:hover { color: var(--primary); text-decoration: underline; }
+
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="../../index.html" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+    Treasure<span>Go</span>
+  </a>
+</nav>
+
+<div class="main-content">
+  <div class="status-card">
+    <div class="icon-box">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </div>
+
+    <h1>Payment Failed</h1>
+    <p>Your transaction was declined due to insufficient funds in your wallet.</p>
+
+    <div class="btn-group">
+      <a href="wallet_topup.html" class="btn btn-primary">Top Up Wallet</a>
+
+      <button class="btn btn-outline" onclick="history.back()">Return</button>
+    </div>
+
+    <a href="../../index.html" class="link-home">Back to Home</a>
+  </div>
+</div>
+
+</body>
+</html>

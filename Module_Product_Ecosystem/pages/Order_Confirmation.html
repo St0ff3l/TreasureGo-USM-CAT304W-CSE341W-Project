@@ -11,11 +11,10 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; margin: 0; padding-bottom: 40px; }
 
-        /* --- Navbar (Consistent) --- */
+        /* --- Navbar --- */
         .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.5); }
         .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .logo span { color: var(--text-dark); }
-        /* 确保路径正确：回退2层找到Public_Assets */
         .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .nav-actions { display: flex; align-items: center; gap: 20px; }
         .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; font-size: 1rem; }
@@ -30,7 +29,10 @@
 
         /* Content Styles */
         .item-preview { display: flex; gap: 15px; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; }
-        .item-img { width: 80px; height: 80px; background: #f0f0f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; flex-shrink: 0; }
+
+        /* 🔥 Modified: Added overflow hidden to image container */
+        .item-img { width: 80px; height: 80px; background: #f0f0f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; overflow: hidden; }
+        .item-img img { width: 100%; height: 100%; object-fit: cover; }
 
         .delivery-selector { display: flex; gap: 15px; margin-bottom: 20px; }
         .delivery-option { flex: 1; border: 2px solid #eee; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; text-align: center; color: var(--text-gray); }
@@ -48,17 +50,17 @@
         .total-row { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #eee; font-weight: 800; font-size: 1.3rem; color: var(--text-dark); }
 
         /* Buttons */
-        .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 25px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); }
+        .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 25px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); transition: 0.2s; }
+        .btn-pay:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
-        /* Cancel Button */
-        .btn-cancel { width: 100%; background: transparent; color: var(--text-gray); border: 2px solid #eee; padding: 14px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; display: block; }
+        .btn-cancel { width: 100%; background: transparent; color: var(--text-gray); border: 2px solid #eee; padding: 14px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; display: block; transition: 0.2s; }
         .btn-cancel:hover { background: #f9fafb; color: var(--text-dark); border-color: #ddd; }
 
         @media (max-width: 768px) {
             .navbar { padding: 1rem 20px; }
             .container { margin-top: 20px; grid-template-columns: 1fr; gap: 20px; }
             .card { padding: 20px; }
-            .nav-btn { display: none; } /* Mobile hide redundant links */
+            .nav-btn { display: none; }
         }
     </style>
 </head>
@@ -84,11 +86,11 @@
         <div class="card">
             <h2>Order Item</h2>
             <div class="item-preview">
-                <div class="item-img">🎧</div>
+                <div class="item-img" id="order-img">📦</div>
                 <div>
-                    <h4 style="margin:0 0 5px 0;">Sony WH-1000XM4</h4>
-                    <p style="margin:0; color:#666; font-size:0.9rem;">Condition: Like New</p>
-                    <p style="margin:5px 0 0 0; font-weight:700; color:var(--primary);">$200.00</p>
+                    <h4 id="order-title" style="margin:0 0 5px 0;">Loading Product...</h4>
+                    <p id="order-condition" style="margin:0; color:#666; font-size:0.9rem;">Condition: ...</p>
+                    <p id="order-price" style="margin:5px 0 0 0; font-weight:700; color:var(--primary);">$0.00</p>
                 </div>
             </div>
         </div>
@@ -105,7 +107,7 @@
             </div>
 
             <div id="meet-info">
-                <div style="margin-bottom: 8px;"><span style="font-size: 1.2rem;">📍</span> <strong>Area:</strong> Seattle, WA (Downtown)</div>
+                <div style="margin-bottom: 8px;"><span style="font-size: 1.2rem;">📍</span> <strong>Seller Location:</strong> <span id="seller-location">Loading...</span></div>
                 <small style="color: #666; display: block;">* Exact location details will be shared in Chat after payment.</small>
             </div>
 
@@ -120,14 +122,14 @@
     <div class="right-col">
         <div class="card">
             <h2>Order Summary</h2>
-            <div class="summary-row"><span>Subtotal</span><span>$200.00</span></div>
+            <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">$0.00</span></div>
             <div class="summary-row"><span>Delivery Fee</span><span id="shipping-fee-display">$0.00</span></div>
-            <div class="summary-row"><span>Service Fee (2%)</span><span>$4.00</span></div>
-            <div class="total-row"><span>Total</span><span id="total-price-display" style="color:var(--primary);">$204.00</span></div>
+            <div class="summary-row"><span>Service Fee (2%)</span><span id="service-fee-display">$0.00</span></div>
+            <div class="total-row"><span>Total</span><span id="total-price-display" style="color:var(--primary);">$0.00</span></div>
 
-            <button class="btn-pay" onclick="alert('Proceeding to Payment...')">Pay Now</button>
+            <button class="btn-pay" onclick="processPayment()">Pay Now</button>
 
-            <a href="Product_Detail.html" class="btn-cancel">Cancel</a>
+            <a href="#" id="btn-cancel" class="btn-cancel">Cancel</a>
 
             <div style="text-align:center; margin-top:15px; font-size:0.8rem; color:#999;">Secure Encrypted Payment 🔒</div>
         </div>
@@ -135,27 +137,128 @@
 </div>
 
 <script>
+    // 全局变量，用于存储从数据库获取的价格
+    let currentProductPrice = 0;
+    let currentShippingCost = 0; // 默认为 Meet-up (0)
+
+    // 1. 获取 URL 中的商品 ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    // 2. 初始化加载
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!productId) {
+            alert("No product specified!");
+            window.location.href = '../../index.html';
+            return;
+        }
+
+        // 设置 Cancel 按钮的回退链接
+        document.getElementById('btn-cancel').href = `Product_Detail.html?id=${productId}`;
+
+        fetchProductData(productId);
+    });
+
+    // 3. 请求 API 获取商品详情
+    async function fetchProductData(id) {
+        try {
+            const response = await fetch(`../api/Get_Products.php?product_id=${id}`);
+            const result = await response.json();
+
+            if (result.success && result.data.length > 0) {
+                const product = result.data[0];
+                renderOrderPage(product);
+            } else {
+                alert("Product details not found.");
+                window.location.href = '../../index.html';
+            }
+        } catch (error) {
+            console.error("Error fetching product:", error);
+            alert("System error. Please try again.");
+        }
+    }
+
+    // 4. 渲染页面并计算初始价格
+    function renderOrderPage(item) {
+        // --- 基本文本填充 ---
+        document.getElementById('order-title').innerText = item.Product_Title;
+        document.getElementById('order-condition').innerText = `Condition: ${item.Product_Condition}`;
+        document.getElementById('seller-location').innerText = item.Product_Location || 'Unknown';
+
+        // --- 价格处理 ---
+        currentProductPrice = parseFloat(item.Product_Price);
+        document.getElementById('order-price').innerText = `$${currentProductPrice.toFixed(2)}`;
+
+        // --- 图片处理 (复用 Detail 页面的正则逻辑) ---
+        const imgBox = document.getElementById('order-img');
+        if (item.Main_Image) {
+            const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+            // 注意：这里Order页面和Detail页面在同一层级，所以路径逻辑一样
+            const fullPath = `../${cleanPath}`;
+            imgBox.innerHTML = `<img src="${fullPath}" alt="Product Image">`;
+        } else {
+            imgBox.innerText = '📷';
+        }
+
+        // --- 计算并显示所有金额 ---
+        calculateTotals();
+    }
+
+    // 5. 切换配送方式
     function selectDelivery(type) {
         const meetOpt = document.getElementById('opt-meet');
         const shipOpt = document.getElementById('opt-ship');
         const meetInfo = document.getElementById('meet-info');
         const shipForm = document.getElementById('shipping-form');
-        const shipFeeDisplay = document.getElementById('shipping-fee-display');
-        const totalDisplay = document.getElementById('total-price-display');
-
-        let basePrice = 200; let serviceFee = 4; let shippingCost = 0;
 
         if (type === 'meet') {
-            meetOpt.classList.add('selected'); shipOpt.classList.remove('selected');
-            meetInfo.style.display = 'block'; shipForm.style.display = 'none';
-            shippingCost = 0;
+            meetOpt.classList.add('selected');
+            shipOpt.classList.remove('selected');
+            meetInfo.style.display = 'block';
+            shipForm.style.display = 'none';
+            currentShippingCost = 0;
         } else {
-            shipOpt.classList.add('selected'); meetOpt.classList.remove('selected');
-            meetInfo.style.display = 'none'; shipForm.style.display = 'block';
-            shippingCost = 15;
+            shipOpt.classList.add('selected');
+            meetOpt.classList.remove('selected');
+            meetInfo.style.display = 'none';
+            shipForm.style.display = 'block';
+            currentShippingCost = 15.00; // 假设运费固定 $15，实际可根据逻辑调整
         }
-        shipFeeDisplay.innerText = `$${shippingCost.toFixed(2)}`;
-        totalDisplay.innerText = `$${(basePrice + serviceFee + shippingCost).toFixed(2)}`;
+
+        calculateTotals();
+    }
+
+    // 6. 核心算价逻辑
+    function calculateTotals() {
+        const serviceFeeRate = 0.02; // 2% 服务费
+        const serviceFee = currentProductPrice * serviceFeeRate;
+        const total = currentProductPrice + serviceFee + currentShippingCost;
+
+        // 更新 DOM
+        document.getElementById('summary-subtotal').innerText = `$${currentProductPrice.toFixed(2)}`;
+        document.getElementById('shipping-fee-display').innerText = `$${currentShippingCost.toFixed(2)}`;
+        document.getElementById('service-fee-display').innerText = `$${serviceFee.toFixed(2)}`;
+        document.getElementById('total-price-display').innerText = `$${total.toFixed(2)}`;
+    }
+
+    // 7. 模拟支付
+    // 7. 模拟支付 (测试跳转)
+    function processPayment() {
+        // 模拟逻辑：假设用户余额只有 100 块
+        // 如果 Total 价格超过 100，跳转失败页面，否则跳转成功
+        const userBalance = 100.00;
+
+        // 获取当前显示的 Total 价格 (去除 $ 符号并转为数字)
+        const totalText = document.getElementById('total-price-display').innerText.replace('$', '');
+        const totalAmount = parseFloat(totalText);
+
+        if (totalAmount > userBalance) {
+            // 余额不足 -> 失败页面
+            window.location.href = "Payment_Failure.html";
+        } else {
+            // 支付成功 -> 成功页面
+            window.location.href = "Payment_Success.html";
+        }
     }
 </script>
 </body>

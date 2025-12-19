@@ -366,6 +366,10 @@
         const rating = item.User_Average_Rating ? `★ ${item.User_Average_Rating}` : 'New Seller';
         document.querySelector('.seller-rating').innerText = rating;
 
+        // 🔥🔥🔥 【新增代码】更新 Buy Now 按钮的跳转链接，带上 ID 🔥🔥🔥
+        const buyBtn = document.querySelector('.btn-buy');
+        buyBtn.href = `Order_Confirmation.html?id=${item.Product_ID}`;
+
         // ============================================
         // 🔥 图片处理逻辑 (Gallery Logic) - 支持左右切换 🔥
         // ============================================
