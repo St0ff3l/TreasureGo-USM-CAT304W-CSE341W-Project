@@ -394,6 +394,22 @@
             background: #FBCFE8;
         }
 
+        .filter-select-small {
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            background-color: white;
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .filter-select-small:hover {
+            border-color: var(--primary);
+        }
+
         .modal-actions {
             display: flex;
             gap: 10px;
@@ -525,10 +541,14 @@
 
     <!-- Statistics Dashboard -->
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" style="position: relative;">
             <div class="stat-icon">💰</div>
             <div class="stat-label">Available Balance</div>
             <div class="stat-value" id="availableBalance">$2,458.50</div>
+            <div style="position: absolute; bottom: 20px; right: 20px; display: flex; gap: 10px;">
+                <button class="btn-small btn-view" onclick="window.location.href='Deposit.html'">Deposit</button>
+                <button class="btn-small btn-view" onclick="window.location.href='Withdrawal.html'">Withdrawal</button>
+            </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">⏳</div>
@@ -537,41 +557,7 @@
         </div>
     </div>
 
-    <!-- Create Fund Request Form -->
-    <div class="action-section">
-        <h2 class="section-title">
-            <span>💸</span>
-            Create Fund Request
-        </h2>
-        <form id="fundRequestForm">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label class="form-label" for="requestType">Request Type *</label>
-                    <select class="form-select" id="requestType" required>
-                        <option value="">Select Type</option>
-                        <option value="deposit">Deposit</option>
-                        <option value="withdrawal">Withdrawal</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="requestAmount">Amount *</label>
-                    <input type="number" class="form-input" id="requestAmount" placeholder="0.00" step="0.01" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="proofImage">Proof Image URL</label>
-                    <input type="text" class="form-input" id="proofImage" placeholder="https://...">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="adminRemark">Admin Remark (Optional)</label>
-                <textarea class="form-textarea" id="adminRemark" placeholder="Add any additional notes..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-submit">
-                <span>✓</span>
-                Submit Request
-            </button>
-        </form>
-    </div>
+
 
     <!-- Fund Requests Table -->
     <div class="table-container">
@@ -583,9 +569,31 @@
             <thead>
                 <tr>
                     <th>Request ID</th>
-                    <th>Type</th>
+                    <th>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            Type
+                            <select id="typeFilter" class="filter-select-small" onchange="filterFundRequests()" title="Filter by Type">
+                                <option value="all">All</option>
+                                <option value="deposit">Deposit</option>
+                                <option value="withdrawal">Withdrawal</option>
+                            </select>
+                        </div>
+                    </th>
                     <th>Amount</th>
-                    <th>Status</th>
+                    <th>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            Status
+                            <select id="statusFilter" class="filter-select-small" onchange="filterFundRequests()" title="Filter by Status">
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </th>
                     <th>Created At</th>
                     <th>Processed At</th>
                     <th>Actions</th>
@@ -594,8 +602,13 @@
             <tbody id="fundRequestsBody">
                 <!-- Sample Data -->
                 <tr>
-                    <td>#FR001</td>
-                    <td>Withdrawal</td>
+                    <td><strong>#FR001</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.2rem;">💸</span>
+                            <span style="color: #EF4444; font-weight: 600;">Fund Withdrawal</span>
+                        </div>
+                    </td>
                     <td><strong>$150.00</strong></td>
                     <td><span class="status-badge status-pending">Pending</span></td>
                     <td>2025-12-12 10:30</td>
@@ -607,8 +620,13 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>#FR002</td>
-                    <td>Deposit</td>
+                    <td><strong>#FR002</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.2rem;">💰</span>
+                            <span style="color: #F59E0B; font-weight: 600;">Fund Deposit</span>
+                        </div>
+                    </td>
                     <td><strong>$500.00</strong></td>
                     <td><span class="status-badge status-approved">Approved</span></td>
                     <td>2025-12-11 14:20</td>
@@ -620,8 +638,13 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>#FR003</td>
-                    <td>Withdrawal</td>
+                    <td><strong>#FR003</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.2rem;">💸</span>
+                            <span style="color: #EF4444; font-weight: 600;">Fund Withdrawal</span>
+                        </div>
+                    </td>
                     <td><strong>$45.50</strong></td>
                     <td><span class="status-badge status-processing">Processing</span></td>
                     <td>2025-12-10 09:15</td>
@@ -787,24 +810,41 @@
     }
 
     // Load Fund Requests
+    let allFundRequestsData = [];
+
     async function loadFundRequests() {
         try {
             const result = await apiCall('get_fund_requests', { user_id: CURRENT_USER_ID }, 'GET');
-            const requests = result.data;
-
-            const tbody = document.getElementById('fundRequestsBody');
-            tbody.innerHTML = '';
-
-            if (requests && requests.length > 0) {
-                requests.forEach(request => {
-                    const row = createFundRequestRow(request);
-                    tbody.appendChild(row);
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No fund requests found</td></tr>';
-            }
+            allFundRequestsData = result.data;
+            filterFundRequests();
         } catch (error) {
             console.error('Failed to load fund requests:', error);
+        }
+    }
+
+    function filterFundRequests() {
+        const typeFilterValue = document.getElementById('typeFilter').value;
+        const statusFilterValue = document.getElementById('statusFilter').value;
+        const tbody = document.getElementById('fundRequestsBody');
+        tbody.innerHTML = '';
+
+        let filteredRequests = allFundRequestsData;
+
+        if (typeFilterValue !== 'all') {
+            filteredRequests = filteredRequests.filter(req => req.Type.toLowerCase() === typeFilterValue);
+        }
+
+        if (statusFilterValue !== 'all') {
+            filteredRequests = filteredRequests.filter(req => req.Status.toLowerCase() === statusFilterValue);
+        }
+
+        if (filteredRequests && filteredRequests.length > 0) {
+            filteredRequests.forEach(request => {
+                const row = createFundRequestRow(request);
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No fund requests found</td></tr>';
         }
     }
 
@@ -814,9 +854,19 @@
         const statusClass = getStatusClass(request.Status);
         const processedAt = request.Processed_AT || '-';
 
+        const isDeposit = request.Type.toLowerCase() === 'deposit';
+        const typeIcon = isDeposit ? '💰' : '💸';
+        const typeColor = isDeposit ? '#F59E0B' : '#EF4444'; // Orange for deposit, Red for withdrawal
+        const typeLabel = isDeposit ? 'Fund Deposit' : 'Fund Withdrawal';
+
         row.innerHTML = `
-            <td>#FR${request.REQUEST_ID}</td>
-            <td>${capitalizeFirst(request.Type)}</td>
+            <td><strong>#FR${request.REQUEST_ID}</strong></td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">${typeIcon}</span>
+                    <span style="color: ${typeColor}; font-weight: 600;">${typeLabel}</span>
+                </div>
+            </td>
             <td><strong>$${parseFloat(request.Amount).toFixed(2)}</strong></td>
             <td><span class="status-badge ${statusClass}">${capitalizeFirst(request.Status)}</span></td>
             <td>${formatDateTime(request.Created_AT)}</td>
@@ -880,38 +930,7 @@
         container.appendChild(el);
     }
 
-    // Fund Request Form Submission
-    document.getElementById('fundRequestForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
 
-        const type = document.getElementById('requestType').value;
-        const amount = document.getElementById('requestAmount').value;
-        const proofImage = document.getElementById('requestImage').value;
-        const adminRemark = document.getElementById('adminRemark').value;
-
-        try {
-            // Submit to API
-            const result = await apiCall('create_fund_request', {
-                user_id: CURRENT_USER_ID,
-                type: type,
-                amount: parseFloat(amount),
-                proof_image: proofImage,
-                admin_remark: adminRemark
-            });
-
-            alert(`✅ Fund Request Submitted Successfully!\n\nRequest ID: #FR${result.data.request_id}\nType: ${type}\nAmount: $${amount}\nStatus: ${result.data.status}`);
-
-            // Reset form
-            this.reset();
-
-            // Reload data
-            loadFundRequests();
-            loadStatistics();
-
-        } catch (error) {
-            alert('❌ Failed to submit fund request: ' + error.message);
-        }
-    });
 
     // View Fund Request Details (API-based)
     async function viewFundRequestDetails(requestId) {
