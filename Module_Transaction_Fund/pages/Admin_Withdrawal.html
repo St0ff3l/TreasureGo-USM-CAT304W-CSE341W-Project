@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TreasureGO - Admin Deposit Management</title>
+    <title>TreasureGO - Admin Withdrawal Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="../../Public_Assets/js/admin_guard.js"></script>
     <style>
@@ -285,6 +285,7 @@
             color: white;
         }
 
+        /* Card Styles */
         .requests-list {
             display: flex;
             flex-direction: column;
@@ -294,12 +295,11 @@
         .request-card {
             background: white;
             border-radius: 20px;
-            padding: 25px;
+            padding: 20px 25px;
             box-shadow: var(--card-shadow);
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 20px;
+            display: flex;
             align-items: center;
+            gap: 20px;
             transition: all 0.3s ease;
         }
 
@@ -309,41 +309,119 @@
         }
 
         .request-avatar {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--primary);
+            flex-shrink: 0;
         }
 
         .request-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            flex: 1;
+            min-width: 0;
         }
 
         .request-user {
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 4px;
         }
 
-        .request-details {
+        .request-meta {
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
             color: var(--text-gray);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        .request-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .request-amount {
             font-weight: 800;
-            font-size: 1.3rem;
-            color: var(--success);
+            font-size: 1.2rem;
+            color: #EF4444;
+            margin-top: 6px;
+        }
+
+        .request-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #EEF2FF;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .user-info-small {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .user-id-sub {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .amount-text {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .btn-action-view {
+            padding: 8px 16px;
+            background: #EEF2FF;
+            color: var(--primary);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-view:hover {
+            background: #E0E7FF;
+            transform: translateY(-1px);
         }
 
         .request-status {
@@ -368,27 +446,16 @@
             color: #DC2626;
         }
 
-        .request-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
         .btn-approve {
-            padding: 10px 25px;
-            border-radius: 12px;
+            padding: 8px 16px;
+            border-radius: 10px;
             border: none;
             background: var(--success);
             color: white;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.85rem;
         }
 
         .btn-approve:hover {
@@ -397,36 +464,20 @@
         }
 
         .btn-reject {
-            padding: 10px 25px;
-            border-radius: 12px;
+            padding: 8px 16px;
+            border-radius: 10px;
             border: none;
             background: var(--danger);
             color: white;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.85rem;
         }
 
         .btn-reject:hover {
             background: #DC2626;
             transform: translateY(-2px);
-        }
-
-        .btn-view-proof {
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: 1px solid #E5E7EB;
-            background: white;
-            color: var(--text-gray);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-        }
-
-        .btn-view-proof:hover {
-            border-color: var(--primary);
-            color: var(--primary);
         }
 
         /* Empty state */
@@ -694,25 +745,6 @@
                 font-size: 1.5rem;
             }
 
-            .request-card {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .request-avatar {
-                margin: 0 auto;
-            }
-
-            .request-actions {
-                align-items: center;
-                width: 100%;
-            }
-
-            .action-buttons {
-                width: 100%;
-                justify-content: center;
-            }
-
             #floating-container { display: none !important; }
         }
     </style>
@@ -745,8 +777,8 @@
 </nav>
 
 <section class="page-header">
-    <h1 class="page-title">💰 Deposit Management</h1>
-    <p class="page-subtitle">Review and process user deposit requests</p>
+    <h1 class="page-title">💸 Withdrawal Management</h1>
+    <p class="page-subtitle">Review and process user withdrawal requests</p>
 </section>
 
 <!-- 统计卡片 -->
@@ -784,7 +816,7 @@
 <section class="requests-container">
     <div class="section-header">
         <h2 class="section-title">
-            <span>📝</span> Deposit Requests
+            <span>📝</span> Withdrawal Requests
         </h2>
         <div class="filter-tabs">
             <button class="filter-tab active" data-filter="all">All</button>
@@ -809,7 +841,9 @@
             <h3 class="modal-title">Payment Proof</h3>
             <button class="modal-close" onclick="closeProofModal()">×</button>
         </div>
-        <img id="proof-image" class="proof-image" src="" alt="Payment Proof">
+        <div id="proof-container" style="max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
+            <!-- Images will be inserted here -->
+        </div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeProofModal()">Close</button>
         </div>
@@ -900,7 +934,8 @@
     // 加载统计数据
     async function loadStatistics() {
         try {
-            const res = await fetch(`${API_BASE}?action=get_admin_statistics`);
+            // Pass type=withdrawal to get withdrawal stats
+            const res = await fetch(`${API_BASE}?action=get_admin_statistics&type=withdrawal`);
             const data = await res.json();
 
             if (data.success) {
@@ -924,8 +959,8 @@
             const data = await res.json();
 
             if (data.success) {
-                // 只筛选充值请求
-                allRequests = data.data.filter(r => r.Type === 'deposit');
+                // Filter for withdrawal requests
+                allRequests = data.data.filter(r => r.Type === 'withdrawal');
                 renderRequests();
             } else {
                 container.innerHTML = `
@@ -944,6 +979,24 @@
                 </div>
             `;
         }
+    }
+
+    // Helper to parse Admin Remark (Modified for Withdrawal)
+    function parseRemark(remark) {
+        if (!remark) return { duitNow: 'N/A', notes: '' };
+
+        const duitNowMatch = remark.match(/DuitNow: (.*?)(\n|$)/);
+        const duitNow = duitNowMatch ? duitNowMatch[1] : 'N/A';
+
+        // Extract notes (everything after DuitNow line)
+        let notes = remark;
+        if (duitNowMatch) {
+            notes = remark.replace(duitNowMatch[0], '').trim();
+            // Remove "User Notes: " prefix if present
+            notes = notes.replace(/^User Notes:\s*/, '');
+        }
+
+        return { duitNow, notes };
     }
 
     // 渲染请求列表
@@ -965,52 +1018,37 @@
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📭</div>
-                    <p class="empty-text">No ${currentFilter === 'all' ? '' : currentFilter + ' '}deposit requests found</p>
+                    <p class="empty-text">No ${currentFilter === 'all' ? '' : currentFilter + ' '}withdrawal requests found</p>
                 </div>
             `;
             return;
         }
 
         container.innerHTML = filteredRequests.map(request => {
-            const processedAt = request.Processed_AT ? formatDate(request.Processed_AT) : '-';
+            const statusClass = getStatusClass(request.Status);
 
             return `
-            <div class="request-card" data-id="${request.REQUEST_ID}">
+            <div class="request-card">
                 <div class="request-avatar">
                     ${request.Username ? request.Username.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div class="request-info">
-                    <div class="request-user">${request.Username || 'User #' + request.User_ID}</div>
-                    <div class="request-details">
-                        <span>🆔 #${request.REQUEST_ID}</span>
-                        <span>👤 User ID: ${request.User_ID}</span>
+                    <div class="request-user">${request.Username || 'Unknown'}</div>
+                    <div class="request-meta">
+                        <span>🆔 #FR${request.REQUEST_ID}</span>
+                        <span>👤 ID: ${request.User_ID}</span>
                     </div>
-                    <div class="request-amount">+ $${parseFloat(request.Amount).toFixed(2)}</div>
+                    <div class="request-amount">- $${parseFloat(request.Amount).toFixed(2)}</div>
                 </div>
                 <div class="request-actions">
-                    <span class="request-status ${getStatusClass(request.Status)}">
-                        ${formatStatus(request.Status)}
-                    </span>
+                    <span class="request-status ${statusClass}">${formatStatus(request.Status)}</span>
                     <div class="action-buttons">
-                        <button class="btn-view-proof" onclick="openDetailsModal(${request.REQUEST_ID})">
-                            👁️ View Details
-                        </button>
-                        ${request.Proof_Image ? `
-                            <button class="btn-view-proof" onclick="viewProof('${request.Proof_Image}')">
-                                🖼️ View Proof
-                            </button>
+                        <button class="btn-action-view" onclick="openDetailsModal(${request.REQUEST_ID})">👁️ View</button>
+                        ${request.Status === 'pending' ? `
+                            <button class="btn-approve" onclick="handleActionClick(${request.REQUEST_ID}, 'approve')">✓ Approve</button>
+                            <button class="btn-reject" onclick="handleActionClick(${request.REQUEST_ID}, 'reject')">✗ Reject</button>
                         ` : ''}
                     </div>
-                    ${request.Status === 'pending' ? `
-                        <div class="action-buttons">
-                            <button class="btn-approve" onclick="openActionModal(${request.REQUEST_ID}, 'approve')">
-                                ✓ Approve
-                            </button>
-                            <button class="btn-reject" onclick="openActionModal(${request.REQUEST_ID}, 'reject')">
-                                ✗ Reject
-                            </button>
-                        </div>
-                    ` : ''}
                 </div>
             </div>
         `}).join('');
@@ -1029,10 +1067,26 @@
     }
 
     // 查看凭证
-    function viewProof(imageUrl) {
+    function viewProof(imageUrls) {
         const modal = document.getElementById('proof-modal');
-        const img = document.getElementById('proof-image');
-        img.src = imageUrl;
+        const container = document.getElementById('proof-container');
+        container.innerHTML = '';
+
+        if (imageUrls) {
+            const urls = imageUrls.split(',');
+            urls.forEach(url => {
+                if (url.trim()) {
+                    const img = document.createElement('img');
+                    img.src = url.trim();
+                    img.className = 'proof-image';
+                    img.alt = 'Payment Proof';
+                    container.appendChild(img);
+                }
+            });
+        } else {
+            container.innerHTML = '<p style="text-align:center; color:#666;">No proof image available.</p>';
+        }
+
         modal.classList.add('active');
     }
 
@@ -1041,17 +1095,7 @@
     }
 
     // 打开操作弹窗
-    function openActionModal(requestId, action) {
-        const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
-        if (!request) {
-            console.error('Request not found:', requestId);
-            showToast('Error: Request not found', 'error');
-            return;
-        }
-
-        const username = request.Username || 'User #' + request.User_ID;
-        const amount = request.Amount;
-
+    function openActionModal(requestId, action, username, amount) {
         currentRequestId = requestId;
         currentAction = action;
 
@@ -1064,16 +1108,20 @@
         document.getElementById('action-remark').value = '';
 
         if (action === 'approve') {
-            title.textContent = '✅ Approve Deposit Request';
+            title.textContent = '✅ Approve Withdrawal Request';
             confirmBtn.textContent = 'Approve';
             confirmBtn.className = 'btn-confirm approve';
         } else {
-            title.textContent = '❌ Reject Deposit Request';
+            title.textContent = '❌ Reject Withdrawal Request';
             confirmBtn.textContent = 'Reject';
             confirmBtn.className = 'btn-confirm reject';
         }
 
-        confirmBtn.onclick = () => processRequest();
+        confirmBtn.onclick = () => {
+            const remark = document.getElementById('action-remark').value;
+            const status = currentAction === 'approve' ? 'approved' : 'rejected';
+            performStatusUpdate(currentRequestId, status, remark);
+        };
         modal.classList.add('active');
     }
 
@@ -1083,29 +1131,68 @@
         currentAction = null;
     }
 
-    // 处理请求
-    async function processRequest() {
-        if (!currentRequestId || !currentAction) return;
+    // Handle Action Click (Approve/Reject)
+    async function handleActionClick(requestId, action) {
+        const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
+        if (!request) {
+            console.error('Request not found:', requestId);
+            showToast('Error: Request not found', 'error');
+            return;
+        }
 
-        const newRemark = document.getElementById('action-remark').value;
-        const status = currentAction === 'approve' ? 'approved' : 'rejected';
+        const username = request.Username || 'User #' + request.User_ID;
+        const amount = request.Amount;
 
-        // Get existing remark to preserve Transaction ID
-        const request = allRequests.find(r => r.REQUEST_ID === currentRequestId);
-        let finalRemark = request ? request.Admin_Remark : '';
+        if (action === 'reject') {
+            openActionModal(requestId, 'reject', username, amount);
+            return;
+        }
 
-        if (newRemark.trim()) {
-            finalRemark += `\n\n[Admin ${new Date().toLocaleDateString()}]: ${newRemark}`;
+        // For Approve, check balance first
+        try {
+
+            const res = await fetch(`${API_BASE}?action=get_wallet_balance&user_id=${request.User_ID}`);
+            const data = await res.json();
+
+            if (data.success) {
+                const balance = parseFloat(data.data.balance);
+                const reqAmount = parseFloat(amount);
+
+                if (balance < reqAmount) {
+                    // Insufficient balance - Auto Reject
+                    showToast(`⚠️ Insufficient Balance ($${balance.toFixed(2)}). Auto-rejecting...`, 'error');
+
+                    // Perform rejection immediately
+                    await performStatusUpdate(requestId, 'rejected', `System Auto-Reject: Insufficient Balance ($${balance.toFixed(2)} < $${reqAmount.toFixed(2)})`);
+                } else {
+                    // Sufficient balance - Ask for confirmation
+                    openActionModal(requestId, 'approve', username, amount);
+                }
+            } else {
+                showToast('Failed to check user balance: ' + data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error checking balance', 'error');
+        }
+    }
+
+    // Helper to perform status update directly
+    async function performStatusUpdate(requestId, status, remark) {
+        // Get existing remark to preserve DuitNow ID
+        const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
+        let finalRemark = request ? (request.Admin_Remark || '') : '';
+
+        if (remark) {
+            finalRemark += `\n\n[${new Date().toLocaleDateString()}]: ${remark}`;
         }
 
         try {
             const res = await fetch(`${API_BASE}?action=update_fund_request_status`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    request_id: currentRequestId,
+                    request_id: requestId,
                     status: status,
                     admin_remark: finalRemark
                 })
@@ -1115,10 +1202,10 @@
 
             if (data.success) {
                 showToast(
-                    currentAction === 'approve'
-                        ? '✅ Deposit approved! User balance updated.'
-                        : '❌ Deposit rejected.',
-                    currentAction === 'approve' ? 'success' : 'error'
+                    status === 'approved'
+                        ? '✅ Withdrawal approved! User balance updated.'
+                        : '❌ Withdrawal rejected.',
+                    status === 'approved' ? 'success' : 'error'
                 );
                 closeActionModal();
                 loadStatistics();
@@ -1178,7 +1265,7 @@
     });
 
     // 打开详情弹窗
-    function openDetailsModal(requestId) {
+    async function openDetailsModal(requestId) {
         const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
         if (!request) {
             console.error('Request not found:', requestId);
@@ -1186,72 +1273,93 @@
             return;
         }
 
+        const { duitNow, notes } = parseRemark(request.Admin_Remark);
         const statusClass = getStatusClass(request.Status);
-        const createdAt = formatDate(request.Created_AT);
-        const processedAt = request.Processed_AT ? formatDate(request.Processed_AT) : 'Not yet processed';
-
-        // Parse Admin Remark for Transaction ID
-        let transactionId = 'N/A';
-        let userNotes = '';
-        if (request.Admin_Remark) {
-            const txnMatch = request.Admin_Remark.match(/Transaction ID: (.*?)(\n|$)/i);
-            if (txnMatch) {
-                transactionId = txnMatch[1];
-            }
-            // Get user notes (everything after Transaction ID line)
-            userNotes = request.Admin_Remark.replace(/Transaction ID:.*?(\n|$)/i, '').trim();
-        }
+        const processedAt = request.Processed_AT ? formatDate(request.Processed_AT) : '-';
 
         const content = `
             <div style="margin-bottom: 20px;">
-                <strong style="font-size: 1.1rem;">Request ID:</strong> <span>#${request.REQUEST_ID}</span>
+                <strong style="font-size: 1.1rem;">Request ID:</strong> <span>#FR${request.REQUEST_ID}</span>
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">User:</strong>
-                <div style="margin-top: 5px; display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #EEF2FF; color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                <div class="user-cell" style="margin-top: 5px;">
+                    <div class="user-avatar-small" style="font-size: 1.2rem;">
                         ${request.Username ? request.Username.charAt(0).toUpperCase() : '?'}
                     </div>
-                    <div>
-                        <div style="font-weight: 600;">${request.Username || 'Unknown'}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-gray);">ID: ${request.User_ID}</div>
+                    <div class="user-info-small">
+                        <span class="user-name">${request.Username || 'Unknown'}</span>
+                        <span class="user-id-sub">ID: ${request.User_ID}</span>
                     </div>
                 </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Current Balance:</strong>
+                <span id="modal-user-balance" style="font-size: 1.2rem; font-weight: bold; color: #4F46E5;">Loading...</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Type:</strong> Fund Withdrawal
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Amount:</strong>
-                <span style="font-size: 1.3rem; font-weight: 800; color: var(--success);">+ $${parseFloat(request.Amount).toFixed(2)}</span>
+                <span class="amount-text" style="font-size: 1.3rem;">$${parseFloat(request.Amount).toFixed(2)}</span>
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Status:</strong>
-                <span class="request-status ${statusClass}" style="margin-left: 10px;">${formatStatus(request.Status)}</span>
+                <span class="request-status ${statusClass}" style="font-size: 1rem;">${formatStatus(request.Status)}</span>
             </div>
             <div style="margin-bottom: 20px;">
-                <strong style="font-size: 1.1rem;">📅 Submitted:</strong>
-                <span style="color: var(--text-gray);">${createdAt}</span>
+                <strong style="font-size: 1.1rem;">Created At:</strong> ${formatDate(request.Created_AT)}
             </div>
             <div style="margin-bottom: 20px;">
-                <strong style="font-size: 1.1rem;">✅ Processed:</strong>
-                <span style="color: var(--text-gray);">${processedAt}</span>
+                <strong style="font-size: 1.1rem;">Processed At:</strong> ${processedAt}
             </div>
-            ${transactionId !== 'N/A' ? `
             <div style="margin-bottom: 20px;">
-                <strong style="font-size: 1.1rem;">Transaction ID:</strong>
-                <span style="color: var(--primary); font-weight: 600;">${transactionId}</span>
-            </div>
-            ` : ''}
-            ${userNotes ? `
-            <div style="margin-bottom: 20px;">
-                <strong style="font-size: 1.1rem;">Notes:</strong>
-                <div style="margin-top: 5px; padding: 10px; background: #f9fafb; border-radius: 8px; color: var(--text-gray);">
-                    ${userNotes}
+                <strong style="font-size: 1.1rem;">Admin Remark:</strong>
+                <div style="background: #f9fafb; padding: 12px 15px; border-radius: 12px; border: 1px solid #e5e7eb; margin-top: 8px;">
+                    <div style="font-weight: 500; color: #374151;">DuitNow: ${duitNow}</div>
+                    <div style="color: #6b7280; font-size: 0.9rem; margin-top: 4px; white-space: pre-wrap;">${notes || 'No remarks added.'}</div>
                 </div>
             </div>
-            ` : ''}
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Proof Images:</strong>
+                <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    ${request.Proof_Image ? request.Proof_Image.split(',').map(url => `
+                        <img src="${url.trim()}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #e5e7eb;" onclick="viewProof('${request.Proof_Image}')" alt="Proof">
+                    `).join('') : '<span style="color: #9ca3af;">No proof images uploaded.</span>'}
+                </div>
+            </div>
         `;
 
         document.getElementById('details-content').innerHTML = content;
         document.getElementById('details-modal').classList.add('active');
+
+        // Fetch balance asynchronously
+        try {
+            const res = await fetch(`${API_BASE}?action=get_wallet_balance&user_id=${request.User_ID}`);
+            const data = await res.json();
+            const balanceEl = document.getElementById('modal-user-balance');
+            if (balanceEl) {
+                if (data.success) {
+                    const balance = parseFloat(data.data.balance);
+                    balanceEl.textContent = '$' + balance.toFixed(2);
+                    // Highlight if insufficient funds for pending request
+                    if (request.Status === 'pending' && balance < parseFloat(request.Amount)) {
+                        balanceEl.style.color = '#EF4444';
+                        balanceEl.innerHTML += ' <span style="font-size: 0.8rem; color: #EF4444;">(Insufficient Funds)</span>';
+                    }
+                } else {
+                    balanceEl.textContent = 'Error loading balance';
+                    balanceEl.style.color = '#EF4444';
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch balance:', err);
+            const balanceEl = document.getElementById('modal-user-balance');
+            if (balanceEl) {
+                balanceEl.textContent = 'Error';
+            }
+        }
     }
 
     function closeDetailsModal() {
@@ -1261,6 +1369,3 @@
 
 </body>
 </html>
-
-
-
