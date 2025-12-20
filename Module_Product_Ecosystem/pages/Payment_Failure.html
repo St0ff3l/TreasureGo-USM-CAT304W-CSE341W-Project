@@ -182,14 +182,47 @@
     <p>Your transaction was declined due to insufficient funds in your wallet.</p>
 
     <div class="btn-group">
-      <a href="wallet_topup.html" class="btn btn-primary">Top Up Wallet</a>
+      <a href="wallet_topup.html" class="btn btn-primary" onclick="alert('Top Up feature coming soon!')">Top Up Wallet</a>
 
-      <button class="btn btn-outline" onclick="history.back()">Return</button>
+      <button class="btn btn-outline" id="retry-btn">Try Again / Return</button>
     </div>
 
     <a href="../../index.html" class="link-home">Back to Home</a>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const id = params.get('id');
+
+    // --- 关键修改：获取传过来的套餐参数 ---
+    const plan = params.get('plan');
+    const cycle = params.get('cycle');
+    const price = params.get('price');
+
+    const retryBtn = document.getElementById('retry-btn');
+
+    retryBtn.onclick = function() {
+      if (type === 'membership') {
+        // 修复：带着之前的 plan/cycle/price 参数跳回去
+        // 这样用户选的 SVIP 就不会变成 VIP 了
+        if(plan && cycle && price) {
+          window.location.href = `Member_Payment.html?plan=${plan}&cycle=${cycle}&price=${price}`;
+        } else {
+          window.location.href = "Member_Payment.html?plan=VIP"; // 保底
+        }
+      } else if (type === 'order' && id) {
+        // 商品订单回退
+        window.location.href = `Confirm_Order.html?id=${id}`;
+      } else {
+        // 默认浏览器后退
+        window.history.back();
+      }
+    };
+  });
+</script>
 
 </body>
 </html>

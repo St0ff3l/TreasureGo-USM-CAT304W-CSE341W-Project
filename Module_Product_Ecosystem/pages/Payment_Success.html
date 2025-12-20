@@ -10,7 +10,7 @@
     :root { --bg-color: #F3F6F9; --primary: #4F46E5; --text-dark: #1F2937; --text-gray: #6B7280; --glass-bg: rgba(255, 255, 255, 0.95); --success: #10B981; }
     body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* Navbar (Same as before) */
+    /* Navbar */
     .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.5); }
     .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo span { color: var(--text-dark); }
@@ -47,7 +47,7 @@
 
     .btn-group { display: flex; flex-direction: column; gap: 15px; }
 
-    .btn { padding: 15px; border-radius: 12px; font-weight: 600; text-decoration: none; transition: 0.2s; cursor: pointer; border: none; font-size: 1rem; }
+    .btn { padding: 15px; border-radius: 12px; font-weight: 600; text-decoration: none; transition: 0.2s; cursor: pointer; border: none; font-size: 1rem; display: block; box-sizing: border-box; }
     .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
     .btn-primary:hover { transform: translateY(-2px); }
 
@@ -68,15 +68,48 @@
 <div class="main-content">
   <div class="status-card">
     <div class="icon-box">✓</div>
-    <h1>Payment Successful!</h1>
-    <p>Thank you for your purchase. The seller has been notified and will contact you shortly.</p>
+    <h1 id="status-title">Payment Successful!</h1>
+    <p id="status-desc">Thank you for your purchase.</p>
 
     <div class="btn-group">
-      <a href="#" class="btn btn-primary" onclick="alert('Go to Order List')">View My Order</a>
+      <a href="#" id="primary-btn" class="btn btn-primary">Continue</a>
       <a href="../../index.html" class="btn btn-outline">Back to Home</a>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const plan = params.get('plan'); // 获取套餐名 (如 SVIP)
+
+    const title = document.getElementById('status-title');
+    const desc = document.getElementById('status-desc');
+    const btn = document.getElementById('primary-btn');
+
+    if (type === 'membership') {
+      // --- 动态显示：如果是 SVIP 就显示 SVIP ---
+      const planName = plan ? plan : "Membership";
+      title.innerText = `${planName} Activated! 👑`;
+      desc.innerHTML = `Welcome to the club!<br>Your ${planName} benefits are active immediately.`;
+
+      btn.innerText = "View My Profile";
+      // 假设个人中心在上一级目录
+      btn.href = "../My_Profile.html"; // 请根据您的实际目录结构调整
+
+    } else if (type === 'order') {
+      title.innerText = "Order Placed! 📦";
+      desc.innerHTML = "We've notified the seller.<br>You can track delivery in your orders.";
+
+      btn.innerText = "View My Orders";
+      btn.href = "../Order_System/orders.html";
+    } else {
+      btn.innerText = "Continue Shopping";
+      btn.href = "../../index.html";
+    }
+  });
+</script>
 
 </body>
 </html>

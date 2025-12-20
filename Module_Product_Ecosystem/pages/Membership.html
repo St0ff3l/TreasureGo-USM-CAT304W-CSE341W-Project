@@ -264,10 +264,25 @@
     }, 200);
   }
 
+  // 跳转到支付页面，并传递参数
   function purchase(plan) {
-    if (!pricingData[currentCycle]) return;
-    const price = plan === 'VIP' ? pricingData[currentCycle].vip : pricingData[currentCycle].svip;
-    showToast(`Selected ${plan} - ${currentCycle} (${price})`);
+    // 1. 安全检查：确保价格数据已加载
+    if (!pricingData[currentCycle]) {
+      alert("Please wait for price data to load.");
+      return;
+    }
+
+    // 2. 获取当前选中的价格 (VIP 或 SVIP)
+    // 假设 pricingData 里的结构是 { monthly: { vip: "$9.90", svip: "$19.90", ... } }
+    const rawPrice = plan === 'VIP' ? pricingData[currentCycle].vip : pricingData[currentCycle].svip;
+
+    // 3. 构建 URL 参数 (Query Parameters)
+    // 将 套餐类型(plan)、周期(cycle)、价格(price) 传给下一个页面
+    // 例如: Member_Payment.html?plan=SVIP&cycle=yearly&price=$199.00
+    const targetUrl = `Member_Payment.html?plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(currentCycle)}&price=${encodeURIComponent(rawPrice)}`;
+
+    // 4. 执行跳转
+    window.location.href = targetUrl;
   }
 
   function showToast(message) {

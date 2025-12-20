@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Checkout Membership - TreasureGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* --- Core Variables --- */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --gold: #F59E0B;
+      --gold-light: #FFFBEB;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; margin: 0; padding-bottom: 40px; }
+
+    /* --- Navbar --- */
+    .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.5); }
+    .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo span { color: var(--text-dark); }
+    .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+    .menu-container { position: relative; display: inline-block; }
+    .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; font-weight: bold; }
+
+    /* --- Layout --- */
+    .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; align-items: start; }
+    .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; transition: 0.3s; }
+    h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+
+    /* --- Single Payment Method Style --- */
+    .wallet-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #EEF2FF;
+      border: 2px solid var(--primary);
+      padding: 25px;
+      border-radius: 16px;
+      color: var(--primary);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .wallet-info { display: flex; align-items: center; gap: 15px; }
+    .wallet-icon { font-size: 2.2rem; }
+    .wallet-text { text-align: left; }
+    .wallet-text h4 { margin: 0; font-size: 1.1rem; }
+    .wallet-text p { margin: 2px 0 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+    /* --- Membership Summary Style --- */
+    .plan-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+    .plan-icon { width: 60px; height: 60px; border-radius: 12px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+    .plan-details h3 { margin: 0 0 4px 0; font-size: 1.1rem; }
+    .plan-cycle { color: var(--text-gray); font-size: 0.9rem; margin: 0; }
+
+    /* Style variations for SVIP */
+    .card.svip-theme { border: 2px solid var(--gold); background: linear-gradient(to bottom, #FFFCF5, #FFFFFF); }
+    .svip-text { color: var(--gold); }
+    .card.vip-theme { border: 2px solid #eee; }
+
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: #555; font-size: 0.95rem; }
+    .total-row { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #eee; font-weight: 800; font-size: 1.4rem; color: var(--text-dark); }
+
+    /* Buttons */
+    .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 25px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); transition: 0.2s; }
+    .btn-pay:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    /* SVIP specific button color */
+    .btn-pay.gold-btn { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3); }
+
+    .btn-cancel { width: 100%; display: block; text-align: center; margin-top: 15px; color: var(--text-gray); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+    .btn-cancel:hover { color: var(--text-dark); }
+
+    /* Terms Text */
+    .terms-text { font-size: 0.8rem; color: #888; text-align: center; line-height: 1.5; margin-top: 0px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
+
+    @media (max-width: 768px) {
+      .navbar { padding: 1rem 20px; }
+      .container { margin-top: 20px; grid-template-columns: 1fr; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="#" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+    Treasure<span>Go</span>
+  </a>
+  <div class="nav-actions">
+    <div class="menu-container">
+      <div class="dots-btn">•••</div>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="left-col">
+    <div class="card">
+      <h2>💳 Payment Method</h2>
+
+      <div class="wallet-card">
+        <div class="wallet-info">
+          <div class="wallet-icon">💰</div>
+          <div class="wallet-text">
+            <h4>My Wallet</h4>
+            <p>Balance: $150.00</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="terms-text">
+        By clicking "Pay", you agree to TreasureGo's <a href="#" style="color:var(--primary); text-decoration:none;">Terms of Service</a>. <br>
+        Membership benefits are applied immediately upon successful payment.
+      </div>
+    </div>
+
+    <div style="text-align:center; padding: 0 20px;">
+      <p style="color:#9CA3AF; font-size:0.85rem;">
+        <span style="vertical-align: middle; margin-right:5px;">🔒</span>
+        Secure Payment
+      </p>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="card" id="summary-card">
+      <h2>Order Summary</h2>
+
+      <div class="plan-header">
+        <div class="plan-icon" id="plan-icon">💎</div>
+        <div class="plan-details">
+          <h3 id="plan-name">VIP Membership</h3>
+          <p class="plan-cycle" id="cycle-display">Monthly Plan</p>
+        </div>
+      </div>
+
+      <div class="summary-row"><span>Plan Price</span><span id="subtotal">$0.00</span></div>
+      <div class="summary-row"><span>Discount</span><span id="discount" style="color:green;">-$0.00</span></div>
+      <div class="summary-row"><span>Tax (0%)</span><span>$0.00</span></div>
+
+      <div class="total-row">
+        <span>Total Due</span>
+        <span id="total-price" style="color:var(--primary);">$0.00</span>
+      </div>
+
+      <button class="btn-pay" id="pay-btn" onclick="processPayment()">Pay</button>
+
+      <a href="javascript:history.back()" class="btn-cancel">Cancel & Go Back</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1. 获取 URL 参数
+  const urlParams = new URLSearchParams(window.location.search);
+  const planType = urlParams.get('plan') || 'VIP';
+  const cycle = urlParams.get('cycle') || 'monthly';
+  const rawPrice = urlParams.get('price') || '9.90';
+
+  // 清理价格字符串
+  const priceValue = parseFloat(rawPrice.replace(/[^0-9.]/g, ''));
+
+  // 2. 页面加载初始化
+  document.addEventListener('DOMContentLoaded', () => {
+    renderPlanDetails();
+  });
+
+  // 3. 渲染页面数据
+  function renderPlanDetails() {
+    const cycleText = cycle.charAt(0).toUpperCase() + cycle.slice(1);
+    document.getElementById('cycle-display').innerText = `${cycleText} Billing`;
+    document.getElementById('subtotal').innerText = `$${priceValue.toFixed(2)}`;
+    document.getElementById('total-price').innerText = `$${priceValue.toFixed(2)}`;
+
+    // 更新 VIP / SVIP 主题样式
+    const summaryCard = document.getElementById('summary-card');
+    const planIcon = document.getElementById('plan-icon');
+    const planName = document.getElementById('plan-name');
+    const payBtn = document.getElementById('pay-btn');
+    const totalDisplay = document.getElementById('total-price');
+
+    if (planType === 'SVIP') {
+      planName.innerText = "SVIP Membership";
+      planIcon.innerText = "👑";
+      planIcon.style.background = "#FFFBEB";
+      planIcon.style.color = "#F59E0B";
+
+      summaryCard.classList.add('svip-theme');
+      payBtn.classList.add('gold-btn');
+      totalDisplay.style.color = "#D97706";
+    } else {
+      planName.innerText = "VIP Membership";
+      planIcon.innerText = "💎";
+      planIcon.style.background = "#EEF2FF";
+      planIcon.style.color = "#4F46E5";
+      summaryCard.classList.add('vip-theme');
+    }
+  }
+
+  // 4. 模拟支付逻辑 (已连接 Success/Failure 页面)
+  // 4. 模拟支付逻辑 (修复版：带参数跳转)
+  function processPayment() {
+    const btn = document.getElementById('pay-btn');
+    const originalText = btn.innerText;
+    const userBalance = 150.00; // 模拟余额
+
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+    btn.style.opacity = "0.7";
+
+    // --- 关键修改：构建包含当前所有参数的 URL ---
+    // 这样下一个页面才知道是哪个套餐成功/失败了
+    const params = `type=membership&plan=${encodeURIComponent(planType)}&cycle=${encodeURIComponent(cycle)}&price=${encodeURIComponent(rawPrice)}`;
+
+    setTimeout(() => {
+      if (priceValue > userBalance) {
+        // 余额不足 -> 跳转失败页 (带参数)
+        window.location.href = `Payment_Failure.html?${params}`;
+      } else {
+        // 支付成功 -> 跳转成功页 (带参数)
+        window.location.href = `Payment_Success.html?${params}`;
+      }
+    }, 1500);
+  }
+</script>
+
+</body>
+</html>
