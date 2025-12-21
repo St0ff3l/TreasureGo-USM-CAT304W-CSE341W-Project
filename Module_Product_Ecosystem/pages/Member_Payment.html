@@ -109,7 +109,7 @@
           <div class="wallet-icon">💰</div>
           <div class="wallet-text">
             <h4>My Wallet</h4>
-            <p>Balance: $150.00</p>
+            <p>Balance: $...</p>
           </div>
         </div>
       </div>
@@ -162,16 +162,41 @@
   const planType = urlParams.get('plan') || 'VIP';
   const cycle = urlParams.get('cycle') || 'monthly';
   const rawPrice = urlParams.get('price') || '9.90';
-
-  // 清理价格字符串
   const priceValue = parseFloat(rawPrice.replace(/[^0-9.]/g, ''));
+
+  // 全局变量，用于存储加载后的余额 (仅用于显示，不做安全校验)
+  let realUserBalance = 0.00;
 
   // 2. 页面加载初始化
   document.addEventListener('DOMContentLoaded', () => {
     renderPlanDetails();
+    fetchUserBalance(); // 获取当前钱包余额显示
   });
 
-  // 3. 渲染页面数据
+  // --- 获取余额显示给用户看 ---
+  async function fetchUserBalance() {
+    try {
+      // 路径指向 ../api/Get_Wallet_Balance.php
+      const response = await fetch('../api/Get_Wallet_Balance.php');
+      const data = await response.json();
+
+      if (data.success) {
+        realUserBalance = data.balance;
+
+        // 更新页面显示
+        const balanceDisplay = document.querySelector('.wallet-text p');
+        if (balanceDisplay) {
+          balanceDisplay.innerText = `Balance: $${realUserBalance.toFixed(2)}`;
+        }
+      } else {
+        console.error("Fetch balance failed:", data.msg);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+    }
+  }
+
+  // --- 渲染页面 Plan 信息 ---
   function renderPlanDetails() {
     const cycleText = cycle.charAt(0).toUpperCase() + cycle.slice(1);
     document.getElementById('cycle-display').innerText = `${cycleText} Billing`;
@@ -203,30 +228,65 @@
     }
   }
 
-  // 4. 模拟支付逻辑 (已连接 Success/Failure 页面)
-  // 4. 模拟支付逻辑 (修复版：带参数跳转)
-  function processPayment() {
+  // --- 处理支付逻辑 (真实扣款) ---
+  async function processPayment() {
     const btn = document.getElementById('pay-btn');
-    const originalText = btn.innerText;
-    const userBalance = 150.00; // 模拟余额
+    if(btn.disabled) return;
 
+    // 1. 禁用按钮防止重复提交
     btn.disabled = true;
     btn.innerText = "Processing...";
     btn.style.opacity = "0.7";
 
-    // --- 关键修改：构建包含当前所有参数的 URL ---
-    // 这样下一个页面才知道是哪个套餐成功/失败了
-    const params = `type=membership&plan=${encodeURIComponent(planType)}&cycle=${encodeURIComponent(cycle)}&price=${encodeURIComponent(rawPrice)}`;
+    // 准备发送给后端的数据
+    const payload = {
+      price: priceValue,
+      plan: planType,
+      cycle: cycle
+    };
 
-    setTimeout(() => {
-      if (priceValue > userBalance) {
-        // 余额不足 -> 跳转失败页 (带参数)
-        window.location.href = `Payment_Failure.html?${params}`;
+    // 构建 URL 参数 (用于跳转)
+    const urlParamsStr = `type=membership&plan=${encodeURIComponent(planType)}&cycle=${encodeURIComponent(cycle)}&price=${encodeURIComponent(rawPrice)}`;
+
+    try {
+      // 2. 发起 POST 请求进行扣款
+      const response = await fetch('../api/Process_Payment.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      // 3. 处理后端返回结果
+      if (result.success) {
+        // --- 成功 ---
+        // 延迟 500ms 跳转成功页面
+        setTimeout(() => {
+          window.location.href = `Payment_Success.html?${urlParamsStr}`;
+        }, 500);
       } else {
-        // 支付成功 -> 跳转成功页 (带参数)
-        window.location.href = `Payment_Success.html?${params}`;
+        // --- 失败 (余额不足 或 出错) ---
+        console.error("Payment failed:", result.msg);
+        alert("Payment Failed: " + result.msg);
+
+        // 延迟跳转到失败页
+        setTimeout(() => {
+          window.location.href = `Payment_Failure.html?${urlParamsStr}&reason=${encodeURIComponent(result.msg)}`;
+        }, 1000);
       }
-    }, 1500);
+
+    } catch (error) {
+      console.error("Network Error:", error);
+      alert("Network error, please try again.");
+
+      // 恢复按钮状态
+      btn.innerText = "Pay";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+    }
   }
 </script>
 
