@@ -145,21 +145,9 @@
 </head>
 <body>
 
-<nav class="navbar">
-  <a href="../../index.html" class="logo">
-    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
-    Treasure<span>Go</span>
-  </a>
-  <div class="nav-actions">
-    <button class="nav-btn" onclick="alert('Top Up Page')">Top Up</button>
-    <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
-    <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
-
-    <div class="menu-container">
-      <div class="dots-btn">•••</div>
-    </div>
-  </div>
-</nav>
+<!-- Navbar replaced by headerbar.js -->
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script>TreasureGoHeaderbar.mount({ basePath: '../../' });</script>
 
 <section class="hero">
   <h1>Unlock More Power</h1>

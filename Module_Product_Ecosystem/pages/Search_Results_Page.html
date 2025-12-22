@@ -207,17 +207,10 @@
 
 <div class="overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
 
-<nav class="navbar">
-  <a href="../../index.html" class="logo">
-    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img" style="background:#ddd;">
-    Treasure<span>Go</span>
-  </a>
-  <div class="nav-actions">
-    <button class="nav-btn" onclick="alert('Top Up')">Top Up</button>
-    <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
-    <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
-  </div>
-</nav>
+    <script src="../../Public_Assets/js/headerbar.js"></script>
+    <script>
+        TreasureGoHeaderbar.mount({ basePath: '../../' });
+    </script>
 
 <div class="search-header-bg">
   <div class="search-wrapper">

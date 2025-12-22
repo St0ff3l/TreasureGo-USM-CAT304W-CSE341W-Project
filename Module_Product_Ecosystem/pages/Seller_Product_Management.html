@@ -111,25 +111,10 @@
 </head>
 <body>
 
-<nav class="navbar">
-  <a href="../../index.html" class="logo">
-    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
-    Treasure<span>Go</span>
-  </a>
-  <div class="nav-actions">
-    <button class="nav-btn" onclick="alert('Top Up Page')">Top Up</button>
-    <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
-    <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
-    <div class="menu-container">
-      <div class="dots-btn">•••</div>
-      <div class="dropdown-content">
-        <a href="#" class="dropdown-item">My Profile</a>
-        <a href="#" class="dropdown-item">Settings</a>
-        <a href="#" class="dropdown-item" style="color: #ef4444;">Log Out</a>
-      </div>
-    </div>
-  </div>
-</nav>
+    <script src="../../Public_Assets/js/headerbar.js"></script>
+    <script>
+        TreasureGoHeaderbar.mount({ basePath: '../../' });
+    </script>
 
 <div class="container">
 

@@ -20,31 +20,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; padding-bottom: 80px; /* 增加底部留白给悬浮栏 */ }
 
-        /* --- 1. Navbar (与 Homepage 一致) --- */
-        .navbar {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.5);
-        }
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .logo span { color: var(--text-dark); }
-        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem; }
-        .nav-btn:hover { color: var(--text-dark); }
-        .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-
-        .menu-container { position: relative; display: inline-block; }
-        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; font-weight: bold; }
-
         /* --- Page Layout --- */
         .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
 
@@ -126,20 +101,9 @@
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="../../index.html" class="logo">
-        <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
-        Treasure<span>Go</span>
-    </a>
-    <div class="nav-actions">
-        <button class="nav-btn" onclick="alert('Top Up')">Top Up</button>
-        <button class="nav-btn" onclick="window.location.href='../Order_System/orders.html'">Orders</button>
-        <button class="btn-primary" onclick="window.location.href='../Auth/login.html'">Login</button>
-        <div class="menu-container">
-            <div class="dots-btn">•••</div>
-        </div>
-    </div>
-</nav>
+<!-- Navbar replaced by headerbar.js -->
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script>TreasureGoHeaderbar.mount({ basePath: '../../' });</script>
 
 <div class="container">
 
@@ -333,5 +297,8 @@
     }
 </script>
 
+</body>
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script>TreasureGoHeaderbar.mount({ basePath: '../../' });</script>
 </body>
 </html>

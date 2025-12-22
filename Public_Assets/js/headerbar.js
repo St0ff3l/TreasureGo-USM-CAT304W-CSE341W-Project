@@ -23,6 +23,7 @@
 
     /* ================= Navbar Styles ================= */
     .navbar {
+        font-family: 'Poppins', 'Noto Sans SC', sans-serif;
         background: var(--glass-bg);
         backdrop-filter: blur(12px);
         padding: 1rem 5%;
