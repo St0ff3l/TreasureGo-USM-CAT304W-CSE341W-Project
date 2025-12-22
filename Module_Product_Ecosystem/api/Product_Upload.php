@@ -1,10 +1,10 @@
 <?php
 // api/Product_Upload.php
 
-// 1. 开启 Session (必须放在第一行)
+// 1. 开启 Session
 session_start();
 
-// 引入数据库配置
+// 引入数据库配置 (确保配置文件的第一行已经有了 date_default_timezone_set)
 require_once 'config/treasurego_db_config.php';
 
 header('Content-Type: application/json');
@@ -23,14 +23,13 @@ try {
         exit();
     }
 
-    // 4. 安全检查：判断用户是否登录
+    // 4. 安全检查
     if (!isset($_SESSION['user_id'])) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => '请先登录后再发布商品']);
         exit();
     }
 
-    // 从 Session 获取 User_ID
     $user_id = $_SESSION['user_id'];
 
     // 5. 获取表单数据
@@ -40,10 +39,8 @@ try {
     $description = trim($_POST['description'] ?? '');
     $location = trim($_POST['address'] ?? 'Online');
     $category_id = intval($_POST['category_id'] ?? 100000005);
-
-    // 新增：获取交易方式，默认为 both
     $delivery_method = $_POST['delivery_method'] ?? 'both';
-    // 简单的白名单验证，防止恶意输入
+
     if (!in_array($delivery_method, ['meetup', 'shipping', 'both'])) {
         $delivery_method = 'both';
     }
@@ -59,16 +56,12 @@ try {
     // 6. 处理图片文件
     // =========================================================
     $image_paths = [];
-
-    // 物理存储路径：从 api 文件夹往上一级找 Public_Product_Images
     $upload_base_dir = '../Public_Product_Images/';
-
-    // 数据库路径前缀：相对于网站根目录的完整路径
     $db_path_prefix = 'Module_Product_Ecosystem/Public_Product_Images/';
 
     if (!is_dir($upload_base_dir)) {
         if (!mkdir($upload_base_dir, 0777, true)) {
-            throw new Exception("服务器错误：无法创建图片上传目录，请检查文件夹权限。");
+            throw new Exception("服务器错误：无法创建图片上传目录");
         }
     }
 
@@ -77,42 +70,35 @@ try {
         $file_count = count($_FILES['images']['name']);
 
         for ($i = 0; $i < $file_count; $i++) {
-            $error_code = $_FILES['images']['error'][$i];
-
-            if ($error_code === UPLOAD_ERR_INI_SIZE || $error_code === UPLOAD_ERR_FORM_SIZE) {
-                throw new Exception("上传失败：图片 " . $_FILES['images']['name'][$i] . " 太大，超过了服务器限制。");
-            }
-
-            if ($error_code === UPLOAD_ERR_OK) {
+            if ($_FILES['images']['error'][$i] === UPLOAD_ERR_OK) {
                 $file_tmp = $_FILES['images']['tmp_name'][$i];
-                $file_name = $_FILES['images']['name'][$i];
                 $file_type = $_FILES['images']['type'][$i];
 
-                if (!in_array($file_type, $allowed_types)) {
-                    continue;
-                }
+                if (!in_array($file_type, $allowed_types)) continue;
 
-                $ext = pathinfo($file_name, PATHINFO_EXTENSION);
+                $ext = pathinfo($_FILES['images']['name'][$i], PATHINFO_EXTENSION);
                 $new_filename = 'prod_' . time() . '_' . uniqid() . '.' . $ext;
-
                 $destination = $upload_base_dir . $new_filename;
 
                 if (move_uploaded_file($file_tmp, $destination)) {
                     $image_paths[] = $db_path_prefix . $new_filename;
-                } else {
-                    throw new Exception("上传失败：无法保存图片文件。请联系管理员检查文件夹写入权限。");
                 }
-            } else {
-                throw new Exception("上传出错，错误代码: " . $error_code);
             }
         }
     }
+
     // =========================================================
+    // 修复时间问题的核心部分
+    // =========================================================
+
+    // 生成当前吉隆坡时间 (PHP已经设置了时区，所以这个时间是对的)
+    $current_time = date('Y-m-d H:i:s');
 
     // 7. 开启事务
     $pdo->beginTransaction();
 
-    // 8. 插入商品 (已修复问号数量不匹配的问题)
+    // 8. 插入商品
+    // 注意：我们将 NOW() 改成了 ?，这样就可以把 PHP 生成的时间传进去
     $sql_product = "INSERT INTO Product (
         Product_Title,
         Product_Description,
@@ -125,8 +111,7 @@ try {
         Delivery_Method,
         User_ID,
         Category_ID
-    ) VALUES (?, ?, ?, ?, 'Active', NOW(), ?, 'Pending', ?, ?, ?)";
-    // 注意上面最后是 ?, ?, ? (一共3个问号，分别对应 Delivery, UserID, CategoryID)
+    ) VALUES (?, ?, ?, ?, 'Active', ?, ?, 'Pending', ?, ?, ?)";
 
     $stmt = $pdo->prepare($sql_product);
     $stmt->execute([
@@ -134,28 +119,31 @@ try {
         $description,       // 2
         $price,             // 3
         $condition,         // 4
-        $location,          // 5 (Location)
-        $delivery_method,   // 6 (Delivery_Method)
-        $user_id,           // 7 (User_ID)
-        $category_id        // 8 (Category_ID)
+        $current_time,      // 5 (这里传入了 PHP 的正确时间，替换了原来的 NOW())
+        $location,          // 6
+        $delivery_method,   // 7
+        $user_id,           // 8
+        $category_id        // 9
     ]);
 
     $product_id = $pdo->lastInsertId();
 
     // 9. 插入图片路径
     if (!empty($image_paths)) {
+        // 同样把 NOW() 改成 ?
         $sql_image = "INSERT INTO Product_Images (
             Product_ID,
             Image_URL,
             Image_is_primary,
             Image_Upload_Time
-        ) VALUES (?, ?, ?, NOW())";
+        ) VALUES (?, ?, ?, ?)";
 
         $stmt_img = $pdo->prepare($sql_image);
 
         foreach ($image_paths as $index => $path) {
             $is_primary = ($index === 0) ? 1 : 0;
-            $stmt_img->execute([$product_id, $path, $is_primary]);
+            // 传入 $current_time
+            $stmt_img->execute([$product_id, $path, $is_primary, $current_time]);
         }
     }
 
@@ -169,7 +157,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    // 10. 如果出错，回滚事务
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
