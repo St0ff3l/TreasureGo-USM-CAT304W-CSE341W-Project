@@ -4,62 +4,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Confirm Order - TreasureGO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* --- Core Variables & Reset --- */
-        :root { --bg-color: #F3F6F9; --primary: #4F46E5; --primary-hover: #4338CA; --text-dark: #1F2937; --text-gray: #6B7280; --glass-bg: rgba(255, 255, 255, 0.95); }
+        :root {
+            --bg-color: #F8FAFC;
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --primary-light: #EEF2FF;
+            --text-dark: #0F172A;
+            --text-gray: #64748B;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            --card-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Poppins', 'Noto Sans SC', sans-serif; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; margin: 0; padding-bottom: 40px; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
+            background: var(--bg-color);
+            background-image:
+                    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
+                    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
+                    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%234f46e5" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'), linear-gradient(to bottom right, #f8fafc, #f1f5f9);
+            color: var(--text-dark);
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 60px;
+        }
 
         /* --- Navbar --- */
-        .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.5); }
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+        .logo { font-weight: 800; font-size: 1.6rem; color: var(--primary); display: flex; align-items: center; gap: 12px; text-decoration: none; letter-spacing: -0.5px; }
         .logo span { color: var(--text-dark); }
-        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; font-size: 1rem; }
-        .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .logo-img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+        .nav-actions { display: flex; align-items: center; gap: 24px; }
+        .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+        .nav-btn:hover { color: var(--primary); }
+        .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.8rem 2rem; border-radius: 50px; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); }
         .menu-container { position: relative; display: inline-block; }
-        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; font-weight: bold; }
+        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .dots-btn:hover { background: rgba(0,0,0,0.05); }
 
         /* --- Layout --- */
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; align-items: start; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.2rem; font-weight: 700; }
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        /* Card Styles & Animations */
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.6);
+            opacity: 0;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Staggered animation delays */
+        .left-col .card:nth-child(1) { animation-delay: 0.1s; }
+        .left-col .card:nth-child(2) { animation-delay: 0.2s; }
+        .right-col .card { animation-delay: 0.3s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { margin-top: 0; margin-bottom: 24px; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+        h2::before { content: ''; display: block; width: 6px; height: 24px; background: var(--primary); border-radius: 4px; }
 
         /* Content Styles */
-        .item-preview { display: flex; gap: 15px; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; }
+        .item-preview { display: flex; gap: 20px; align-items: center; padding-bottom: 24px; border-bottom: 1px dashed #E2E8F0; margin-bottom: 24px; }
+        .item-img {
+            width: 90px; height: 90px;
+            background: #F1F5F9;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .item-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .item-img:hover img { transform: scale(1.1); }
 
-        /* 🔥 Modified: Added overflow hidden to image container */
-        .item-img { width: 80px; height: 80px; background: #f0f0f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; overflow: hidden; }
-        .item-img img { width: 100%; height: 100%; object-fit: cover; }
+        #order-title { font-size: 1.2rem; margin-bottom: 6px; }
+        #order-condition { font-size: 0.9rem; background: #F1F5F9; padding: 4px 10px; border-radius: 6px; display: inline-block; font-weight: 500; }
+        #order-price { font-size: 1.2rem; margin-top: 8px; font-weight: 700; color: var(--primary); }
 
-        .delivery-selector { display: flex; gap: 15px; margin-bottom: 20px; }
-        .delivery-option { flex: 1; border: 2px solid #eee; padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; text-align: center; color: var(--text-gray); }
-        .delivery-option.selected { border-color: var(--primary); background: #EEF2FF; color: var(--primary); font-weight: 600; }
+        /* Delivery Selector */
+        .delivery-selector { display: flex; gap: 16px; margin-bottom: 24px; }
+        .delivery-option {
+            flex: 1;
+            border: 2px solid #E2E8F0;
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            color: var(--text-gray);
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .delivery-option:hover:not(.disabled) { border-color: #a5b4fc; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
 
-        #meet-info { background: #F9FAFB; padding: 15px; border-radius: 12px; border: 1px solid #eee; font-size: 0.9rem; }
-        #shipping-form { display: none; animation: slideDown 0.3s ease; }
+        .delivery-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        /* --- Disabled Style --- */
+        .delivery-option.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            background-color: #F1F5F9;
+            border-color: #E2E8F0;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        #meet-info {
+            background: #F8FAFC;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #E2E8F0;
+            font-size: 0.95rem;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #shipping-form { display: block; animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #666; font-weight: 600; }
-        .input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; font-size: 1rem; }
+        /* Inputs */
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #475569; font-weight: 600; }
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            outline: none;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: #F8FAFC;
+        }
+        .input-field:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
 
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: #555; font-size: 0.95rem; }
-        .total-row { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #eee; font-weight: 800; font-size: 1.3rem; color: var(--text-dark); }
+        /* Summary */
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 16px; color: #64748B; font-size: 1rem; }
+        .balance-row {
+            display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 20px;
+            border-bottom: 2px dashed #E2E8F0;
+            color: #0F172A; font-weight: 700; font-size: 1.05rem;
+        }
+        .balance-amount { color: var(--primary); }
+
+        .total-row {
+            display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px;
+            border-top: 2px solid #E2E8F0;
+            font-weight: 800; font-size: 1.5rem;
+            color: var(--text-dark);
+            letter-spacing: -0.5px;
+        }
 
         /* Buttons */
-        .btn-pay { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 25px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); transition: 0.2s; }
-        .btn-pay:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-pay {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-pay::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
+        }
+        .btn-pay:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4); }
+        .btn-pay:hover::after { transform: translateX(100%); }
 
-        .btn-cancel { width: 100%; background: transparent; color: var(--text-gray); border: 2px solid #eee; padding: 14px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px; text-align: center; text-decoration: none; display: block; transition: 0.2s; }
-        .btn-cancel:hover { background: #f9fafb; color: var(--text-dark); border-color: #ddd; }
+        .btn-cancel {
+            width: 100%;
+            background: white;
+            color: var(--text-gray);
+            border: 2px solid #E2E8F0;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover { background: #F8FAFC; color: var(--text-dark); border-color: #CBD5E1; transform: translateY(-2px); }
 
         @media (max-width: 768px) {
             .navbar { padding: 1rem 20px; }
-            .container { margin-top: 20px; grid-template-columns: 1fr; gap: 20px; }
-            .card { padding: 20px; }
+            .container { margin-top: 20px; grid-template-columns: 1fr; gap: 20px; padding: 0 20px; }
+            .card { padding: 24px; }
             .nav-btn { display: none; }
         }
     </style>
@@ -98,23 +287,29 @@
         <div class="card">
             <h2>Delivery Method</h2>
             <div class="delivery-selector">
-                <div class="delivery-option selected" id="opt-meet" onclick="selectDelivery('meet')">
-                    <div style="font-size:1.5rem; margin-bottom:5px;">🤝</div>Meet-up
+                <div class="delivery-option" id="opt-meet" onclick="selectDelivery('meet')">
+                    <div style="font-size:1.8rem; margin-bottom:8px;">🤝</div>Meet-up
                 </div>
-                <div class="delivery-option" id="opt-ship" onclick="selectDelivery('ship')">
-                    <div style="font-size:1.5rem; margin-bottom:5px;">🚚</div>Shipping
+                <div class="delivery-option selected" id="opt-ship" onclick="selectDelivery('ship')">
+                    <div style="font-size:1.8rem; margin-bottom:8px;">🚚</div>Shipping
                 </div>
             </div>
 
             <div id="meet-info">
-                <div style="margin-bottom: 8px;"><span style="font-size: 1.2rem;">📍</span> <strong>Seller Location:</strong> <span id="seller-location">Loading...</span></div>
-                <small style="color: #666; display: block;">* Exact location details will be shared in Chat after payment.</small>
+                <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">📍</span>
+                    <strong>Seller Location:</strong>
+                    <span id="seller-location" style="color: var(--primary);">Loading...</span>
+                </div>
+                <small style="color: #64748B; display: block; background: #fff; padding: 10px; border-radius: 8px; border: 1px dashed #E2E8F0;">
+                    💡 Exact location details will be shared in Chat after payment.
+                </small>
             </div>
 
             <div id="shipping-form">
                 <div class="input-group"><label>Full Name</label><input type="text" class="input-field" placeholder="Receiver's Name"></div>
                 <div class="input-group"><label>Street Address</label><input type="text" class="input-field" placeholder="123 Main St, Apt 4B"></div>
-                <div class="input-group"><label>City & Zip Code</label><div style="display:flex; gap:10px;"><input type="text" class="input-field" placeholder="City"><input type="text" class="input-field" placeholder="Zip Code"></div></div>
+                <div class="input-group"><label>City & Zip Code</label><div style="display:flex; gap:16px;"><input type="text" class="input-field" placeholder="City"><input type="text" class="input-field" placeholder="Zip Code"></div></div>
             </div>
         </div>
     </div>
@@ -122,24 +317,32 @@
     <div class="right-col">
         <div class="card">
             <h2>Order Summary</h2>
+
+            <div class="balance-row">
+                <span>Your Wallet Balance</span>
+                <span id="user-balance-display" class="balance-amount">Loading...</span>
+            </div>
+
             <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">$0.00</span></div>
             <div class="summary-row"><span>Delivery Fee</span><span id="shipping-fee-display">$0.00</span></div>
-            <div class="summary-row"><span>Service Fee (2%)</span><span id="service-fee-display">$0.00</span></div>
             <div class="total-row"><span>Total</span><span id="total-price-display" style="color:var(--primary);">$0.00</span></div>
 
             <button class="btn-pay" onclick="processPayment()">Pay Now</button>
 
             <a href="#" id="btn-cancel" class="btn-cancel">Cancel</a>
 
-            <div style="text-align:center; margin-top:15px; font-size:0.8rem; color:#999;">Secure Encrypted Payment 🔒</div>
+            <div style="text-align:center; margin-top:20px; font-size:0.8rem; color:#94A3B8; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                Secure Encrypted Payment 🔒
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 全局变量，用于存储从数据库获取的价格
+    // 全局变量
     let currentProductPrice = 0;
-    let currentShippingCost = 0; // 默认为 Meet-up (0)
+    let currentShippingCost = 15.00; // 默认快递 (Shipping)
+    let userCurrentBalance = 0.00;   // 全局存储用户真实余额
 
     // 1. 获取 URL 中的商品 ID
     const urlParams = new URLSearchParams(window.location.search);
@@ -153,10 +356,10 @@
             return;
         }
 
-        // 设置 Cancel 按钮的回退链接
         document.getElementById('btn-cancel').href = `Product_Detail.html?id=${productId}`;
 
         fetchProductData(productId);
+        fetchUserBalance();
     });
 
     // 3. 请求 API 获取商品详情
@@ -170,42 +373,67 @@
                 renderOrderPage(product);
             } else {
                 alert("Product details not found.");
-                window.location.href = '../../index.html';
             }
         } catch (error) {
             console.error("Error fetching product:", error);
-            alert("System error. Please try again.");
         }
     }
 
-    // 4. 渲染页面并计算初始价格
+    // 新增：请求 API 获取用户钱包余额
+    async function fetchUserBalance() {
+        try {
+            const response = await fetch('../api/Get_Wallet_Balance.php');
+            const result = await response.json();
+
+            if (result.success) {
+                userCurrentBalance = parseFloat(result.balance);
+                document.getElementById('user-balance-display').innerText = `$${userCurrentBalance.toFixed(2)}`;
+            } else {
+                console.warn(result.msg);
+                document.getElementById('user-balance-display').innerText = "$0.00";
+            }
+        } catch (error) {
+            console.error("Error fetching balance:", error);
+            document.getElementById('user-balance-display').innerText = "Error";
+        }
+    }
+
+    // 4. 渲染页面
     function renderOrderPage(item) {
-        // --- 基本文本填充 ---
         document.getElementById('order-title').innerText = item.Product_Title;
         document.getElementById('order-condition').innerText = `Condition: ${item.Product_Condition}`;
         document.getElementById('seller-location').innerText = item.Product_Location || 'Unknown';
 
-        // --- 价格处理 ---
         currentProductPrice = parseFloat(item.Product_Price);
         document.getElementById('order-price').innerText = `$${currentProductPrice.toFixed(2)}`;
 
-        // --- 图片处理 (复用 Detail 页面的正则逻辑) ---
         const imgBox = document.getElementById('order-img');
         if (item.Main_Image) {
             const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
-            // 注意：这里Order页面和Detail页面在同一层级，所以路径逻辑一样
             const fullPath = `../${cleanPath}`;
             imgBox.innerHTML = `<img src="${fullPath}" alt="Product Image">`;
         } else {
             imgBox.innerText = '📷';
         }
 
-        // --- 计算并显示所有金额 ---
+        // ================== 核心判断配送方式 ==================
+        if (item.Delivery_Method === 'shipping') {
+            selectDelivery('ship');
+            const meetOpt = document.getElementById('opt-meet');
+            meetOpt.classList.add('disabled');
+            meetOpt.innerHTML += '<div style="font-size:0.7rem; margin-top:5px; color:#ef4444; font-weight:600;">(Unavailable)</div>';
+        }
+        // ====================================================
+
         calculateTotals();
     }
 
     // 5. 切换配送方式
     function selectDelivery(type) {
+        if (type === 'meet' && document.getElementById('opt-meet').classList.contains('disabled')) {
+            return;
+        }
+
         const meetOpt = document.getElementById('opt-meet');
         const shipOpt = document.getElementById('opt-ship');
         const meetInfo = document.getElementById('meet-info');
@@ -222,42 +450,86 @@
             meetOpt.classList.remove('selected');
             meetInfo.style.display = 'none';
             shipForm.style.display = 'block';
-            currentShippingCost = 15.00; // 假设运费固定 $15，实际可根据逻辑调整
+            currentShippingCost = 15.00;
         }
 
         calculateTotals();
     }
 
-    // 6. 核心算价逻辑
+    // 6. 核心算价逻辑 (已删除服务费计算)
     function calculateTotals() {
-        const serviceFeeRate = 0.02; // 2% 服务费
-        const serviceFee = currentProductPrice * serviceFeeRate;
-        const total = currentProductPrice + serviceFee + currentShippingCost;
+        // 买家只付：商品原价 + 运费
+        const total = currentProductPrice + currentShippingCost;
 
-        // 更新 DOM
         document.getElementById('summary-subtotal').innerText = `$${currentProductPrice.toFixed(2)}`;
         document.getElementById('shipping-fee-display').innerText = `$${currentShippingCost.toFixed(2)}`;
-        document.getElementById('service-fee-display').innerText = `$${serviceFee.toFixed(2)}`;
+        // document.getElementById('service-fee-display').innerText... (Deleted)
         document.getElementById('total-price-display').innerText = `$${total.toFixed(2)}`;
     }
 
-    // 7. 模拟支付
-    // 7. 模拟支付 (测试跳转)
-    function processPayment() {
-        // 模拟逻辑：假设用户余额只有 100 块
-        // 如果 Total 价格超过 100，跳转失败页面，否则跳转成功
-        const userBalance = 100.00;
+    // 7. 支付处理
+    async function processPayment() {
+        const payBtn = document.querySelector('.btn-pay');
 
-        // 获取当前显示的 Total 价格 (去除 $ 符号并转为数字)
+        if (currentShippingCost > 0) {
+            const addressInputs = document.querySelectorAll('#shipping-form .input-field');
+            for (let input of addressInputs) {
+                if (input.value.trim() === "") {
+                    alert("Please fill in all shipping details before payment.");
+                    input.focus();
+                    return;
+                }
+            }
+        }
+
         const totalText = document.getElementById('total-price-display').innerText.replace('$', '');
         const totalAmount = parseFloat(totalText);
 
-        if (totalAmount > userBalance) {
-            // 余额不足 -> 失败页面
+        if (totalAmount > userCurrentBalance) {
             window.location.href = "Payment_Failure.html";
-        } else {
-            // 支付成功 -> 成功页面
-            window.location.href = "Payment_Success.html";
+            return;
+        }
+
+        const shippingType = currentShippingCost > 0 ? 'shipping' : 'meetup';
+
+        const payload = {
+            product_id: productId,
+            total_amount: totalAmount,
+            shipping_type: shippingType
+        };
+
+        payBtn.disabled = true;
+        payBtn.innerText = "Processing...";
+
+        try {
+            const response = await fetch('../api/Process_Order_Payment.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = "Payment_Success.html";
+            } else {
+                console.warn("Payment failed:", result.msg);
+
+                if (result.msg.includes('Insufficient balance')) {
+                    window.location.href = "Payment_Failure.html";
+                } else {
+                    alert("Payment Error: " + result.msg);
+                    payBtn.disabled = false;
+                    payBtn.innerText = "Pay Now";
+                }
+            }
+        } catch (error) {
+            console.error("Network Error:", error);
+            alert("Network error. Please check your connection.");
+            payBtn.disabled = false;
+            payBtn.innerText = "Pay Now";
         }
     }
 </script>

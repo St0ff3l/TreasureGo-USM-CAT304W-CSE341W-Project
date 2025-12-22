@@ -41,6 +41,13 @@ try {
     $location = trim($_POST['address'] ?? 'Online');
     $category_id = intval($_POST['category_id'] ?? 100000005);
 
+    // 新增：获取交易方式，默认为 both
+    $delivery_method = $_POST['delivery_method'] ?? 'both';
+    // 简单的白名单验证，防止恶意输入
+    if (!in_array($delivery_method, ['meetup', 'shipping', 'both'])) {
+        $delivery_method = 'both';
+    }
+
     // 数据验证
     if (empty($product_title)) throw new Exception("商品名称不能为空");
     if ($price <= 0) throw new Exception("价格必须大于 0");
@@ -49,7 +56,7 @@ try {
     if (empty($location)) throw new Exception("请填写交易地址");
 
     // =========================================================
-    // 6. 处理图片文件 (核心修复部分)
+    // 6. 处理图片文件
     // =========================================================
     $image_paths = [];
 
@@ -59,7 +66,6 @@ try {
     // 数据库路径前缀：相对于网站根目录的完整路径
     $db_path_prefix = 'Module_Product_Ecosystem/Public_Product_Images/';
 
-    // 【修改点 1】自动创建目录，权限改为 0777 以确保可写
     if (!is_dir($upload_base_dir)) {
         if (!mkdir($upload_base_dir, 0777, true)) {
             throw new Exception("服务器错误：无法创建图片上传目录，请检查文件夹权限。");
@@ -73,7 +79,6 @@ try {
         for ($i = 0; $i < $file_count; $i++) {
             $error_code = $_FILES['images']['error'][$i];
 
-            // 【修改点 2】检查文件大小是否超过 php.ini 限制
             if ($error_code === UPLOAD_ERR_INI_SIZE || $error_code === UPLOAD_ERR_FORM_SIZE) {
                 throw new Exception("上传失败：图片 " . $_FILES['images']['name'][$i] . " 太大，超过了服务器限制。");
             }
@@ -84,26 +89,20 @@ try {
                 $file_type = $_FILES['images']['type'][$i];
 
                 if (!in_array($file_type, $allowed_types)) {
-                    // 如果格式不对，跳过该文件（或者也可以选择报错）
                     continue;
                 }
 
-                // 生成唯一文件名
                 $ext = pathinfo($file_name, PATHINFO_EXTENSION);
                 $new_filename = 'prod_' . time() . '_' . uniqid() . '.' . $ext;
 
                 $destination = $upload_base_dir . $new_filename;
 
-                // 【修改点 3】严格检查移动是否成功
-                // 如果移动失败（通常是权限问题），直接抛出异常，不再继续执行
                 if (move_uploaded_file($file_tmp, $destination)) {
-                    // 成功后，存入数据库使用的是 "前缀 + 文件名"
                     $image_paths[] = $db_path_prefix . $new_filename;
                 } else {
                     throw new Exception("上传失败：无法保存图片文件。请联系管理员检查文件夹写入权限。");
                 }
             } else {
-                // 处理其他上传错误
                 throw new Exception("上传出错，错误代码: " . $error_code);
             }
         }
@@ -113,7 +112,7 @@ try {
     // 7. 开启事务
     $pdo->beginTransaction();
 
-    // 8. 插入商品
+    // 8. 插入商品 (已修复问号数量不匹配的问题)
     $sql_product = "INSERT INTO Product (
         Product_Title,
         Product_Description,
@@ -123,19 +122,22 @@ try {
         Product_Created_Time,
         Product_Location,
         Product_Review_Status,
+        Delivery_Method,
         User_ID,
         Category_ID
-    ) VALUES (?, ?, ?, ?, 'Active', NOW(), ?, 'Pending', ?, ?)";
+    ) VALUES (?, ?, ?, ?, 'Active', NOW(), ?, 'Pending', ?, ?, ?)";
+    // 注意上面最后是 ?, ?, ? (一共3个问号，分别对应 Delivery, UserID, CategoryID)
 
     $stmt = $pdo->prepare($sql_product);
     $stmt->execute([
-        $product_title,
-        $description,
-        $price,
-        $condition,
-        $location,
-        $user_id,
-        $category_id
+        $product_title,     // 1
+        $description,       // 2
+        $price,             // 3
+        $condition,         // 4
+        $location,          // 5 (Location)
+        $delivery_method,   // 6 (Delivery_Method)
+        $user_id,           // 7 (User_ID)
+        $category_id        // 8 (Category_ID)
     ]);
 
     $product_id = $pdo->lastInsertId();
@@ -167,7 +169,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    // 10. 如果出错，回滚事务（撤销刚才插入的商品）
+    // 10. 如果出错，回滚事务
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
