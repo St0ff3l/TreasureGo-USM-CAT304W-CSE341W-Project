@@ -4,14 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TreasureGo - Knowledge Base Manager</title>
+
+  <script src="../../Public_Assets/js/headerbar.js"></script>
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     /* --- Core Styles --- */
-    body { font-family: 'Poppins', sans-serif; background-color: #F3F6F9; padding: 30px; color: #1F2937; margin: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #F3F6F9;
+      /* padding: 30px; ❌ 删除这里的 padding，防止挤压 navbar */
+      padding: 0;
+      color: #1F2937;
+      margin: 0;
+    }
 
     .container {
-      max-width: 1000px; margin: 0 auto; background: white;
-      padding: 40px; border-radius: 24px;
+      max-width: 1000px;
+      width: 95%; /* ✅ 增加宽度限制，防止移动端贴边 */
+      margin: 30px auto; /* ✅ 核心修改：设置上下间距 30px，左右自动居中 */
+      background: white;
+      padding: 40px;
+      border-radius: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     }
 
@@ -69,6 +83,10 @@
   </style>
 </head>
 <body>
+
+<script>
+  TreasureGoHeaderbar.mount({ basePath: '../../' });
+</script>
 
 <div class="container">
   <header>
@@ -134,7 +152,7 @@
   // ===============================================
   async function loadKBList() {
     const tbody = document.getElementById('kbList');
-    const dataList = document.getElementById('category-options'); // 获取下拉列表元素
+    const dataList = document.getElementById('category-options');
 
     try {
       const res = await fetch(API_BASE + 'admin_kb_getlist.php');
@@ -142,9 +160,7 @@
 
       tbody.innerHTML = '';
 
-      // --- 关键更新开始: 动态生成下拉选项 ---
-
-      // 1. 定义默认分类 (确保这些总是存在的)
+      // 1. 定义默认分类
       const categories = new Set([
         "Transaction/Rights",
         "Account Management",
@@ -155,12 +171,12 @@
 
       if (json.success && json.data && json.data.length > 0) {
         json.data.forEach(item => {
-          // 2. 把数据库里查到的所有分类也加进 Set (Set 会自动去重)
+          // 2. 收集已有分类
           if(item.KB_Category) {
             categories.add(item.KB_Category);
           }
 
-          // 3. 渲染表格 (原有逻辑)
+          // 3. 渲染表格
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>#${item.KB_ID}</td>
@@ -174,8 +190,8 @@
           tbody.appendChild(tr);
         });
 
-        // 4. 更新页面上的 Datalist 下拉框
-        dataList.innerHTML = ''; // 先清空
+        // 4. 更新下拉框
+        dataList.innerHTML = '';
         categories.forEach(cat => {
           const option = document.createElement('option');
           option.value = cat;
@@ -183,7 +199,7 @@
         });
 
       } else if (json.success && json.data.length === 0) {
-        // 如果没数据，至少把默认分类渲染出来
+        // 无数据时也要渲染默认下拉
         dataList.innerHTML = '';
         categories.forEach(cat => {
           const option = document.createElement('option');
@@ -227,7 +243,7 @@
 
       if (json.success) {
         document.getElementById('kbForm').reset();
-        loadKBList(); // 重新加载列表，这时新分类会自动加入下拉框
+        loadKBList();
       } else {
         alert('Save failed: ' + json.error);
       }

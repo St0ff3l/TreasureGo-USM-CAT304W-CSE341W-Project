@@ -93,13 +93,6 @@ if (!$reportedItemId || $reportedItemId <= 0) {
     exit;
 }
 
-// reportedUserId is required by your schema (Reported_User_ID NOT NULL)
-if (!$reportedUserId || $reportedUserId <= 0) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'reportedUserId is required for product reports']);
-    exit;
-}
-
 if (!isset($conn) && isset($pdo)) {
     $conn = $pdo;
 }
@@ -111,11 +104,33 @@ if (!isset($conn)) {
 }
 
 try {
-    // 4) Insert
-    // Column mapping:
-    // Report_Reason, Report_Status, Report_Creation_Date, Admin_Action_ID,
-    // Reporting_User_ID, Reported_User_ID, Reported_Item_ID
+    // 4) Derive reported user from DB (source of truth)
+    $ctxSql = "SELECT p.User_ID AS Seller_User_ID, p.Product_Title
+               FROM Product p
+               WHERE p.Product_ID = ?
+               LIMIT 1";
+    $ctxStmt = $conn->prepare($ctxSql);
+    $ctxStmt->execute([$reportedItemId]);
+    $ctxRow = $ctxStmt->fetch(PDO::FETCH_ASSOC);
 
+    if (!$ctxRow) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Product not found']);
+        exit;
+    }
+
+    $dbSellerUserId = (int)$ctxRow['Seller_User_ID'];
+    $dbProductTitle = $ctxRow['Product_Title'] ?? null;
+
+    // If frontend sent a reportedUserId, we can cross-check (optional)
+    if ($reportedUserId !== null && $reportedUserId > 0 && $reportedUserId !== $dbSellerUserId) {
+        // Not fatal: override to DB value to prevent tampering
+        $reportedUserId = $dbSellerUserId;
+    } else {
+        $reportedUserId = $dbSellerUserId;
+    }
+
+    // 5) Insert report
     $sql = "INSERT INTO Report (
                 Report_Reason,
                 Report_Status,
@@ -143,7 +158,9 @@ try {
     echo json_encode([
         'success' => true,
         'report_id' => $conn->lastInsertId(),
-        'status' => 'Pending'
+        'status' => 'Pending',
+        'reported_user_id' => $reportedUserId,
+        'product_title' => $dbProductTitle
     ]);
 
 } catch (PDOException $e) {
@@ -163,4 +180,3 @@ try {
     ]);
 }
 ?>
-

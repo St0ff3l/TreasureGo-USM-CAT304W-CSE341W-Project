@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TreasureGO - Report</title>
+
+  <script src="../../Public_Assets/js/headerbar.js"></script>
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -25,10 +28,17 @@
       background-image:
               radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
               radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+      /* ❌ 删除了这里的 flex 居中，改用 wrapper 控制布局 */
+    }
+
+    /* ✅ 新增：页面布局容器，用于避开顶部导航栏并居中内容 */
+    .page-wrapper {
+      padding-top: 30px; /* 给 Navbar 留出空间 */
+      padding-bottom: 40px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      padding: 20px;
+      align-items: flex-start;
+      min-height: 100vh;
     }
 
     .report-container {
@@ -42,6 +52,8 @@
       border: 1px solid rgba(255,255,255,0.8);
       position: relative;
       animation: slideUp 0.5s ease-out;
+      /* 确保在小屏幕上有左右边距 */
+      margin: 0 20px;
     }
 
     @keyframes slideUp {
@@ -152,86 +164,115 @@
 
     .msg.error { color: #b91c1c; }
     .msg.success { color: #065f46; }
+
+    .locked-note {
+      margin: 8px 0 18px;
+      padding: 12px 14px;
+      background: rgba(79, 70, 229, 0.08);
+      border: 1px solid rgba(79, 70, 229, 0.18);
+      border-radius: 14px;
+      color: #374151;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .locked-note strong { color: #3730a3; }
   </style>
 </head>
 <body>
 
-<div class="report-container">
-  <div class="header">
-    <span class="emoji-icon">🏴</span>
-    <h1>Report Center</h1>
-    <p><span class="badge" id="reportTypeBadge">Report</span></p>
-    <p>Help us keep TreasureGO safe and friendly.</p>
+<script>
+  TreasureGoHeaderbar.mount({ basePath: '../../' });
+</script>
+
+<div class="page-wrapper">
+  <div class="report-container">
+    <div class="header">
+      <span class="emoji-icon">🏴</span>
+      <h1>Report Center</h1>
+      <p><span class="badge" id="reportTypeBadge">Report</span></p>
+      <p>Help us keep TreasureGO safe and friendly.</p>
+    </div>
+
+    <form id="reportForm">
+      <div class="form-group">
+        <label for="reportType">Report Type</label>
+        <select id="reportType" required>
+          <option value="user">User</option>
+          <option value="product">Product</option>
+          <option value="chat">Chat</option>
+        </select>
+        <div class="hint" id="reportTypeHint">This page is reusable. Fields will adapt based on the selected type.</div>
+      </div>
+
+      <div id="lockedProductNote" class="locked-note hidden">
+        <strong>Note:</strong> You opened this page from a product. Report type and product/seller details are locked and auto-filled from the database.
+      </div>
+
+      <div id="targetUserSection">
+        <div class="row-2">
+          <div class="form-group">
+            <label for="reportedUserName">Reported User Name</label>
+            <input id="reportedUserName" type="text" placeholder="e.g. Alice" />
+          </div>
+          <div class="form-group">
+            <label for="reportedUserId">Reported User ID</label>
+            <input id="reportedUserId" type="number" min="1" placeholder="e.g. 123" />
+          </div>
+        </div>
+        <div class="hint" id="userSectionHint">For product reports, the reported user ID is required by the system.</div>
+      </div>
+
+      <div id="productSection" class="hidden">
+        <div class="row-2">
+          <div class="form-group">
+            <label for="reportedItemId">Product ID</label>
+            <input id="reportedItemId" type="number" min="1" placeholder="e.g. 456" />
+            <div class="hint" id="productIdHint">Required for product reports. Auto-filled when you report from a product detail page.</div>
+          </div>
+          <div class="form-group">
+            <label for="reportedItemName">Product Name</label>
+            <input id="reportedItemName" type="text" placeholder="e.g. Sony Headphones" />
+            <div class="hint" id="productNameHint">Auto-filled when you report from a product detail page.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="chatSection" class="hidden">
+        <div class="form-group">
+          <label for="chatId">Chat ID</label>
+          <input id="chatId" type="text" placeholder="e.g. 789" />
+          <div class="hint">Chat reports are not supported yet.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reason">Report Reason</label>
+        <select id="reason" required>
+          <option value="" disabled selected>Please select a reason...</option>
+          <option value="Spam">Spam</option>
+          <option value="Scam">Scam / Fraud</option>
+          <option value="Harassment">Harassment</option>
+          <option value="Fake Item">Fake Item</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="details">Detailed Description</label>
+        <textarea id="details" placeholder="Please describe the issue in detail..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="contactEmail">Your Email (optional)</label>
+        <input id="contactEmail" type="email" placeholder="So we can update you (optional)" />
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Submit Report</button>
+      <div class="msg" id="formMsg" aria-live="polite"></div>
+    </form>
+
+    <a href="javascript:void(0)" onclick="handleGoBack()" class="back-link">← Back</a>
   </div>
-
-  <form id="reportForm">
-    <div class="form-group">
-      <label for="reportType">Report Type</label>
-      <select id="reportType" required>
-        <option value="user">User</option>
-        <option value="product">Product</option>
-        <option value="chat">Chat</option>
-      </select>
-      <div class="hint" id="reportTypeHint">This page is reusable. Fields will adapt based on the selected type.</div>
-    </div>
-
-    <div id="targetUserSection">
-      <div class="row-2">
-        <div class="form-group">
-          <label for="reportedUserName">Reported User Name (optional)</label>
-          <input id="reportedUserName" type="text" placeholder="e.g. Alice" />
-        </div>
-        <div class="form-group">
-          <label for="reportedUserId">Reported User ID <span class="hint" style="display:inline">(required for product reports)</span></label>
-          <input id="reportedUserId" type="number" min="1" placeholder="e.g. 123" />
-        </div>
-      </div>
-      <div class="hint">For product reports, the reported user ID is required by the system.</div>
-    </div>
-
-    <div id="productSection" class="hidden">
-      <div class="form-group">
-        <label for="reportedItemId">Product ID</label>
-        <input id="reportedItemId" type="number" min="1" placeholder="e.g. 456" />
-        <div class="hint">Required for product reports. Auto-filled when you report from a product detail page.</div>
-      </div>
-    </div>
-
-    <div id="chatSection" class="hidden">
-      <div class="form-group">
-        <label for="chatId">Chat ID</label>
-        <input id="chatId" type="text" placeholder="e.g. 789" />
-        <div class="hint">Chat reports are not supported yet.</div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="reason">Report Reason</label>
-      <select id="reason" required>
-        <option value="" disabled selected>Please select a reason...</option>
-        <option value="Spam">Spam</option>
-        <option value="Scam">Scam / Fraud</option>
-        <option value="Harassment">Harassment</option>
-        <option value="Fake Item">Fake Item</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="details">Detailed Description</label>
-      <textarea id="details" placeholder="Please describe the issue in detail..." required></textarea>
-    </div>
-
-    <div class="form-group">
-      <label for="contactEmail">Your Email (optional)</label>
-      <input id="contactEmail" type="email" placeholder="So we can update you (optional)" />
-    </div>
-
-    <button type="submit" class="submit-btn" id="submitBtn">Submit Report</button>
-    <div class="msg" id="formMsg" aria-live="polite"></div>
-  </form>
-
-  <a href="../../index.html" class="back-link">← Back</a>
 </div>
 
 <script>
@@ -257,11 +298,21 @@
       type: normalizeType(p.get('type')),
       reportedUserId: p.get('reportedUserId'),
       reportedUserName: p.get('reportedUserName'),
-      itemId: p.get('itemId') || p.get('reportedItemId'),
+      itemId: p.get('itemId') || p.get('reportedItemId') || p.get('product_id'),
+      itemName: p.get('itemName') || p.get('reportedItemName') || p.get('productName'),
       chatId: p.get('chatId'),
       reason: p.get('reason'),
       details: p.get('details')
     };
+  }
+
+  async function fetchProductContext(productId) {
+    const res = await fetch(`../api/report_product_context.php?product_id=${encodeURIComponent(productId)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || `Failed to load product info (HTTP ${res.status})`);
+    }
+    return data.data;
   }
 
   function setTypeBadge(type) {
@@ -306,6 +357,20 @@
     return q && q.type === 'product' && !!q.itemId;
   }
 
+  function setLockedProductHintsVisible(isLocked) {
+    const note = document.getElementById('lockedProductNote');
+    const userHint = document.getElementById('userSectionHint');
+    const productIdHint = document.getElementById('productIdHint');
+    const productNameHint = document.getElementById('productNameHint');
+
+    if (note) note.classList.toggle('hidden', !isLocked);
+
+    // Hide scattered hints when locked; keep them in non-locked mode
+    if (userHint) userHint.classList.toggle('hidden', isLocked);
+    if (productIdHint) productIdHint.classList.toggle('hidden', isLocked);
+    if (productNameHint) productNameHint.classList.toggle('hidden', isLocked);
+  }
+
   function lockReportTypeUI(type) {
     const reportTypeEl = document.getElementById('reportType');
     const hintEl = document.getElementById('reportTypeHint');
@@ -322,7 +387,33 @@
     reportTypeEl.style.cursor = 'not-allowed';
 
     if (hintEl) {
-      hintEl.textContent = 'Report type is locked because you opened this page from a product.';
+      // Keep this short; the full explanation is shown in the consolidated note block.
+      hintEl.textContent = 'Report type is locked.';
+    }
+  }
+
+  function lockInput(el) {
+    if (!el) return;
+    // Prefer readonly so values still submit/show and can be copied.
+    // For select we already use disabled.
+    el.readOnly = true;
+    el.setAttribute('aria-readonly', 'true');
+    el.style.opacity = '0.92';
+    el.style.cursor = 'not-allowed';
+  }
+
+  function lockProductContextFields() {
+    lockInput(document.getElementById('reportedUserId'));
+    lockInput(document.getElementById('reportedUserName'));
+    lockInput(document.getElementById('reportedItemId'));
+    lockInput(document.getElementById('reportedItemName'));
+  }
+
+  function handleGoBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '../../index.html';
     }
   }
 
@@ -333,28 +424,54 @@
     const reportedUserIdEl = document.getElementById('reportedUserId');
     const reportedUserNameEl = document.getElementById('reportedUserName');
     const reportedItemIdEl = document.getElementById('reportedItemId');
+    const reportedItemNameEl = document.getElementById('reportedItemName');
     const chatIdEl = document.getElementById('chatId');
     const reasonEl = document.getElementById('reason');
     const detailsEl = document.getElementById('details');
     const submitBtn = document.getElementById('submitBtn');
     const form = document.getElementById('reportForm');
 
-    // Prefill from URL
+    // Prefill from URL (minimal is OK; DB will overwrite in locked product context)
     reportTypeEl.value = q.type;
     setVisibleByType(q.type);
 
-    if (q.reportedUserId) reportedUserIdEl.value = q.reportedUserId;
-    if (q.reportedUserName) reportedUserNameEl.value = q.reportedUserName;
     if (q.itemId) reportedItemIdEl.value = q.itemId;
-    if (q.chatId) chatIdEl.value = q.chatId;
-    if (q.reason) reasonEl.value = q.reason;
-    if (q.details) detailsEl.value = q.details;
 
     // 🔒 Lock type when opened from product context
     const productLocked = isProductContextLocked(q);
+    setLockedProductHintsVisible(productLocked);
+
     if (productLocked) {
       lockReportTypeUI('product');
       setVisibleByType('product');
+      lockProductContextFields();
+
+      // 🧠 Source of truth: DB
+      try {
+        const ctx = await fetchProductContext(q.itemId);
+        if (ctx) {
+          // Prefer report-friendly names, fallback to legacy
+          const title = ctx.reported_item_title || ctx.product_title || '';
+          const sellerId = ctx.reported_user_id || ctx.seller_user_id || '';
+          const sellerName = ctx.reported_user_name || ctx.seller_username || '';
+
+          if (reportedItemNameEl) reportedItemNameEl.value = title;
+          if (reportedUserIdEl) reportedUserIdEl.value = sellerId;
+          if (reportedUserNameEl) reportedUserNameEl.value = sellerName;
+
+          lockProductContextFields();
+        }
+      } catch (e) {
+        setMsg(e && e.message ? e.message : 'Failed to load product info.', 'error');
+      }
+    } else {
+      // Non-locked mode: keep legacy prefill behavior
+      if (q.reportedUserId) reportedUserIdEl.value = q.reportedUserId;
+      if (q.reportedUserName) reportedUserNameEl.value = q.reportedUserName;
+      if (q.itemName && reportedItemNameEl) reportedItemNameEl.value = q.itemName;
+      if (q.chatId) chatIdEl.value = q.chatId;
+      if (q.reason) reasonEl.value = q.reason;
+      if (q.details) detailsEl.value = q.details;
     }
 
     reportTypeEl.addEventListener('change', () => {
@@ -394,7 +511,8 @@
         type,
         reportReason: reasonEl.value,
         details: detailsEl.value || '',
-        // IDs can be null depending on type
+        // For product reports, backend derives reported user from DB.
+        // Still send these for display/debug (they will be ignored/overridden server-side).
         reportedUserId: reportedUserIdEl.value ? Number(reportedUserIdEl.value) : null,
         reportedUserName: reportedUserNameEl.value ? reportedUserNameEl.value.trim() : null,
         reportedItemId: null,
@@ -420,14 +538,7 @@
         }
       }
 
-      if (type === 'chat') {
-        payload.chatId = (chatIdEl.value || '').trim() || null;
-        // If you want it required, uncomment:
-        // if (!payload.chatId) { setMsg('Chat ID is required for chat reports.', 'error'); return; }
-      }
-
-      // Reported user is optional for product/chat, but generally helpful
-      // For user reports, strongly recommend ID or name
+      // Only require a target user in pure user-report mode
       if (type === 'user' && !payload.reportedUserId && !payload.reportedUserName) {
         setMsg('For user reports, please provide the reported user ID or name.', 'error');
         return;
