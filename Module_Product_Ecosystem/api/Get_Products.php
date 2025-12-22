@@ -1,6 +1,10 @@
 <?php
 // 文件路径: api/Get_Products.php
 
+// 1. 屏蔽错误输出 (生产环境建议)
+error_reporting(0);
+ini_set('display_errors', 0);
+
 require_once 'config/treasurego_db_config.php';
 
 header('Content-Type: application/json');
@@ -21,7 +25,6 @@ try {
     $conditions = isset($_GET['conditions']) ? $_GET['conditions'] : [];
 
     // 2. 构建 SQL 查询
-    // 🔥 修改点：新增了 All_Images 字段，获取该商品所有图片
     $sql = "SELECT 
                 p.Product_ID, 
                 p.User_ID,
@@ -31,12 +34,13 @@ try {
                 p.Product_Status,
                 p.Product_Condition, 
                 p.Product_Created_Time,
-                p.Product_Location, 
+                p.Product_Location,
+                p.Delivery_Method,  /* 🔥 修改点：新增了这一行，获取交易方式 */
                 u.User_Username, 
                 u.User_Average_Rating,
                 /* 获取主图 */
                 (SELECT Image_URL FROM Product_Images pi WHERE pi.Product_ID = p.Product_ID AND pi.Image_is_primary = 1 LIMIT 1) as Main_Image,
-                /* 🔥 获取所有图片 (用逗号分隔) 🔥 */
+                /* 获取所有图片 (用逗号分隔) */
                 (SELECT GROUP_CONCAT(Image_URL SEPARATOR ',') FROM Product_Images pi WHERE pi.Product_ID = p.Product_ID) as All_Images
             FROM Product p
             JOIN User u ON p.User_ID = u.User_ID

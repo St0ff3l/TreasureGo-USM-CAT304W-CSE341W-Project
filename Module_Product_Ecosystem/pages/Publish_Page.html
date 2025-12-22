@@ -5,41 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Publish Item - TreasureGO</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* =========================================
        1. Global Variables & Reset
        ========================================= */
     :root {
-      --bg-color: #F3F6F9;
       --primary: #4F46E5;
       --primary-hover: #4338CA;
-      --text-dark: #1F2937;
+      --primary-light: #EEF2FF;
+      --text-dark: #111827;
       --text-gray: #6B7280;
-      --glass-bg: rgba(255, 255, 255, 0.95);
-      --card-bg: #ffffff;
-      --input-bg: #f9f9fb;
+      --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --input-bg: #F3F4F6;
+      --border-radius: 16px;
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Poppins', sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #F0F2F5;
+      background-image:
+              radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
+              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
+              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+      background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%234f46e5" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'), linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
       color: var(--text-dark);
       min-height: 100vh;
-      background-image:
-              radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+      padding-bottom: 40px;
     }
 
     /* =========================================
        2. Navbar Styles
        ========================================= */
     .navbar {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       padding: 1rem 5%;
       display: flex;
       justify-content: space-between;
@@ -47,7 +54,8 @@
       position: sticky;
       top: 0;
       z-index: 1000;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
     }
 
     .logo {
@@ -56,198 +64,302 @@
       color: var(--primary);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       text-decoration: none;
+      letter-spacing: -0.5px;
     }
-
     .logo span { color: var(--text-dark); }
-
     .logo-img {
-      width: 42px;
-      height: 42px;
+      width: 40px; height: 40px;
       border-radius: 10px;
-      object-fit: cover;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
     }
 
-    .nav-actions { display: flex; align-items: center; gap: 20px; }
-
+    .nav-actions { display: flex; align-items: center; gap: 24px; }
     .nav-btn {
       border: none; background: transparent; font-weight: 600;
-      color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer;
-      transition: color 0.2s; font-size: 1rem;
+      color: var(--text-gray); cursor: pointer; font-size: 0.95rem;
+      transition: color 0.2s;
     }
-    .nav-btn:hover { color: var(--text-dark); }
-
+    .nav-btn:hover { color: var(--primary); }
     .btn-primary {
-      border: none; background-color: var(--text-dark); color: white;
-      font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px;
-      cursor: pointer; transition: all 0.2s; font-size: 1rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: none; background: var(--text-dark); color: white;
+      font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 12px;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      font-size: 0.95rem;
     }
-    .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
 
     /* =========================================
        3. Publish Form Container
        ========================================= */
     .publish-container {
-      max-width: 700px; margin: 40px auto; background: var(--card-bg);
-      border-radius: 24px; padding: 40px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+      max-width: 750px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 50px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255,255,255,0.6);
+      animation: fadeInPage 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .page-title {
-      font-size: 1.8rem; font-weight: 800; margin-bottom: 30px;
-      color: var(--text-dark); text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 40px;
+      color: var(--text-dark);
+      text-align: center;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #111827 0%, #4F46E5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .form-group { margin-bottom: 24px; }
+    /* Form Group Animation (Staggered) */
+    .form-group {
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    /* Stagger delays */
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.2s; }
+    .form-group:nth-child(3) { animation-delay: 0.3s; }
+    .form-group:nth-child(4) { animation-delay: 0.4s; }
+    .form-group:nth-child(5) { animation-delay: 0.5s; }
+    .form-group:nth-child(6) { animation-delay: 0.6s; }
+    .form-group:nth-child(7) { animation-delay: 0.7s; }
+
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     label {
-      display: block; font-weight: 600; font-size: 0.95rem;
-      margin-bottom: 8px; color: var(--text-dark);
+      display: block; font-weight: 700; font-size: 0.9rem;
+      margin-bottom: 10px; color: #374151;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    /* Inputs Hover Effects */
+    /* Input Styling */
     input[type="text"], input[type="number"], textarea, select {
-      width: 100%; padding: 14px 16px; background: var(--input-bg);
-      border: 2px solid transparent; border-radius: 16px;
-      font-size: 1rem; font-family: inherit; outline: none;
-      color: var(--text-dark);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%; padding: 16px 20px;
+      background: var(--input-bg);
+      border: 2px solid transparent;
+      border-radius: var(--border-radius);
+      font-size: 1rem; font-family: inherit; color: var(--text-dark);
+      transition: all 0.3s ease;
+      font-weight: 500;
     }
 
     input:hover, textarea:hover, select:hover {
-      background: #fff; border-color: #a5b4fc;
-      transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      background: #ffffff;
+      border-color: #E5E7EB;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
 
     input:focus, textarea:focus, select:focus {
-      background: #fff; border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
-      transform: translateY(-3px);
+      outline: none;
+      background: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+      transform: translateY(-2px);
     }
 
-    textarea { resize: vertical; min-height: 120px; }
-    .row-group { display: flex; gap: 15px; }
-    .row-group .half-width { flex: 1; }
+    textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+
+    .row-group { display: flex; gap: 20px; }
+    .half-width { flex: 1; }
+
+    /* Helper text for delivery */
+    .form-group small {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 8px; color: var(--text-gray); font-weight: 500;
+      background: #F9FAFB; padding: 8px 12px; border-radius: 8px;
+      width: fit-content; border: 1px dashed #E5E7EB;
+    }
+    .form-group small::before { content: "💡"; font-size: 14px; }
 
     /* =========================================
-       4. Image Upload Styles (With Delete Feature)
+       NEW: Price Calculator Styles
+       ========================================= */
+    .price-calc-box {
+      display: none; /* 默认隐藏，输入数字后显示 */
+      margin-top: 10px;
+      background: #F8FAFC;
+      border: 1px dashed #CBD5E1;
+      border-radius: 12px;
+      padding: 12px 16px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    .calc-row:last-child { margin-bottom: 0; }
+
+    .calc-fee { color: #64748B; font-size: 0.85rem; }
+    .calc-fee span { color: #EF4444; } /* 红色显示扣款 */
+
+    .calc-income { color: #111827; font-weight: 700; font-size: 1rem; margin-top: 4px; padding-top: 4px; border-top: 1px solid #E2E8F0; }
+    .calc-income span { color: #059669; } /* 绿色显示收入 */
+
+    /* =========================================
+       4. Image Upload Styles
        ========================================= */
     .upload-area {
-      border: 2px dashed #d1d5db; border-radius: 20px;
-      padding: 20px; min-height: 200px;
-      text-align: center; background: var(--input-bg);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px dashed #CBD5E1;
+      border-radius: 20px;
+      padding: 30px;
+      min-height: 220px;
+      background: #F8FAFC;
+      transition: all 0.3s ease;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 15px;
+      align-items: center; justify-content: center;
       position: relative;
+      cursor: pointer;
     }
 
     .upload-area:hover {
-      border-color: var(--primary); background: #eef2ff;
-      transform: translateY(-5px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.15);
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: scale(1.01);
     }
-    .upload-icon { font-size: 2.5rem; color: var(--primary); transition: transform 0.3s; }
-    .upload-area:hover .upload-icon { transform: scale(1.1); }
-    .upload-text { color: var(--text-gray); font-size: 0.9rem; }
 
-    /* Clear All Button */
-    .clear-btn {
-      position: absolute; top: 10px; right: 10px;
-      background: rgba(239, 68, 68, 0.1); color: #ef4444;
-      border: none; padding: 5px 12px; border-radius: 8px;
-      font-size: 0.8rem; font-weight: 600; cursor: pointer;
-      z-index: 10; display: none; transition: 0.2s;
+    #uploadPlaceholder {
+      text-align: center;
+      transition: transform 0.3s ease;
     }
-    .clear-btn:hover { background: rgba(239, 68, 68, 0.2); transform: scale(1.05); }
+    .upload-area:hover #uploadPlaceholder { transform: translateY(-5px); }
 
-    /* Preview Container */
+    .upload-icon {
+      font-size: 3.5rem;
+      background: white;
+      width: 100px; height: 100px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      color: var(--primary);
+    }
+
+    /* Preview Grid */
     #imagePreview {
       display: none; width: 100%; gap: 15px;
       flex-wrap: wrap; justify-content: center;
-      padding-right: 50px;
     }
 
-    /* Single Image Wrapper (New for positioning the X button) */
     .preview-wrapper {
       position: relative;
-      width: 100px; height: 100px;
-      animation: popIn 0.3s ease;
-    }
-
-    .preview-item {
-      width: 100%; height: 100%; border-radius: 12px;
-      object-fit: cover; border: 2px solid #fff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-    }
-
-    .preview-wrapper:hover .preview-item {
-      transform: scale(1.05);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-    }
-
-    /* Single Delete Button (X) */
-    .delete-single-btn {
-      position: absolute;
-      top: -8px; right: -8px;
-      width: 24px; height: 24px;
-      background: #ef4444;
-      color: white;
-      border-radius: 50%;
-      border: 2px solid white;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: bold;
-      cursor: pointer;
-      opacity: 0; transition: all 0.2s;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      z-index: 20;
-    }
-
-    /* Show X button only on hover */
-    .preview-wrapper:hover .delete-single-btn {
-      opacity: 1; transform: scale(1.1);
-    }
-    .delete-single-btn:hover {
-      background: #dc2626; transform: scale(1.2);
+      width: 110px; height: 110px;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     @keyframes popIn {
-      from { transform: scale(0.8); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from { transform: scale(0.5) translateY(20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
     }
 
-    /* Add More Button (+) */
-    .add-more-btn {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: var(--primary); color: white;
-      border: none; font-size: 24px; font-weight: 700;
+    .preview-item {
+      width: 100%; height: 100%; border-radius: 16px;
+      object-fit: cover; border: 3px solid #fff;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    .preview-wrapper:hover .preview-item { transform: scale(1.05) rotate(2deg); }
+
+    /* Delete Button */
+    .delete-single-btn {
+      position: absolute; top: -10px; right: -10px;
+      width: 28px; height: 28px;
+      background: #EF4444; color: white;
+      border-radius: 50%; border: 2px solid white;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
-      transition: all 0.2s;
-      position: absolute; bottom: 20px; right: 20px;
-      display: none; z-index: 10;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      opacity: 0; transform: scale(0.8);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
     }
-    .add-more-btn:hover { background: var(--primary-hover); transform: scale(1.1) rotate(90deg); }
+    .preview-wrapper:hover .delete-single-btn { opacity: 1; transform: scale(1); }
+    .delete-single-btn:hover { background: #DC2626; transform: scale(1.2); }
 
-    /* Action Buttons */
-    .btn-group { display: flex; gap: 15px; margin-top: 40px; }
+    /* Add/Clear Buttons */
+    .add-more-btn {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: var(--primary); color: white;
+      border: none; font-size: 28px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: absolute; bottom: -25px; right: 20px;
+      display: none; z-index: 20;
+    }
+    .add-more-btn:hover { background: var(--primary-hover); transform: scale(1.15) rotate(90deg); }
+
+    .clear-btn {
+      position: absolute; top: 15px; right: 15px;
+      background: rgba(239, 68, 68, 0.1); color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      padding: 6px 14px; border-radius: 30px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      z-index: 10; display: none; transition: 0.2s;
+    }
+    .clear-btn:hover { background: #EF4444; color: white; }
+
+    /* =========================================
+       5. Action Buttons
+       ========================================= */
+    .btn-group {
+      display: flex; gap: 20px; margin-top: 50px;
+      opacity: 0; animation: slideInUp 0.6s 0.8s forwards; /* Delayed entrance */
+    }
+
     .btn-submit {
-      flex: 2; padding: 16px; background: var(--primary); color: white;
-      border: none; border-radius: 50px; font-size: 1.1rem;
-      font-weight: 700; cursor: pointer; transition: 0.2s;
-      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+      flex: 2; padding: 18px;
+      background: linear-gradient(135deg, var(--primary) 0%, #4338CA 100%);
+      color: white; border: none; border-radius: 50px;
+      font-size: 1.1rem; font-weight: 700; cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+      position: relative; overflow: hidden;
     }
-    .btn-submit:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.35); }
+    .btn-submit::after {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+      transform: translateX(-100%); transition: 0.5s;
+    }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4); }
+    .btn-submit:hover::after { transform: translateX(100%); }
+
     .btn-cancel {
-      flex: 1; padding: 16px; background: #f3f4f6; color: var(--text-gray);
-      border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 600;
-      cursor: pointer; transition: 0.2s; text-align: center;
-      text-decoration: none; display: flex; align-items: center; justify-content: center;
+      flex: 1; padding: 18px; background: white; color: var(--text-gray);
+      border: 2px solid #E5E7EB; border-radius: 50px;
+      font-size: 1.1rem; font-weight: 600; cursor: pointer;
+      transition: all 0.3s ease; text-align: center; text-decoration: none;
+      display: flex; align-items: center; justify-content: center;
     }
-    .btn-cancel:hover { background: #e5e7eb; color: var(--text-dark); transform: translateY(-3px); }
+    .btn-cancel:hover {
+      background: #F3F4F6; color: var(--text-dark); border-color: #D1D5DB;
+      transform: translateY(-3px);
+    }
+
+    @media (max-width: 768px) {
+      .publish-container { padding: 30px 20px; margin: 20px; border-radius: 20px; }
+      .row-group { flex-direction: column; gap: 0; }
+      .page-title { font-size: 1.6rem; }
+      .upload-area { min-height: 180px; }
+      .btn-group { flex-direction: column-reverse; }
+      .btn-cancel, .btn-submit { width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -265,7 +377,7 @@
 </nav>
 
 <div class="publish-container">
-  <h1 class="page-title">Sell Your Item</h1>
+  <h1 class="page-title">✨ Sell Your Item</h1>
 
   <form id="publishForm" enctype="multipart/form-data">
 
@@ -275,9 +387,8 @@
 
         <button type="button" class="clear-btn" id="clearBtn" onclick="clearImages(event)">Clear All</button>
 
-        <div id="uploadPlaceholder" onclick="triggerUpload()" style="cursor: pointer;">
+        <div id="uploadPlaceholder" onclick="triggerUpload()">
           <div class="upload-icon">📷</div>
-          <div class="upload-text">Click to add photos<br>(Supports multiple)</div>
         </div>
 
         <div id="imagePreview"></div>
@@ -290,7 +401,7 @@
 
     <div class="form-group">
       <label>Product Name</label>
-      <input type="text" name="product_name" placeholder="What are you selling?" required>
+      <input type="text" name="product_name" placeholder="What are you selling today?" required>
     </div>
 
     <div class="form-group row-group">
@@ -311,12 +422,22 @@
     <div class="form-group row-group">
       <div class="half-width">
         <label>Price ($)</label>
-        <input type="number" name="price" placeholder="0.00" min="0" step="0.01" required>
+        <input type="number" id="priceInput" name="price" placeholder="0.00" min="0" step="0.01" required>
+
+        <div id="priceCalculator" class="price-calc-box">
+          <div class="calc-row calc-fee">
+            Platform Fee (2%): <span id="feeAmount">-$0.00</span>
+          </div>
+          <div class="calc-row calc-income">
+            Est. Income: <span id="incomeAmount">$0.00</span>
+          </div>
+        </div>
       </div>
+
       <div class="half-width">
         <label>Condition</label>
         <select name="condition" required>
-          <option value="" disabled selected>Select...</option>
+          <option value="" disabled selected>Select Condition</option>
           <option value="New">Brand New</option>
           <option value="Like New">Like New</option>
           <option value="Used">Used</option>
@@ -325,13 +446,24 @@
     </div>
 
     <div class="form-group">
+      <label>Delivery Option</label>
+      <select name="delivery_method" required>
+        <option value="" disabled>Select Delivery Method</option>
+        <option value="both" selected>Both (Meet-up & Shipping)</option>
+        <option value="meetup">Meet-up Only</option>
+        <option value="shipping">Shipping Only</option>
+      </select>
+      <small>Select "Shipping Only" if you prefer not to meet in person.</small>
+    </div>
+
+    <div class="form-group">
       <label>Description</label>
-      <textarea name="description" placeholder="Describe the item details, usage, etc..." required></textarea>
+      <textarea name="description" placeholder="Describe the item details, defects, usage history..." required></textarea>
     </div>
 
     <div class="form-group">
       <label>Meet-up Location / Address</label>
-      <input type="text" name="address" placeholder="e.g. Block A Lobby, Library Entrance, or specific address" required>
+      <input type="text" name="address" placeholder="e.g. Block A Lobby, Library Entrance..." required>
     </div>
 
     <div class="btn-group">
@@ -422,6 +554,36 @@
       subSelect.appendChild(option);
     });
   });
+
+  // ==========================================
+  // NEW: Real-time Price Calculator
+  // ==========================================
+  const priceInput = document.getElementById('priceInput');
+  const priceCalculator = document.getElementById('priceCalculator');
+  const feeAmount = document.getElementById('feeAmount');
+  const incomeAmount = document.getElementById('incomeAmount');
+
+  priceInput.addEventListener('input', function() {
+    const price = parseFloat(this.value);
+
+    if (!isNaN(price) && price > 0) {
+      // Calculate 2% fee
+      const fee = price * 0.02;
+      // Calculate income
+      const income = price - fee;
+
+      // Update DOM
+      feeAmount.textContent = `-$${fee.toFixed(2)}`;
+      incomeAmount.textContent = `$${income.toFixed(2)}`;
+
+      // Show the box
+      priceCalculator.style.display = 'block';
+    } else {
+      // Hide the box if input is invalid/empty
+      priceCalculator.style.display = 'none';
+    }
+  });
+
 
   // ==========================================
   // 3. Feature: Cumulative Image Upload + Delete Single
@@ -529,6 +691,7 @@
 
     if (!formData.get('product_name').trim()) { alert('Please enter product name'); return; }
     if (!formData.get('category_id')) { alert('Please select a category'); return; }
+    if (!formData.get('delivery_method')) { alert('Please select a delivery method'); return; }
     if (!formData.get('address').trim()) { alert('Please enter an address'); return; }
 
     const submitBtn = document.querySelector('.btn-submit');
