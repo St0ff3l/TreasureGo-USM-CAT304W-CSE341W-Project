@@ -268,7 +268,7 @@
     <div class="product-info">
         <div class="tag-report-wrapper">
             <div class="product-tag">Condition: Loading...</div>
-            <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="report-inline-btn" title="Report this item">
+            <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="report-inline-btn" id="reportBtn" title="Report this item">
                 <span class="report-text">Report</span>
                 <span class="report-icon">🏴</span>
             </a>
@@ -322,9 +322,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
 
-    // 🔥 全局变量：用于追踪当前显示的图片索引和图片列表
-    let currentImageIndex = 0;
-    let globalImageList = [];
+    // 🔥新增：保存当前商品信息，给 Report 跳转用
+    let currentProductForReport = null;
 
     // 2. 初始化
     document.addEventListener('DOMContentLoaded', () => {
@@ -453,6 +452,44 @@
             mainImgBox.innerText = '📦';
             thumbContainer.innerHTML = '<div class="thumb active" style="display:flex;align-items:center;justify-content:center;">📦</div>';
         }
+
+        // 🔥新增：保存举报要用到的信息
+        currentProductForReport = {
+            productId: item.Product_ID,
+            sellerUserId: item.User_ID,           // seller's user id (reported user)
+            sellerUserName: item.User_Username || ''
+        };
+
+        // 🔥新增：更新 Report 按钮链接（带参数）
+        const reportBtn = document.getElementById('reportBtn');
+        if (reportBtn) {
+            reportBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                goToReportPageFromProduct();
+            }, { once: true });
+        }
+    }
+
+    // 🔥新增：从商品详情页跳到举报页，并自动带上商品ID + 对方用户ID/名称
+    function goToReportPageFromProduct() {
+        if (!currentProductForReport || !currentProductForReport.productId) {
+            alert('Product info not loaded yet. Please try again.');
+            return;
+        }
+
+        const url = new URL('../../Module_Platform_Governance_AI_Services/pages/report.html', window.location.href);
+        url.searchParams.set('type', 'product');
+        url.searchParams.set('itemId', String(currentProductForReport.productId));
+
+        // Report table requires Reported_User_ID NOT NULL, so pass seller id whenever possible
+        if (currentProductForReport.sellerUserId) {
+            url.searchParams.set('reportedUserId', String(currentProductForReport.sellerUserId));
+        }
+        if (currentProductForReport.sellerUserName) {
+            url.searchParams.set('reportedUserName', currentProductForReport.sellerUserName);
+        }
+
+        window.location.href = url.toString();
     }
 
     // 🔥 新增：统一切换主图的函数
@@ -596,3 +633,4 @@
 <script src="../../Public_Assets/js/auth_modal.js"></script>
 </body>
 </html>
+
