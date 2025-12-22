@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TreasureGO - AI Support</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="../../Public_Assets/js/headerbar.js"></script>
+
     <style>
         /* --- Core Variables --- */
         :root {
@@ -32,86 +33,9 @@
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
-        /* --- Navbar --- */
-        .navbar {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.5);
-            height: 80px;
-        }
+        /* 注意：Navbar 相关的 CSS 已被移除，由 headerbar.js 动态接管 */
 
-        .logo {
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .logo span { color: var(--text-dark); }
-        .logo-img {
-            width: 40px; height: 40px; border-radius: 8px; object-fit: cover;
-            animation: glowAnimation 3s infinite alternate;
-        }
-
-        @keyframes glowAnimation {
-            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.2); }
-            100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.8); }
-        }
-
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-
-        .nav-btn {
-            border: none; background: transparent; font-weight: 600; color: var(--text-gray);
-            padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
-        }
-        .nav-btn:hover { color: var(--text-dark); }
-
-        .btn-primary {
-            border: none; background-color: var(--text-dark); color: white;
-            font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px;
-            cursor: pointer; transition: all 0.2s; font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
-
-        /* --- Dropdown Menu --- */
-        .menu-container { position: relative; display: inline-block; }
-        .dots-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; cursor: pointer; color: var(--text-dark);
-            font-weight: bold; transition: 0.2s; background: #f3f4f6;
-        }
-        .dots-btn:hover { background: #eee; }
-
-        .dropdown-content {
-            display: none; position: absolute; right: 0;
-            top: 100%; margin-top: 10px;
-            background-color: white; min-width: 160px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            border-radius: 16px; z-index: 1001; padding: 8px;
-            animation: fadeIn 0.2s ease;
-        }
-        .dropdown-content::before {
-            content: ""; position: absolute; top: -20px; left: 0;
-            width: 100%; height: 20px; background: transparent;
-        }
-        .menu-container:hover .dropdown-content { display: block; }
-        .dropdown-item {
-            color: var(--text-dark); padding: 12px 16px; text-decoration: none;
-            display: block; font-size: 14px; font-weight: 500; border-radius: 10px;
-        }
-        .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- Main Nav Sidebar (Icon only) --- */
+        /* --- Main Nav Sidebar (Icon only - 左侧悬浮工具栏) --- */
         .main-nav-sidebar {
             position: fixed; top: 50%; left: 25px; transform: translateY(-50%);
             background: rgba(255, 255, 255, 0.95);
@@ -129,9 +53,9 @@
         .chat-layout {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             height: 100vh;
-            padding-top: 80px;
+            padding-top: 30px;
             padding-bottom: 20px;
             padding-left: 100px;
             padding-right: 20px;
@@ -216,42 +140,16 @@
             animation: fadeIn 0.5s ease;
         }
 
-        .feedback-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-        }
+        .feedback-buttons { display: flex; gap: 10px; margin-top: 5px; }
 
         .btn-feedback {
-            padding: 6px 14px;
-            border: 1px solid #e5e7eb;
-            background: white;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-            color: var(--text-dark);
-            font-weight: 500;
+            padding: 6px 14px; border: 1px solid #e5e7eb; background: white; border-radius: 15px;
+            cursor: pointer; font-size: 0.8rem; transition: all 0.2s; color: var(--text-dark); font-weight: 500;
         }
+        .btn-feedback.yes:hover { background: #d1fae5; border-color: #10b981; color: #065f46; }
+        .btn-feedback.no:hover { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
 
-        .btn-feedback.yes:hover {
-            background: #d1fae5;
-            border-color: #10b981;
-            color: #065f46;
-        }
-
-        .btn-feedback.no:hover {
-            background: #fee2e2;
-            border-color: #ef4444;
-            color: #991b1b;
-        }
-
-        .feedback-thanks {
-            color: #10b981;
-            font-weight: 600;
-            display: none;
-            margin-top: 5px;
-        }
+        .feedback-thanks { color: #10b981; font-weight: 600; display: none; margin-top: 5px; }
 
         @media (max-width: 1024px) {
             .kb-sidebar { display: none; }
@@ -266,30 +164,9 @@
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="../../index.html" class="logo">
-        <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
-        Treasure<span>Go</span>
-    </a>
-
-    <div class="nav-actions">
-        <button class="nav-btn" onclick="alert('Top Up Feature')">Top Up</button>
-        <button class="nav-btn" onclick="window.location.href='../../Pages/Order_System/orders.html'">Orders</button>
-
-        <button id="nav-login-btn" class="btn-primary" onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'">Login</button>
-
-        <div id="nav-user-menu" class="menu-container" style="display: none;">
-            <div id="nav-avatar" class="dots-btn" onclick="window.location.href='../../Module_User_Account_Management/pages/profile.php'">
-                👤
-            </div>
-            <div class="dropdown-content">
-                <a href="../../Module_User_Account_Management/pages/profile.php" class="dropdown-item">My Profile</a>
-                <a href="#" class="dropdown-item">Settings</a>
-                <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
-            </div>
-        </div>
-    </div>
-</nav>
+<script>
+    TreasureGoHeaderbar.mount({ basePath: '../../' });
+</script>
 
 <div class="main-nav-sidebar">
     <a href="../../index.html" class="nav-item" title="Home">🏠</a>
@@ -340,9 +217,12 @@
 
 <script>
     // ============================================
-    // 1. Check Session Status
+    // 1. Check Session Status (Adapted for Dynamic Header)
     // ============================================
     document.addEventListener('DOMContentLoaded', async () => {
+        // 由于 Header 是 JS 生成的，我们需要确保 DOM 已经存在
+        // headerbar.js 的 mount 是同步执行 DOM 插入的，所以可以直接获取 ID
+
         const loginBtn = document.getElementById('nav-login-btn');
         const userMenu = document.getElementById('nav-user-menu');
         const avatarBtn = document.getElementById('nav-avatar');
@@ -353,10 +233,10 @@
 
             if (data.is_logged_in) {
                 // Logged in
-                loginBtn.style.display = 'none';
-                userMenu.style.display = 'inline-block';
+                if(loginBtn) loginBtn.style.display = 'none';
+                if(userMenu) userMenu.style.display = 'inline-block';
 
-                if (data.user) {
+                if (data.user && avatarBtn) {
                     if (data.user.avatar_url) {
                         avatarBtn.innerHTML = `<img src="${data.user.avatar_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                         avatarBtn.style.background = 'transparent';
@@ -368,18 +248,18 @@
                 }
             } else {
                 // Not logged in
-                loginBtn.style.display = 'inline-block';
-                userMenu.style.display = 'none';
+                if(loginBtn) loginBtn.style.display = 'inline-block';
+                if(userMenu) userMenu.style.display = 'none';
             }
         } catch (err) {
             console.error("Session check failed:", err);
-            loginBtn.style.display = 'inline-block';
-            userMenu.style.display = 'none';
+            if(loginBtn) loginBtn.style.display = 'inline-block';
+            if(userMenu) userMenu.style.display = 'none';
         }
     });
 
     // ============================================
-    // 2. Chat Logic
+    // 2. Chat Logic (Existing Code)
     // ============================================
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
