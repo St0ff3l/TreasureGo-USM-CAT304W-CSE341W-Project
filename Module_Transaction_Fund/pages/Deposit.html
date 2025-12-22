@@ -1080,6 +1080,7 @@
     }
 
     // Fund Request Form Submission
+    // 找到这段代码并替换
     document.getElementById('fundRequestForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -1089,8 +1090,24 @@
         const proofImage = document.getElementById('proofImage').value;
         const adminRemarkInput = document.getElementById('adminRemark').value;
 
-        // Combine Transaction ID into remark
-        const finalRemark = `Transaction ID: ${transactionId}\n\nUser Notes: ${adminRemarkInput}`;
+        // 🔥 生成马来西亚本地时间戳
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-MY', {
+            timeZone: 'Asia/Kuala_Lumpur',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+
+        // 🔥 将时间戳加入到remark中
+        const finalRemark = `Submitted Time: ${timestamp}
+Transaction ID: ${transactionId}
+
+User Notes: ${adminRemarkInput}`;
 
         try {
             if (!currentUserId) {
@@ -1103,10 +1120,16 @@
                 type: type,
                 amount: parseFloat(amount),
                 proof_image: proofImage,
-                admin_remark: finalRemark
+                admin_remark: finalRemark  // 包含时间戳的备注
             });
 
-            alert(`✅ Deposit Submitted Successfully!\n\nRequest ID: #FR${result.data.request_id}\nAmount: $${amount}\nStatus: ${result.data.status}`);
+            // 🔥 显示提交时间
+            alert(`✅ Deposit Submitted Successfully!
+
+Request ID: #FR${result.data.request_id}
+Amount: $${amount}
+Submitted at: ${timestamp}
+Status: ${result.data.status}`);
 
             // Redirect back to wallet
             window.location.href = 'Fund_Request.html';
@@ -1115,6 +1138,7 @@
             alert('❌ Failed to submit deposit: ' + error.message);
         }
     });
+
 
     // ==================== HISTORY LOGIC ====================
     async function loadDepositHistory() {

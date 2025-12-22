@@ -1220,16 +1220,32 @@
     }
 
     // 工具函数
+    // 🔥 修改为马来西亚时区
     function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', {
+        if (!dateStr) return '-';
+
+        // 处理没有时区信息的时间戳
+        let dateString = dateStr;
+        if (!dateStr.includes('Z') && !dateStr.includes('+') && !dateStr.includes('T')) {
+            // 格式: "2025-12-22 06:07:45" -> "2025-12-22T06:07:45Z"
+            dateString = dateStr.replace(' ', 'T') + 'Z';
+        }
+
+        const date = new Date(dateString);
+
+        // 显示马来西亚本地时间
+        return date.toLocaleString('en-MY', {
+            timeZone: 'Asia/Kuala_Lumpur',
             year: 'numeric',
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
         });
     }
+
 
     function getStatusClass(status) {
         switch (status) {

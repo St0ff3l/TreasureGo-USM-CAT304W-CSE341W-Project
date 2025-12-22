@@ -929,18 +929,35 @@
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
+    // 🔥 修改这个函数 - 显示马来西亚本地时间
+    // 🔥 改进版 - 处理没有时区信息的时间戳
     function formatDateTime(dateStr) {
         if (!dateStr) return '-';
-        const date = new Date(dateStr);
-        return date.toLocaleString('en-US', {
+
+        // 如果时间字符串没有时区信息，添加 'Z' 表示UTC时间
+        let dateString = dateStr;
+        if (!dateStr.includes('Z') && !dateStr.includes('+') && !dateStr.includes('T')) {
+            // 格式: "2025-12-22 06:07:45" -> "2025-12-22T06:07:45Z"
+            dateString = dateStr.replace(' ', 'T') + 'Z';
+        }
+
+        const date = new Date(dateString);
+
+        // 转换为马来西亚时区显示
+        return date.toLocaleString('en-MY', {
+            timeZone: 'Asia/Kuala_Lumpur',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
+            second: '2-digit',
             hour12: false
         });
     }
+
+
+
 
     // ==================== BACKGROUND ANIMATION ====================
 
