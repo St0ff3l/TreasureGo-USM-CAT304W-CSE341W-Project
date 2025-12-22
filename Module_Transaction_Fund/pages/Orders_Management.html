@@ -29,8 +29,8 @@
             min-height: 100vh;
             overflow-x: hidden;
             background-image:
-                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+                    radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
         #floating-container {
@@ -337,6 +337,41 @@
             pointer-events: none;
         }
 
+        /* 新增：退款按钮样式 */
+        .btn-refund {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-refund:hover {
+            background: #FECaca;
+        }
+
+        /* 新增：自动收货提示文本 */
+        .auto-confirm-text {
+            font-size: 0.85rem;
+            color: #F59E0B; /* Warning Color */
+            margin-top: 5px;
+            background: #FFFBEB;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px dashed #FCD34D;
+        }
+
+        /* 二次确认弹窗的特定样式 */
+        .confirm-dialog-content {
+            text-align: center;
+            max-width: 400px;
+        }
+        .confirm-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
         .btn-contact {
             background: #E0E7FF;
             color: #3730A3;
@@ -542,7 +577,6 @@
         <button onclick="window.location.href='../../index.html'">Market</button>
         <button id="nav-login-btn" class="btn-primary" onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'">Login</button>
 
-        <!-- User Avatar Menu (hidden by default, shown when logged in) -->
         <div id="nav-user-menu" class="menu-container" style="display: none;">
             <div id="nav-avatar" class="avatar-btn">
                 👤
@@ -562,18 +596,14 @@
         <p class="page-subtitle">Manage and track all your orders</p>
     </div>
 
-    <!-- Statistics Dashboard -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon">📊</div>
             <div class="stat-label">Total Orders</div>
-            <div class="stat-value" id="totalOrders">24</div>
+            <div class="stat-value" id="totalOrders">0</div>
         </div>
     </div>
 
-
-
-    <!-- Orders Table -->
     <div class="table-container">
         <h2 class="section-title">
             <span>📦</span>
@@ -581,36 +611,34 @@
         </h2>
         <table id="ordersTable">
             <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Buyer ID</th>
-                    <th>Seller ID</th>
-                    <th>Total Amount</th>
-                    <th>Platform Fee</th>
-                    <th>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            Status
-                            <select id="statusFilter" class="filter-select-small" onchange="filterOrders()" title="Filter by Status">
-                                <option value="all">All</option>
-                                <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                    </th>
-                    <th>Created At</th>
-                    <th>Actions</th>
-                </tr>
+            <tr>
+                <th>Order Info</th>
+                <th>Product</th>
+                <th>Role</th>
+                <th>Amount</th>
+                <th>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        Status
+                        <select id="statusFilter" class="filter-select-small" onchange="filterOrders()" title="Filter by Status">
+                            <option value="all">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
             </thead>
             <tbody id="ordersBody">
-                <!-- Orders will be loaded here dynamically -->
+            <tr><td colspan="7" style="text-align:center; padding:2rem;">Loading orders...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Detail Modal -->
 <div id="detailModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -618,7 +646,21 @@
             <button class="close-btn" onclick="closeModal()">&times;</button>
         </div>
         <div id="modalBody">
-            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<div id="secondaryConfirmModal" class="modal">
+    <div class="modal-content confirm-dialog-content">
+        <span class="confirm-icon">⚠️</span>
+        <h3 style="margin-bottom: 10px;">Confirm Receipt?</h3>
+        <p style="color: #6B7280; margin-bottom: 20px;">
+            By confirming, funds will be released to the seller immediately.<br>
+            <strong>This action cannot be undone.</strong>
+        </p>
+        <div class="modal-actions" style="justify-content: center;">
+            <button class="btn btn-small" onclick="closeSecondaryModal()" style="background: #F3F4F6;">Cancel</button>
+            <button class="btn btn-confirm" id="btnRealConfirm" onclick="">Yes, Confirm</button>
         </div>
     </div>
 </div>
@@ -679,7 +721,8 @@
     let loginCheckComplete = false;
 
     // ==================== API CONFIGURATION ====================
-    const API_BASE_URL = '../api/Orders_Management.php';
+    // 指向正确的后端 PHP 文件
+    const API_URL = '../api/Get_User_Orders.php';
     let CURRENT_USER_ID = null;
 
     // Check session immediately on script load
@@ -694,7 +737,7 @@
 
             if (data.is_logged_in) {
                 isUserLoggedIn = true;
-                CURRENT_USER_ID = data.user.id;
+                CURRENT_USER_ID = data.user.user_id;
 
                 // Update navbar UI
                 if (loginBtn) loginBtn.style.display = 'none';
@@ -716,7 +759,6 @@
                 }
 
                 // Load data after login is confirmed
-                loadStatistics();
                 loadOrders();
             } else {
                 isUserLoggedIn = false;
@@ -739,70 +781,40 @@
     // Check login before allowing other operations
     checkLoginStatus();
 
-    // Store order confirmation status (in real app, this would be from database)
-    const orderConfirmationStatus = {};
+    // ==================== DATA LOADING FUNCTIONS ====================
 
-    // API Helper Functions
-    async function apiCall(action, data = {}, method = 'POST') {
+    // Store all orders here
+    let allOrdersData = [];
+
+    // Load Orders from API
+    async function loadOrders() {
         try {
-            let url = `${API_BASE_URL}?action=${action}`;
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            };
-
-            // For GET requests, add parameters to URL
-            if (method === 'GET') {
-                Object.keys(data).forEach(key => {
-                    url += `&${key}=${encodeURIComponent(data[key])}`;
-                });
-            } else {
-                // For POST/PUT, add parameters to body
-                options.body = JSON.stringify(data);
-            }
-
-            const response = await fetch(url, options);
+            const response = await fetch(API_URL);
             const result = await response.json();
 
             if (!result.success) {
-                throw new Error(result.message || 'API request failed');
+                document.getElementById('ordersBody').innerHTML = `<tr><td colspan="7" style="text-align: center; color: red;">${result.msg || 'Failed to load data'}</td></tr>`;
+                return;
             }
 
-            return result;
-        } catch (error) {
-            console.error('API Error:', error);
-            alert('Error: ' + error.message);
-            throw error;
-        }
-    }
+            // Merge buying and selling arrays, adding a 'type' field
+            const buyingOrders = (result.buying || []).map(order => ({ ...order, type: 'buy' }));
+            const sellingOrders = (result.selling || []).map(order => ({ ...order, type: 'sell' }));
 
-    // ==================== DATA LOADING FUNCTIONS ====================
+            // Combine and sort by date (newest first)
+            allOrdersData = [...buyingOrders, ...sellingOrders].sort((a, b) =>
+                new Date(b.Orders_Created_AT) - new Date(a.Orders_Created_AT)
+            );
 
-    // Load Statistics
-    async function loadStatistics() {
-        try {
-            const result = await apiCall('get_statistics', { user_id: CURRENT_USER_ID }, 'GET');
-            const stats = result.data;
+            // Update Statistics
+            document.getElementById('totalOrders').textContent = allOrdersData.length;
 
-            // Update statistics cards
-            document.getElementById('totalOrders').textContent = stats.total_orders;
-        } catch (error) {
-            console.error('Failed to load statistics:', error);
-        }
-    }
-
-    // Load Orders
-    let allOrdersData = [];
-
-    async function loadOrders() {
-        try {
-            const result = await apiCall('get_orders', { user_id: CURRENT_USER_ID }, 'GET');
-            allOrdersData = result.data;
+            // Render Table
             filterOrders();
+
         } catch (error) {
             console.error('Failed to load orders:', error);
+            document.getElementById('ordersBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">Error loading orders. Please try again later.</td></tr>';
         }
     }
 
@@ -813,14 +825,10 @@
 
         let filteredOrders = allOrdersData;
 
-        // First filter out Fund Deposits (as per previous requirement)
-        filteredOrders = filteredOrders.filter(order => order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-');
-
-        // Then filter by status if selected
+        // Filter by status if selected
         if (filterValue !== 'all') {
             filteredOrders = filteredOrders.filter(order => {
-                const status = order.Orders_Status.toLowerCase();
-                if (filterValue === 'pending') return status.includes('pending');
+                const status = order.Orders_Status ? order.Orders_Status.toLowerCase() : '';
                 return status === filterValue;
             });
         }
@@ -831,7 +839,7 @@
                 tbody.appendChild(row);
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-gray);">No orders found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-gray);">No orders found</td></tr>';
         }
     }
 
@@ -839,33 +847,242 @@
     function createOrderRow(order) {
         const row = document.createElement('tr');
         const statusClass = getStatusClass(order.Orders_Status);
-        const isProduct = order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-';
-        const orderType = isProduct ? 'product' : 'deposit';
-        const orderPrefix = isProduct ? 'ORD' : 'FND';
-        const orderIcon = isProduct ? '📦 Product Order' : '💰 Fund Deposit';
-        const orderColor = isProduct ? '#10B981' : '#F59E0B';
+
+        // Determine role badge (Buyer or Seller)
+        const isBuyer = order.type === 'buy';
+        const roleBadge = isBuyer
+            ? `<span style="background:#E0E7FF; color:#3730A3; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">BUYING</span>`
+            : `<span style="background:#FEF3C7; color:#92400E; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">SELLING</span>`;
+
+        // Image Handling
+        const imgUrl = order.Main_Image ? `../../${order.Main_Image}` : '../../Public_Assets/images/placeholder.png'; // Replace with your default placeholder path
+
+        // Pass the entire order object to the view function (encoded)
+        // Note: Using encodeURIComponent to ensure special chars in JSON don't break the HTML
+        const orderDataString = encodeURIComponent(JSON.stringify(order));
 
         row.innerHTML = `
-            <td><strong>#${orderPrefix}${order.Orders_Order_ID}</strong><br><small style="color: ${orderColor};">${orderIcon}</small></td>
-            <td>${order.Orders_Buyer_ID}</td>
-            <td>${order.Orders_Seller_ID || '-'}</td>
+            <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img src="${imgUrl}" style="width:45px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #E5E7EB;" onerror="this.src='https://via.placeholder.com/45'">
+                    <div>
+                        <div style="font-weight:700; font-size:0.9rem;">#${order.Orders_Order_ID}</div>
+                        <small style="color:var(--text-gray);">ID: ${order.Product_ID}</small>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div style="font-weight:600; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${order.Product_Title || 'Product Name Unavailable'}
+                </div>
+            </td>
+            <td>${roleBadge}</td>
             <td><strong>$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</strong></td>
-            <td>$${parseFloat(order.Orders_Platform_Fee).toFixed(2)}</td>
             <td><span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span></td>
             <td>${formatDateTime(order.Orders_Created_AT)}</td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-small btn-view" onclick="viewOrderDetails(${order.Orders_Order_ID}, '${orderType}', '${order.Orders_Status}')">View</button>
+                    <button class="btn-small btn-view" onclick="viewOrderDetails('${orderDataString}')">View</button>
                 </div>
             </td>
         `;
         return row;
     }
 
+    // ==================== DETAIL MODAL FUNCTIONS ====================
+
+    function viewOrderDetails(orderString) {
+        try {
+            const order = JSON.parse(decodeURIComponent(orderString));
+            const modal = document.getElementById('detailModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            const isBuyer = order.type === 'buy';
+            modalTitle.textContent = `${isBuyer ? 'Buying' : 'Selling'} Order Details - #${order.Orders_Order_ID}`;
+
+            const statusClass = getStatusClass(order.Orders_Status);
+
+            // --- 7天自动收货逻辑 ---
+            const createdDate = new Date(order.Orders_Created_AT);
+            const now = new Date();
+            // 设定7天过期时间
+            const autoConfirmDate = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+            // 计算剩余天数
+            const timeDiff = autoConfirmDate - now;
+            const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+            let autoConfirmHtml = '';
+            // 只有处于进行中的订单（非完成、非取消）且是买家，才显示自动收货提示
+            if (isBuyer && (order.Orders_Status === 'processing' || order.Orders_Status === 'shipped') && daysLeft > 0) {
+                autoConfirmHtml = `
+                    <div class="auto-confirm-text">
+                        ⏳ System will automatically confirm receipt in <strong>${daysLeft} days</strong> (${formatDateTime(autoConfirmDate)}).
+                    </div>
+                `;
+            } else if (isBuyer && (order.Orders_Status === 'processing' || order.Orders_Status === 'shipped') && daysLeft <= 0) {
+                autoConfirmHtml = `
+                    <div class="auto-confirm-text" style="color: #EF4444; border-color: #EF4444; background: #FEF2F2;">
+                        ⏳ Order overdue. System requires confirmation.
+                    </div>
+                `;
+            }
+
+            // --- 按钮逻辑 ---
+            let actionButtons = '';
+            // 只有买家且订单状态不是 completed/cancelled 时，才显示操作按钮
+            if (isBuyer && order.Orders_Status !== 'completed' && order.Orders_Status !== 'cancelled') {
+                actionButtons = `
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">⚡ Actions</h3>
+
+                    <div class="modal-actions" style="flex-direction: column; gap: 10px;">
+                        <button class="btn btn-confirm" onclick="openConfirmDialog(${order.Orders_Order_ID})">
+                            ✅ Confirm Receipt
+                        </button>
+
+                        <button class="btn btn-refund" onclick="handleRefund(${order.Orders_Order_ID})">
+                            ↩️ Request Refund
+                        </button>
+                    </div>
+                    ${autoConfirmHtml}
+                `;
+            }
+
+            // Build content dynamically based on data available in frontend
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Product:</span>
+                    <span class="detail-value" style="color: var(--primary);">${order.Product_Title}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    <span class="detail-value">#${order.Orders_Order_ID}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Transaction Type:</span>
+                    <span class="detail-value">${isBuyer ? '🛒 You are Buying' : '🏷️ You are Selling'}</span>
+                </div>
+                ${!isBuyer ? `
+                <div class="detail-row">
+                    <span class="detail-label">Buyer ID:</span>
+                    <span class="detail-value">${order.Orders_Buyer_ID}</span>
+                </div>` : `
+                <div class="detail-row">
+                    <span class="detail-label">Seller ID:</span>
+                    <span class="detail-value">${order.Orders_Seller_ID}</span>
+                </div>`}
+
+                <div class="detail-row">
+                    <span class="detail-label">Total Amount:</span>
+                    <span class="detail-value" style="font-size:1.1rem; font-weight:700;">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Created At:</span>
+                    <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
+                </div>
+
+                ${actionButtons}
+
+                <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Support</h3>
+
+                <div class="modal-actions">
+                    <button class="btn btn-contact" onclick="alert('Message system connecting...')">
+                        💬 Contact ${isBuyer ? 'Seller' : 'Buyer'}
+                    </button>
+                    <button class="btn btn-view" onclick="alert('Support ticket created.')">
+                        🎧 Customer Service
+                    </button>
+                    <button class="close-btn" onclick="closeModal()" style="width: auto; padding: 0 20px; border-radius: 8px; font-size: 14px;">
+                        Close
+                    </button>
+                </div>
+            `;
+
+            modal.classList.add('active');
+        } catch (e) {
+            console.error("Error parsing order details", e);
+            alert("Could not load details.");
+        }
+    }
+
+    // ==================== NEW ACTION FUNCTIONS ====================
+
+    // 打开二次确认弹窗
+    function openConfirmDialog(orderId) {
+        const secondaryModal = document.getElementById('secondaryConfirmModal');
+        const confirmBtn = document.getElementById('btnRealConfirm');
+
+        // 绑定实际的确认事件
+        confirmBtn.onclick = function() {
+            processConfirmReceipt(orderId);
+        };
+
+        secondaryModal.classList.add('active');
+    }
+
+    // 关闭二次弹窗
+    function closeSecondaryModal() {
+        document.getElementById('secondaryConfirmModal').classList.remove('active');
+    }
+
+    // 处理确认收货 - 调用后端 API
+    async function processConfirmReceipt(orderId) {
+        // 关闭二次弹窗
+        closeSecondaryModal();
+        // 关闭主弹窗
+        closeModal();
+
+        try {
+            // 调用后端 API 确认收货
+            const response = await fetch('../api/Orders_Management.php?action=confirm_receipt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    buyer_id: CURRENT_USER_ID
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(`✅ Receipt Confirmed for Order #${orderId}!\n\nStatus updated to Completed.\nFunds (after platform fee deduction) have been released to seller's wallet.`);
+                // 刷新订单列表
+                loadOrders();
+            } else {
+                alert(`❌ Failed to confirm receipt: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error confirming receipt:', error);
+            alert('❌ Network error. Please try again.');
+        }
+    }
+
+    // 处理退款
+    function handleRefund(orderId) {
+        const reason = prompt("Please enter the reason for refund request:");
+
+        if (reason) {
+            // 关闭主弹窗
+            closeModal();
+
+            console.log(`Refund requested for Order #${orderId}. Reason: ${reason}`);
+            alert(`↩️ Refund request submitted for Order #${orderId}.\n\nReason: ${reason}\n\nSeller will be notified.`);
+        }
+    }
+
     // ==================== HELPER FUNCTIONS ====================
 
     function getStatusClass(status) {
-        const statusLower = status.toLowerCase();
+        const statusLower = status ? status.toLowerCase() : 'pending';
         if (statusLower === 'completed' || statusLower === 'approved') return 'status-completed';
         if (statusLower === 'processing' || statusLower === 'shipped') return 'status-processing';
         if (statusLower === 'pending') return 'status-pending';
@@ -874,6 +1091,7 @@
     }
 
     function capitalizeFirst(str) {
+        if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
@@ -889,6 +1107,31 @@
             hour12: false
         });
     }
+
+    // Close Modal
+    function closeModal() {
+        document.getElementById('detailModal').classList.remove('active');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailModal');
+        const modal2 = document.getElementById('secondaryConfirmModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+        if (event.target === modal2) {
+            closeSecondaryModal();
+        }
+    }
+
+    // Close modal with ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+            closeSecondaryModal();
+        }
+    });
 
     // ==================== BACKGROUND ANIMATION ====================
 
@@ -911,244 +1154,7 @@
         el.style.animationDelay = '-' + (Math.random() * 15) + 's';
         container.appendChild(el);
     }
-
-    /**
-     * View Order Details (API-based)
-     * @param {number} orderId - The order ID to view
-     * @param {string} _type - Order type (kept for API compatibility)
-     * @param {string} _status - Order status (kept for API compatibility)
-     */
-    async function viewOrderDetails(orderId, _type, _status) {
-        try {
-            const result = await apiCall('get_order', { order_id: orderId }, 'POST');
-            const order = result.data;
-
-            const modal = document.getElementById('detailModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            const isConfirmed = orderConfirmationStatus[orderId] === true || order.Orders_Status === 'completed';
-            const isProduct = order.Orders_Seller_ID !== null && order.Orders_Seller_ID !== '-';
-
-            if (!isProduct) {
-                // Fund Deposit Order
-                modalTitle.textContent = `💰 Fund Deposit Details - #FND${order.Orders_Order_ID}`;
-
-                const statusClass = getStatusClass(order.Orders_Status);
-
-                modalBody.innerHTML = `
-                    <div class="detail-row">
-                        <span class="detail-label">Order Type:</span>
-                        <span class="detail-value" style="color: #F59E0B; font-weight: 700;">💰 Fund Deposit</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Order ID:</span>
-                        <span class="detail-value">#FND${order.Orders_Order_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">User ID:</span>
-                        <span class="detail-value">${order.Orders_Buyer_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Deposit Amount:</span>
-                        <span class="detail-value" style="color: #10B981; font-weight: 700;">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Platform Fee:</span>
-                        <span class="detail-value">$${parseFloat(order.Orders_Platform_Fee).toFixed(2)} (No fee for deposits)</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Status:</span>
-                        <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Created At:</span>
-                        <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Payment Method:</span>
-                        <span class="detail-value">Bank Transfer</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Note:</span>
-                        <span class="detail-value">This is a fund deposit order, managed by platform administrators.</span>
-                    </div>
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                    <div class="modal-actions">
-                        <button class="btn btn-view" onclick="contactAdmin()">
-                            👨‍💼 Contact Administrator
-                        </button>
-                        <button class="btn btn-view" onclick="contactCustomerService()">
-                            🎧 Customer Service
-                        </button>
-                    </div>
-                `;
-            } else {
-                // Product Transaction Order
-                modalTitle.textContent = `📦 Product Order Details - #ORD${order.Orders_Order_ID}`;
-
-                const statusClass = getStatusClass(order.Orders_Status);
-
-                modalBody.innerHTML = `
-                    <div class="detail-row">
-                        <span class="detail-label">Order Type:</span>
-                        <span class="detail-value" style="color: #10B981; font-weight: 700;">📦 Product Transaction</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Order ID:</span>
-                        <span class="detail-value">#ORD${order.Orders_Order_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Buyer ID:</span>
-                        <span class="detail-value">${order.Orders_Buyer_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Seller ID:</span>
-                        <span class="detail-value">${order.Orders_Seller_ID}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Total Amount:</span>
-                        <span class="detail-value">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Platform Fee:</span>
-                        <span class="detail-value">$${parseFloat(order.Orders_Platform_Fee).toFixed(2)} (5%)</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Status:</span>
-                        <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Created At:</span>
-                        <span class="detail-value">${formatDateTime(order.Orders_Created_AT)}</span>
-                    </div>
-                    ${isConfirmed ? `
-                    <div class="detail-row" style="background: #D1FAE5; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                        <span class="detail-label">✅ Receipt Confirmed:</span>
-                        <span class="detail-value">You have confirmed receipt of this order</span>
-                    </div>
-                    ` : ''}
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">🛒 After-Sales Service</h3>
-                    <div class="modal-actions" style="flex-direction: column; gap: 12px;">
-                        <button class="btn btn-confirm" onclick="confirmReceiptAPI(${order.Orders_Order_ID})" id="confirmBtn-${order.Orders_Order_ID}" ${isConfirmed ? 'disabled' : ''} style="${isConfirmed ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                            ✅ Confirm Receipt
-                        </button>
-                        ${isConfirmed ? `
-                        <div style="background: #D1FAE5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065F46;">
-                            ✅ Receipt confirmed
-                        </div>
-                        ` : ''}
-                    </div>
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 2px solid #E5E7EB;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📞 Contact & Support</h3>
-                    <div class="modal-actions">
-                        <button class="btn btn-contact" onclick="contactSeller('${order.Orders_Seller_ID}')">
-                            💬 Contact Seller
-                        </button>
-                        <button class="btn btn-view" onclick="contactCustomerService()">
-                            🎧 Customer Service
-                        </button>
-                    </div>
-                `;
-            }
-
-            modal.classList.add('active');
-
-        } catch (error) {
-            alert('Failed to load order details: ' + error.message);
-        }
-    }
-
-    // Confirm Receipt with API
-    async function confirmReceiptAPI(orderId) {
-        if (orderConfirmationStatus[orderId]) {
-            alert('⚠️ This order has already been confirmed!');
-            return;
-        }
-
-        if (confirm(`Confirm that you have received the product for order #ORD${orderId}?\n\nAfter confirmation:\n✅ Funds will be released to the seller\n⚠️ This action cannot be undone`)) {
-            try {
-                const result = await apiCall('confirm_receipt', {
-                    order_id: orderId,
-                    buyer_id: CURRENT_USER_ID
-                });
-
-                orderConfirmationStatus[orderId] = true;
-
-                alert(`✅ Receipt confirmed successfully!\n\nOrder ID: #ORD${orderId}\nStatus: ${result.data.status}\n\nFunds have been released to the seller. Thank you for your purchase!`);
-
-                closeModal();
-
-                // Reload data
-                loadOrders();
-                loadStatistics();
-
-            } catch (error) {
-                alert('❌ Failed to confirm receipt: ' + error.message);
-            }
-        }
-    }
-
-
-    // Close Modal
-    function closeModal() {
-        document.getElementById('detailModal').classList.remove('active');
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('detailModal');
-        if (event.target === modal) {
-            closeModal();
-        }
-    }
-
-    // Close modal with ESC key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            closeModal();
-        }
-    });
-
-    // Contact Seller
-    function contactSeller(sellerId) {
-        // Close current modal first
-        closeModal();
-
-        alert(`💬 Opening chat with Seller #${sellerId}...\n\n🔄 Redirecting to messaging system...`);
-
-        setTimeout(() => {
-            console.log(`Redirecting to chat with seller: ${sellerId}`);
-        }, 1000);
-    }
-
-    // Contact Administrator
-    function contactAdmin() {
-        // Close current modal first
-        closeModal();
-
-        alert(`👨‍💼 Contacting Administrator...\n\n📧 You can reach our admin team:\n• Email: admin@treasurego.com\n• Phone: +1-234-567-8900\n• Or submit a ticket through customer service\n\n🔄 Redirecting to admin contact page...`);
-
-        setTimeout(() => {
-            console.log('Redirecting to admin contact page');
-        }, 1000);
-    }
-
-    // Contact Customer Service
-    function contactCustomerService() {
-        // Close current modal first
-        closeModal();
-
-        alert(`🎧 Opening Customer Service...\n\n📞 Support available 24/7:\n• Live Chat: Available now\n• Email: support@treasurego.com\n• Hotline: +1-800-TREASURE\n\n🔄 Opening chat window...`);
-
-        setTimeout(() => {
-            console.log('Opening customer service chat');
-        }, 1000);
-    }
 </script>
 
 </body>
 </html>
-
