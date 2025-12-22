@@ -380,7 +380,26 @@
             checkLoginAndProceed(this.href);
         };
 
-        // ============================================
+        // 🔥🔥🔥 【新增代码】Chat 按钮逻辑 （张峻12/22，14:11添加）🔥🔥🔥
+        const chatBtn = document.querySelector('.chat-btn-small');
+        // 检查是否是自己的商品 (需要获取当前用户ID，这里先简单处理，点击后由 chat.php 或 checkLoginAndProceed 处理)
+        // 更好的做法是：如果当前用户是卖家，隐藏 Chat 按钮
+        
+        // 获取当前用户ID (异步)
+        fetch('../../Module_User_Account_Management/api/session_status.php')
+            .then(res => res.json())
+            .then(session => {
+                if (session.is_logged_in && session.user.user_id == item.User_ID) {
+                    // 是自己的商品，隐藏 Chat 按钮
+                    chatBtn.style.display = 'none';
+                } else {
+                    // 不是自己的商品，或者是未登录
+                    chatBtn.onclick = function() {
+                        // 检查登录，如果已登录则跳转到 chat.php (带上 contact_id 和 product_id)
+                        checkLoginAndProceed(`../../Module_User_Account_Management/pages/chat.php?contact_id=${item.User_ID}&product_id=${item.Product_ID}`);
+                    };
+                }
+            });
         // 🔥 图片处理逻辑 (Gallery Logic) - 支持左右切换 🔥
         // ============================================
         const mainImgBox = document.getElementById('mainImage');
