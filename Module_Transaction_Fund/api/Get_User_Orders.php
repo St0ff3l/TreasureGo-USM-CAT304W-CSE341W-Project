@@ -19,15 +19,16 @@ try {
     $conn = getDatabaseConnection();
 
     // 1. 查询“我买的” (Buying)
-    // 关联 Product 表获取标题，关联 Product_Images 获取图片
+    // 注意：这里修改了字段名以匹配你的数据库表定义 (Orders_Order_ID, Orders_Total_Amount 等)
     $sqlBuy = "SELECT 
-                    o.Order_ID, o.Total_Amount, o.Status, o.Created_AT,
+                    o.Orders_Order_ID, o.Orders_Total_Amount, o.Orders_Status, o.Orders_Created_AT,
+                    o.Orders_Seller_ID,
                     p.Product_ID, p.Product_Title,
                     (SELECT Image_URL FROM Product_Images WHERE Product_ID = p.Product_ID AND Image_is_primary = 1 LIMIT 1) AS Main_Image
                FROM Orders o
                JOIN Product p ON o.Product_ID = p.Product_ID
-               WHERE o.Buyer_ID = :uid
-               ORDER BY o.Created_AT DESC";
+               WHERE o.Orders_Buyer_ID = :uid
+               ORDER BY o.Orders_Created_AT DESC";
 
     $stmtBuy = $conn->prepare($sqlBuy);
     $stmtBuy->execute([':uid' => $userId]);
@@ -35,13 +36,14 @@ try {
 
     // 2. 查询“我卖的” (Selling)
     $sqlSell = "SELECT 
-                    o.Order_ID, o.Total_Amount, o.Status, o.Created_AT,
+                    o.Orders_Order_ID, o.Orders_Total_Amount, o.Orders_Status, o.Orders_Created_AT,
+                    o.Orders_Buyer_ID,
                     p.Product_ID, p.Product_Title,
                     (SELECT Image_URL FROM Product_Images WHERE Product_ID = p.Product_ID AND Image_is_primary = 1 LIMIT 1) AS Main_Image
                FROM Orders o
                JOIN Product p ON o.Product_ID = p.Product_ID
-               WHERE o.Seller_ID = :uid
-               ORDER BY o.Created_AT DESC";
+               WHERE o.Orders_Seller_ID = :uid
+               ORDER BY o.Orders_Created_AT DESC";
 
     $stmtSell = $conn->prepare($sqlSell);
     $stmtSell->execute([':uid' => $userId]);

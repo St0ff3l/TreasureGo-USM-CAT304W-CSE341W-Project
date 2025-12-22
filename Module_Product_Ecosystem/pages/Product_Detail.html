@@ -278,8 +278,7 @@
         <div class="product-price">$0.00</div>
 
         <div class="delivery-badges">
-            <span class="badge badge-meet">🤝 Meet-up Available</span>
-            <span class="badge badge-ship">🚚 Shipping Available</span>
+            Loading Options...
         </div>
 
         <div class="seller-card">
@@ -362,6 +361,23 @@
         // --- 基础信息渲染 (保持不变) ---
         document.querySelector('.product-title').innerText = item.Product_Title;
         document.querySelector('.product-price').innerHTML = `$${parseFloat(item.Product_Price).toFixed(2)}`;
+
+        // --- 🔥 修改点：动态渲染交易方式标签 (START) 🔥 ---
+        const badgesContainer = document.querySelector('.delivery-badges');
+        badgesContainer.innerHTML = ''; // 清空原有内容
+
+        // 获取 Delivery_Method 字段 (meetup, shipping, both)
+        const method = item.Delivery_Method;
+
+        if (method === 'meetup' || method === 'both') {
+            badgesContainer.innerHTML += `<span class="badge badge-meet">🤝 Meet-up Available</span>`;
+        }
+
+        if (method === 'shipping' || method === 'both') {
+            badgesContainer.innerHTML += `<span class="badge badge-ship">🚚 Shipping Available</span>`;
+        }
+        // --- 🔥 修改点：动态渲染交易方式标签 (END) 🔥 ---
+
         item.Product_Description ? document.querySelector('.description-text').innerText = item.Product_Description : document.querySelector('.description-text').innerText = "No description available.";
         document.querySelector('.product-tag').innerText = `Condition: ${item.Product_Condition}`;
         const location = item.Product_Location || 'Unknown Location';
@@ -373,7 +389,7 @@
         // 🔥🔥🔥 【新增代码】更新 Buy Now 按钮的跳转链接，带上 ID 🔥🔥🔥
         const buyBtn = document.querySelector('.btn-buy');
         buyBtn.href = `Order_Confirmation.html?id=${item.Product_ID}`;
-        
+
         // 拦截点击事件，检查登录状态
         buyBtn.onclick = function(event) {
             event.preventDefault();
@@ -384,7 +400,7 @@
         const chatBtn = document.querySelector('.chat-btn-small');
         // 检查是否是自己的商品 (需要获取当前用户ID，这里先简单处理，点击后由 chat.php 或 checkLoginAndProceed 处理)
         // 更好的做法是：如果当前用户是卖家，隐藏 Chat 按钮
-        
+
         // 获取当前用户ID (异步)
         fetch('../../Module_User_Account_Management/api/session_status.php')
             .then(res => res.json())
@@ -652,4 +668,3 @@
 <script src="../../Public_Assets/js/auth_modal.js"></script>
 </body>
 </html>
-
