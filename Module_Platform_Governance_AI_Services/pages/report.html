@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
-    /* ... 样式保持不变 ... */
+    /* ================= 样式部分 ================= */
     :root {
       --bg-color: #F3F6F9;
       --primary: #4F46E5;
@@ -100,9 +100,13 @@
     .status-Resolved .status-badge { background: #D1FAE5; color: #065F46; }
     .status-Dismissed .status-badge { background: #F3F4F6; color: #374151; }
 
+    /* Admin Reply 样式优化 */
     .admin-reply-box { margin-top: 15px; background: #F8FAFC; border-radius: 12px; padding: 14px; border: 1px dashed #CBD5E1; display: flex; gap: 10px; }
     .admin-avatar { font-size: 1.5rem; }
-    .reply-content h4 { font-size: 0.9rem; color: #1F2937; margin-bottom: 2px; }
+    .reply-content { flex: 1; }
+    .reply-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .reply-header h4 { font-size: 0.9rem; color: #1F2937; font-weight: 700; }
+    .reply-time { font-size: 0.75rem; color: #6B7280; font-weight: 500; }
     .reply-content p { font-size: 0.9rem; color: #4B5563; line-height: 1.4; }
 
     .empty-state { text-align: center; padding: 60px 0; color: #9CA3AF; }
@@ -130,7 +134,9 @@
 </div>
 
 <script>
-  // 获取列表逻辑
+  // ================= 逻辑部分 =================
+
+  // 1. 获取列表
   async function fetchReports() {
     const listContainer = document.getElementById('reportList');
     try {
@@ -147,21 +153,19 @@
     }
   }
 
-  // 🔥 2. ✅ 核心修改：使用 StatusDialog 进行确认
+  // 2. 取消举报
   function handleCancel(reportId) {
     if (typeof StatusDialog === 'undefined') {
       console.error('StatusDialog not loaded');
       return;
     }
 
-    // 调用自定义弹窗
     StatusDialog.confirm(
             'Cancel Report?',
             'Are you sure you want to cancel this report? This action cannot be undone.',
-            'Yes, Cancel',  // 确认按钮文案
-            'No, Keep it',  // 取消按钮文案
+            'Yes, Cancel',
+            'No, Keep it',
             async () => {
-              // 确认后的回调函数
               try {
                 const res = await fetch('../api/report_cancel.php', {
                   method: 'POST',
@@ -172,12 +176,10 @@
                 const data = await res.json();
 
                 if (data.success) {
-                  // 成功提示，点击关闭后刷新列表
                   StatusDialog.success('Cancelled', 'Report has been cancelled.', 'Okay', () => {
-                    fetchReports();
+                    fetchReports(); // 刷新列表
                   });
                 } else {
-                  // 失败提示
                   StatusDialog.fail('Error', data.message);
                 }
               } catch (e) {
@@ -187,6 +189,7 @@
     );
   }
 
+  // 3. 渲染列表 (核心修改：添加了时间显示逻辑)
   function renderList(data) {
     const container = document.getElementById('reportList');
 
@@ -203,6 +206,7 @@
     }
 
     container.innerHTML = data.map(r => {
+      // 状态标签处理
       let statusLabel = 'Processing';
       let statusClass = r.status;
 
@@ -211,9 +215,36 @@
       else if(r.status === 'Cancelled') statusLabel = 'Cancelled';
       else statusLabel = 'Pending Review';
 
+      // 取消按钮仅在 Pending 时显示
       const cancelButton = r.status === 'Pending'
               ? `<button onclick="handleCancel(${r.id})" class="btn-pill-cancel">Cancel Report</button>`
               : '';
+
+      // 🔥 核心修改：处理管理员回复部分 🔥
+      let adminReplyHtml = '';
+      if (r.adminReply) {
+        let timeHtml = '';
+        // 如果有处理时间，进行格式化显示
+        if (r.updatedAt) {
+          const dateObj = new Date(r.updatedAt);
+          // 格式化为: 2025/12/23 14:30
+          const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          timeHtml = `<span class="reply-time">${dateStr}</span>`;
+        }
+
+        adminReplyHtml = `
+            <div class="admin-reply-box">
+              <div class="admin-avatar">👮‍♂️</div>
+              <div class="reply-content">
+                <div class="reply-header">
+                    <h4>Admin Response</h4>
+                    ${timeHtml}
+                </div>
+                <p>${r.adminReply}</p>
+              </div>
+            </div>
+          `;
+      }
 
       return `
         <div class="report-card status-${statusClass}">
@@ -230,15 +261,7 @@
             <p class="details-text">"${r.details}"</p>
           </div>
 
-          ${r.adminReply ? `
-            <div class="admin-reply-box">
-              <div class="admin-avatar">👮‍♂️</div>
-              <div class="reply-content">
-                <h4>Admin Response</h4>
-                <p>${r.adminReply}</p>
-              </div>
-            </div>
-          ` : ''}
+          ${adminReplyHtml}
 
           <div class="card-footer">
             <div style="display:flex; align-items:center; gap:10px;">
@@ -252,6 +275,7 @@
     }).join('');
   }
 
+  // 初始化加载
   document.addEventListener('DOMContentLoaded', fetchReports);
 </script>
 

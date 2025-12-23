@@ -26,7 +26,7 @@
       --danger: #EF4444;
       --warning: #F59E0B;
       --neutral: #9CA3AF;
-      --cancelled: #6B7280; /* 深灰色 */
+      --cancelled: #6B7280;
       --border-color: #E5E7EB;
     }
 
@@ -44,36 +44,41 @@
               radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
     }
 
-    /* 背景浮动动画 */
-    #floating-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
-    .floating-item { position: absolute; font-size: 4rem; opacity: 0.6; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); animation: floatUp 15s linear infinite; }
-    @keyframes floatUp { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; } }
+    /* --- 背景浮动动画 --- */
+    #floating-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
 
-    /* 导航栏 */
-    .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.5); }
-    .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .logo span { color: var(--text-dark); }
-    .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-    .nav-actions { display: flex; align-items: center; gap: 20px; }
-    .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-    .nav-btn:hover { color: var(--text-dark); }
+    .floating-item {
+      position: absolute;
+      font-size: 4rem;
+      opacity: 0.6;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+      animation: floatUp 15s linear infinite;
+      user-select: none;
+    }
 
-    .menu-container { position: relative; display: inline-block; }
-    .dots-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: var(--text-dark); background: #f3f4f6; transition: 0.2s; }
-    .dots-btn:hover { background: #eee; }
-    .dropdown-content { display: none; position: absolute; right: 0; top: 100%; margin-top: 10px; background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 16px; z-index: 1001; padding: 8px; animation: fadeIn 0.2s ease; }
-    .menu-container:hover .dropdown-content { display: block; }
-    .dropdown-item { color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; font-weight: 500; border-radius: 10px; }
-    .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes floatUp {
+      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.6; }
+      100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
+    }
 
+    /* 页面主要内容区域 */
     .page-header { text-align: center; padding: 60px 20px 40px; position: relative; z-index: 10; }
     .page-title { font-size: 2.5rem; line-height: 1.1; margin-bottom: 0.5rem; background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .page-subtitle { color: var(--text-gray); font-size: 1.1rem; }
 
-    /* --- 统计卡片 (5个卡片布局) --- */
+    /* --- 统计卡片 --- */
     .stats-container { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; position: relative; z-index: 10; }
-    /* auto-fit 自动适应5个 */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
 
     .stat-card { background: white; border-radius: 20px; padding: 25px; text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease; border-top: 4px solid transparent; }
@@ -86,7 +91,7 @@
     .stat-card.pending { border-color: var(--warning); }
     .stat-card.resolved { border-color: var(--success); }
     .stat-card.dismissed { border-color: var(--neutral); }
-    .stat-card.cancelled { border-color: var(--cancelled); } /* 第5个卡片颜色 */
+    .stat-card.cancelled { border-color: var(--cancelled); }
 
     /* 列表区域 */
     .requests-container { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; position: relative; z-index: 10; }
@@ -106,10 +111,9 @@
     .type-user { background: #FEF3C7; color: #D97706; }
     .type-chat { background: #E0E7FF; color: #4338CA; }
 
-    /* --- 新增：商品真实图片样式 --- */
     .report-product-img {
       width: 50px; height: 50px; border-radius: 12px;
-      object-fit: cover; /* 保证图片不变形 */
+      object-fit: cover;
       border: 1px solid var(--border-color); flex-shrink: 0;
     }
 
@@ -129,12 +133,10 @@
     .btn-dismiss { padding: 8px 16px; border-radius: 8px; border: none; background: var(--neutral); color: white; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
     .btn-dismiss:hover { transform: translateY(-2px); background: #6B7280; }
 
-    /* --- 状态徽章 (包含 Cancelled 修复) --- */
     .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
     .status-Pending { background: #FEF3C7; color: #D97706; }
     .status-Resolved { background: #D1FAE5; color: #059669; }
     .status-Dismissed { background: #F3F4F6; color: #6B7280; }
-    /* Cancelled: 无边框，灰色背景，与 Resolved 风格一致 */
     .status-Cancelled { background: #E5E7EB; color: #6B7280; border: none; }
 
     .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 20px; box-shadow: var(--card-shadow); }
@@ -158,11 +160,11 @@
     .btn-confirm { padding: 12px 24px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
     .btn-confirm.resolve { background: var(--success); }
     .btn-confirm.dismiss { background: var(--neutral); }
+
     .detail-row { margin-bottom: 15px; }
     .detail-label { font-size: 0.85rem; color: #6B7280; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
     .detail-value { font-size: 1rem; color: #1F2937; background: #F9FAFB; padding: 12px; border-radius: 12px; line-height: 1.5; border: 1px solid var(--border-color); }
 
-    /* 操作板块样式 */
     .action-section { background: #F9FAFB; border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 16px; transition: all 0.3s ease; }
     .action-section:hover { border-color: #D1D5DB; }
     .action-section.danger-zone { background: #FEF2F2; border-color: #FECACA; }
@@ -171,14 +173,41 @@
     .toggle-label { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; user-select: none; }
     .toggle-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--danger); }
 
-    .duration-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); animation: fadeIn 0.3s ease; }
-    .duration-chip { padding: 8px 4px; border: 1px solid #FECACA; background: white; border-radius: 8px; text-align: center; font-size: 0.85rem; font-weight: 500; color: var(--text-gray); cursor: pointer; transition: all 0.2s; }
+    /* --- [关键修复] 网格与布局样式 --- */
+    .duration-options {
+      display: none; /* 默认隐藏，JS控制 */
+      grid-template-columns: repeat(4, 1fr); /* 强制4列 */
+      gap: 10px; /* 间距 */
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .duration-chip {
+      padding: 8px 4px;
+      border: 1px solid #FECACA;
+      background: white;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-gray);
+      cursor: pointer;
+      transition: all 0.2s;
+      /* Flex 居中 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .duration-chip:hover { border-color: var(--danger); color: var(--danger); }
     .duration-chip.active { background: var(--danger); color: white; border-color: var(--danger); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); }
 
     .product-zone { background: #EFF6FF; border-color: #BFDBFE; }
     .product-zone .toggle-checkbox { accent-color: var(--primary); }
-    .form-textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 12px; font-family: inherit; resize: vertical; min-height: 100px; font-size: 0.95rem; }
+
+    .form-textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 12px; font-family: inherit; resize: vertical; min-height: 80px; font-size: 0.95rem; }
     .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
 
     .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text-dark); color: white; padding: 15px 25px; border-radius: 12px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease; z-index: 3000; }
@@ -192,24 +221,6 @@
 <body>
 
 <div id="floating-container"></div>
-
-<nav class="navbar">
-  <a href="../../index.html" class="logo">
-    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
-    Treasure<span>Go</span>
-  </a>
-  <div class="nav-actions">
-    <button class="nav-btn" onclick="window.location.href='../../Module_User_Account_Management/pages/admin_dashboard.php'">Admin Dashboard</button>
-    <button class="nav-btn" onclick="window.location.href='../../index.html'">Home</button>
-    <div class="menu-container">
-      <div class="dots-btn">👤</div>
-      <div class="dropdown-content">
-        <a href="../../Module_User_Account_Management/pages/admin_dashboard.php" class="dropdown-item">Admin Dashboard</a>
-        <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
-      </div>
-    </div>
-  </div>
-</nav>
 
 <section class="page-header">
   <h1 class="page-title">🛡️ Report Center</h1>
@@ -271,28 +282,52 @@
           <i class="fa-solid fa-gavel"></i> Ban Reported User
         </label>
       </div>
+
       <div id="ban-duration-container" class="duration-options" style="display:none;">
-        <div class="duration-chip" onclick="selectDuration(this, '1_day')">1 Day</div>
-        <div class="duration-chip" onclick="selectDuration(this, '3_days')">3 Days</div>
-        <div class="duration-chip" onclick="selectDuration(this, '7_days')">7 Days</div>
-        <div class="duration-chip" onclick="selectDuration(this, '1_month')">1 Month</div>
-        <div class="duration-chip" onclick="selectDuration(this, '1_year')">1 Year</div>
-        <div class="duration-chip active" onclick="selectDuration(this, 'permanent')">Permanent</div>
+        <div class="duration-chip" onclick="selectDuration(this, '1d')">1 Day</div>
+        <div class="duration-chip active" onclick="selectDuration(this, '3d')">3 Days</div>
+        <div class="duration-chip" onclick="selectDuration(this, '7d')">7 Days</div>
+        <div class="duration-chip" onclick="selectDuration(this, '30d')">30 Days</div>
+
+        <div class="duration-chip" onclick="selectDuration(this, '365d')">1 Year</div>
+        <div class="duration-chip" onclick="selectDuration(this, 'forever')">Forever</div>
+
+        <div class="duration-chip" style="grid-column: span 2;" onclick="selectDuration(this, 'custom')">Custom Days</div>
       </div>
-      <input type="hidden" id="selected-ban-duration" value="permanent">
+
+      <div id="custom-ban-row" style="display:none; margin-top: 10px; animation: fadeIn 0.3s;">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <input type="number" id="custom-ban-input" class="form-control"
+                 placeholder="Enter days (e.g. 15)" min="1"
+                 style="padding: 10px; border-radius: 8px; border: 1px solid #E5E7EB; flex:1; outline:none;"
+                 oninput="updateCustomDuration(this.value)">
+          <span style="font-size: 0.9rem; color: #6B7280; font-weight:600;">Days</span>
+        </div>
+      </div>
+
+      <input type="hidden" id="selected-ban-duration" value="3d">
     </div>
 
-    <div id="product-section" class="action-section product-zone" style="display:none;">
+    <div id="product-section" class="action-section product-zone" style="display:none; margin-top: 20px;">
       <label class="toggle-label" style="color: var(--primary);">
         <input type="checkbox" id="hide-product-checkbox" class="toggle-checkbox">
-        <i class="fa-solid fa-eye-slash"></i> Hide/Remove Product
+        <i class="fa-solid fa-eye-slash"></i> Force Unlist Product
       </label>
-      <p style="margin-left: 32px; margin-top: 5px; font-size: 0.8rem; color: #6B7280;">Item will be hidden from marketplace.</p>
+      <p style="margin-left: 32px; margin-top: 5px; font-size: 0.8rem; color: #6B7280;">
+        Item will be moved to the user's "Inactive" tab.
+      </p>
     </div>
 
-    <div class="form-group">
-      <label class="detail-label">Admin Action Note</label>
-      <textarea class="form-textarea" id="admin-reply" placeholder="Reason for this decision..."></textarea>
+    <div class="reply-section" style="margin-top: 20px;">
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label class="detail-label">Reply to Reporter</label>
+        <textarea class="form-textarea" id="reply-to-reporter" rows="2" placeholder="Thank you for your report..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="detail-label">Reply to Reported User</label>
+        <textarea class="form-textarea" id="reply-to-reported" rows="2" placeholder="Your content was removed because..."></textarea>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -304,26 +339,33 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="../../Public_Assets/js/headerbar.js"></script>
 <script src="../assets/js/admin_report_modal.js"></script>
 
 <script>
-  let allReports = [];
-  let currentFilter = 'All';
-
+  // --- A. 初始化导航栏 ---
   document.addEventListener('DOMContentLoaded', () => {
+    TreasureGoHeaderbar.mount({ basePath: '../../' });
     initFloatingItems();
     fetchReports();
     initFilterTabs();
   });
 
+  // --- B. 数据获取与渲染 ---
+  let allReports = [];
+  let currentFilter = 'All';
+
+  // 背景动画
   function initFloatingItems() {
     const container = document.getElementById('floating-container');
     const items = ['🚩', '🛡️', '⚠️', '🔨', '📢', '🚫', '🔍'];
     for (let i = 0; i < 12; i++) {
       const el = document.createElement('div'); el.classList.add('floating-item');
       el.innerText = items[Math.floor(Math.random() * items.length)];
-      el.style.left = Math.random() * 100 + 'vw'; el.style.fontSize = (Math.random() * 3 + 3) + 'rem';
-      el.style.animationDuration = (Math.random() * 10 + 20) + 's'; el.style.animationDelay = '-' + (Math.random() * 20) + 's';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.fontSize = (Math.random() * 3 + 3) + 'rem';
+      el.style.animationDuration = (Math.random() * 10 + 20) + 's';
+      el.style.animationDelay = '-' + (Math.random() * 20) + 's';
       container.appendChild(el);
     }
   }
@@ -333,13 +375,19 @@
       const response = await fetch('../api/admin_report_get.php');
       const data = await response.json();
       if (data.success) {
-        allReports = data.reports;
+        // 数据映射：确保字段名统一，防止 API 返回 Report_ID 前端却用 id
+        allReports = data.reports.map(r => ({
+          ...r,
+          Report_ID: r.Report_ID || r.id,          // 确保 Report_ID 存在
+          Report_Type: r.Report_Type || r.type,    // 确保 Report_Type 存在
+          status: r.Report_Status || r.status      // 确保 status 存在
+        }));
+
         document.getElementById('stat-total').textContent = data.stats.total;
         document.getElementById('stat-pending').textContent = data.stats.pending;
         document.getElementById('stat-resolved').textContent = data.stats.resolved;
         document.getElementById('stat-dismissed').textContent = data.stats.dismissed;
 
-        // 计算 Cancelled 数量 (以防后端还没加这个统计字段)
         const cancelledCount = data.stats.cancelled !== undefined
                 ? data.stats.cancelled
                 : allReports.filter(r => r.status === 'Cancelled').length;
@@ -347,7 +395,10 @@
 
         renderReports();
       }
-    } catch (e) { showToast('Connection Error', 'error'); }
+    } catch (e) {
+      console.error(e);
+      showToast('Connection Error', 'error');
+    }
   }
 
   function renderReports() {
@@ -360,18 +411,17 @@
     }
 
     container.innerHTML = filtered.map(r => {
-      // 默认图标逻辑
-      const iconChar = r.type === 'product' ? '📦' : (r.type === 'user' ? '👤' : '💬');
-      const typeClass = 'type-' + r.type;
+      // 兼容字段名
+      const rId = r.Report_ID || r.id;
+      const rType = r.Report_Type || r.type || 'user';
+      const rStatus = r.status || 'Pending';
 
-      // 真实图片显示逻辑
+      const iconChar = rType === 'product' ? '📦' : (rType === 'user' ? '👤' : '💬');
+      const typeClass = 'type-' + rType;
+
       let leftContentHtml = '';
-      if (r.type === 'product' && r.productImage) {
-        // 注意路径层级：假设图片在 Public_Assets/uploads 下
-        // 如果数据库只存了文件名，请加上前缀，例如 `../../Public_Assets/uploads/${r.productImage}`
+      if (rType === 'product' && r.productImage) {
         const imgPath = `../../${r.productImage}`;
-
-        // onerror: 如果图片加载失败，自动隐藏图片并显示默认图标
         leftContentHtml = `
             <img src="${imgPath}" class="report-product-img" alt="Product" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
             <div class="report-icon-box ${typeClass}" style="display:none">${iconChar}</div>
@@ -384,21 +434,21 @@
         <div class="request-card">
           ${leftContentHtml}
           <div class="request-info">
-            <div class="target-title">${r.targetName} <span>(${r.type})</span></div>
+            <div class="target-title">${r.targetName} <span>(${rType})</span></div>
             <div class="request-meta">
-              <span>🆔 #${r.id}</span>
+              <span>🆔 #${rId}</span>
               <span>🗣️ By: ${r.reporter || 'Unknown'}</span>
-              <span>📅 ${new Date(r.date).toLocaleDateString()}</span>
+              <span>📅 ${new Date(r.date || r.Report_Creation_Date).toLocaleDateString()}</span>
             </div>
-            <div class="reason-badge">⚠️ ${r.reason}</div>
+            <div class="reason-badge">⚠️ ${r.reason || r.Report_Reason}</div>
           </div>
           <div class="request-actions">
-            <span class="status-badge status-${r.status}">${r.status}</span>
+            <span class="status-badge status-${rStatus}">${rStatus}</span>
             <div class="action-buttons">
-              <button class="btn-action-view" onclick="openDetailsModal(${r.id})">👁️ View</button>
-              ${r.status === 'Pending' ? `
-                <button class="btn-resolve" onclick="openActionModal(${r.id}, 'Resolved')">✓ Resolve</button>
-                <button class="btn-dismiss" onclick="openActionModal(${r.id}, 'Dismissed')">✗ Dismiss</button>
+              <button class="btn-action-view" onclick="openDetailsModal(${rId})">👁️ View</button>
+              ${rStatus === 'Pending' ? `
+                <button class="btn-resolve" onclick="openActionModal(${rId}, 'Resolved')">✓ Resolve</button>
+                <button class="btn-dismiss" onclick="openActionModal(${rId}, 'Dismissed')">✗ Dismiss</button>
               ` : ''}
             </div>
           </div>
@@ -418,19 +468,60 @@
   }
 
   function openDetailsModal(id) {
-    const r = allReports.find(x => x.id == id);
+    // 查找时使用 Report_ID
+    const r = allReports.find(x => (x.Report_ID || x.id) == id);
     if (!r) return;
 
+    // 显示详情，包括 Contact Email
     document.getElementById('details-content').innerHTML = `
-      <div class="detail-row"><div class="detail-label">Report ID</div><div class="detail-value">#${r.id}</div></div>
-      <div class="detail-row"><div class="detail-label">Reporter</div><div class="detail-value"><strong>${r.reporter || 'Unknown'}</strong> (ID: ${r.reporterId})<br><small style="color:var(--primary)">📧 Contact: ${r.contactEmail || 'N/A'}</small><div style="margin-top:5px;"><button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reporterId}'">View Profile</button></div></div></div>
-      <div class="detail-row"><div class="detail-label">Target</div><div class="detail-value"><strong>${r.targetName}</strong><div style="margin:8px 0; padding:10px; background:#f9fafb; border-radius:8px; border:1px solid #eee;">👤 User: <strong>${r.reportedUserName}</strong> (ID: ${r.reportedUserId})<br>📧 Email: ${r.reportedUserEmail || 'N/A'}</div>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reportedUserId}'">Target Profile</button>
-          ${r.reportedItemId ? `<button class="btn-action-view" style="background:#EEF2FF; color:var(--primary);" onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${r.reportedItemId}'">Product Page</button>` : ''}
+      <div class="detail-row">
+        <div class="detail-label">Report ID</div>
+        <div class="detail-value">#${r.Report_ID || r.id}</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Reporter</div>
+        <div class="detail-value">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+             <strong>${r.reporter || 'Unknown'}</strong>
+             <span style="color:#9CA3AF; font-size:0.9rem;">(ID: ${r.reporterId || r.Reporting_User_ID})</span>
+          </div>
+
+          ${r.contactEmail || r.Report_Contact_Email ? `
+          <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; background:#EEF2FF; border-radius:8px; margin-bottom:10px; border:1px solid #E0E7FF;">
+             <i class="fa-solid fa-envelope" style="color:var(--primary);"></i>
+             <span style="color:#4B5563; font-size:0.9rem; font-weight:500;">${r.contactEmail || r.Report_Contact_Email}</span>
+          </div>` : ''}
+
+          <div>
+             <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reporterId}'">View Profile</button>
+          </div>
         </div>
-      </div></div>
-      <div class="detail-row"><div class="detail-label">Reason</div><div class="detail-value"><span class="reason-badge">⚠️ ${r.reason}</span><p style="margin-top:10px;">${r.details || 'No description provided.'}</p></div></div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Target</div>
+        <div class="detail-value">
+          <div style="font-size:1.05rem; font-weight:700; margin-bottom:8px;">${r.targetName}</div>
+          <div style="padding:12px; background:#F9FAFB; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:10px;">
+            <div style="margin-bottom:4px;">👤 User: <strong>${r.reportedUserName}</strong> (ID: ${r.reportedUserId})</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reportedUserId}'">Target Profile</button>
+            ${r.reportedItemId ? `<button class="btn-action-view" style="background:#EEF2FF; color:var(--primary);" onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${r.reportedItemId}'">Product Page</button>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Reason</div>
+        <div class="detail-value">
+          <span class="reason-badge">⚠️ ${r.reason || r.Report_Reason}</span>
+          <div style="margin-top:12px; padding:12px; background:#FEF2F2; border-radius:10px; border:1px solid #FECACA; color:#991B1B; font-size:0.95rem; line-height:1.6;">
+            ${r.details || r.Report_Description || 'No description provided.'}
+          </div>
+        </div>
+      </div>
     `;
     document.getElementById('details-modal').classList.add('active');
   }

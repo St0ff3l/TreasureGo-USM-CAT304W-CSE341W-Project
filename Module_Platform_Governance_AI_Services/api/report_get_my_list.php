@@ -40,22 +40,23 @@ try {
 
     $current_user_id = $_SESSION['user_id'];
 
-    // 5. SQL 查询 (🔥 关键修改：添加 r.Report_Description)
+    // 5. SQL 查询 (🔥 关键修改：读取 Report_Reply_To_Reporter)
+    // 注意：不再读取不存在的 Report_Admin_Reply，改为读取专门给举报人的回复
     $sql = "SELECT 
                 r.Report_ID,
                 r.Report_Reason,
-                r.Report_Description,  /* ✅ 新增：查询详细描述字段 */
+                r.Report_Description,
                 r.Report_Status,
                 r.Report_Creation_Date,
+                r.Report_Reply_To_Reporter,  /* ✅ 修改：读取 '给举报人的回复' */
+                r.Report_Updated_At,         /* ✅ 读取处理时间 */
                 r.Reported_Item_ID,
                 r.Reported_User_ID,
                 u.User_Username AS Reported_Username,
-                p.Product_Title AS Reported_Product_Name,
-                aa.Admin_Action_Final_Resolution AS Admin_Reply
+                p.Product_Title AS Reported_Product_Name
             FROM Report r
             LEFT JOIN User u ON r.Reported_User_ID = u.User_ID
             LEFT JOIN Product p ON r.Reported_Item_ID = p.Product_ID
-            LEFT JOIN Administrative_Action aa ON r.Admin_Action_ID = aa.Admin_Action_ID
             WHERE r.Reporting_User_ID = :user_id
             ORDER BY r.Report_Creation_Date DESC";
 
@@ -75,16 +76,21 @@ try {
             $targetName = $row['Reported_Product_Name'] ?? ('Product #' . $row['Reported_Item_ID']);
         }
 
-        // 6. 数组构造 (🔥 关键修改：把 details 加进去)
+        // 6. 数组构造
         $reports[] = [
             'id' => $row['Report_ID'],
             'type' => $type,
             'targetName' => $targetName,
             'reason' => $row['Report_Reason'],
-            'details' => $row['Report_Description'] ?? '', /* ✅ 新增：映射数据库字段到 JSON 键 */
+            'details' => $row['Report_Description'] ?? '',
             'status' => ucfirst($row['Report_Status']),
             'date' => $row['Report_Creation_Date'],
-            'adminReply' => $row['Admin_Reply']
+
+            // ✅ 映射：将数据库的 Report_Reply_To_Reporter 映射为前端需要的 adminReply
+            // 这样前端 HTML 页面不需要修改
+            'adminReply' => $row['Report_Reply_To_Reporter'] ?? '',
+
+            'updatedAt' => $row['Report_Updated_At'] ?? ''
         ];
     }
 
