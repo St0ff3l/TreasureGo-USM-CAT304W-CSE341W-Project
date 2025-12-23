@@ -4,19 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TreasureGO - Admin Report Center</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-  <script src="../../Public_Assets/js/headerbar.js"></script>
-  <script src="../../Public_Assets/js/status_dialog.js"></script>
-  <script src="../../Public_Assets/js/auth_modal.js"></script>
-
   <script src="../../Public_Assets/js/admin_guard.js"></script>
-
   <style>
     /* ========================================= */
-    /* 核心变量 (Core Variables)             */
+    /* 核心样式 & 变量 (Core Styles)        */
     /* ========================================= */
     :root {
       --bg-color: #F3F6F9;
@@ -41,10 +34,6 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-
-      /* 🔥 修正点：移除了 padding-top，防止 HeaderBar 被挤下来 */
-      margin: 0;
-
       background-image:
               radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
               radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
@@ -54,7 +43,7 @@
     #floating-container {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      z-index: -1; /* 确保背景在最底层 */
+      z-index: 0;
       pointer-events: none;
       overflow: hidden;
     }
@@ -75,14 +64,60 @@
     }
 
     /* ========================================= */
-    /* 页面头部 (Page Header)                */
+    /* 顶部导航栏 (Navbar)           */
+    /* ========================================= */
+    .navbar {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .logo {
+      font-weight: 800; font-size: 1.5rem; color: var(--primary);
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .logo span { color: var(--text-dark); }
+    .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+
+    .nav-actions { display: flex; align-items: center; gap: 20px; }
+    .nav-btn {
+      border: none; background: transparent; font-weight: 600; color: var(--text-gray);
+      padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
+    }
+    .nav-btn:hover { color: var(--text-dark); }
+
+    /* User Menu */
+    .menu-container { position: relative; display: inline-block; }
+    .dots-btn {
+      width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; cursor: pointer; color: var(--text-dark); background: #f3f4f6; transition: 0.2s;
+    }
+    .dots-btn:hover { background: #eee; }
+    .dropdown-content {
+      display: none; position: absolute; right: 0; top: 100%; margin-top: 10px;
+      background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      border-radius: 16px; z-index: 1001; padding: 8px; animation: fadeIn 0.2s ease;
+    }
+    .menu-container:hover .dropdown-content { display: block; }
+    .dropdown-item {
+      color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block;
+      font-size: 14px; font-weight: 500; border-radius: 10px;
+    }
+    .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ========================================= */
+    /* 主内容区域 (Main Content)             */
     /* ========================================= */
     .page-header {
-      text-align: center;
-      /* 🔥 修正点：增加顶部边距，让标题与 HeaderBar 保持适当距离 */
-      padding: 60px 20px 30px;
-      position: relative;
-      z-index: 10;
+      text-align: center; padding: 60px 20px 40px; position: relative; z-index: 10;
     }
     .page-title {
       font-size: 2.5rem; line-height: 1.1; margin-bottom: 0.5rem;
@@ -96,7 +131,6 @@
     /* ========================================= */
     .stats-container { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; position: relative; z-index: 10; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-
     .stat-card {
       background: white; border-radius: 20px; padding: 25px; text-align: center;
       box-shadow: var(--card-shadow); transition: all 0.3s ease;
@@ -112,7 +146,7 @@
     .stat-card.dismissed { border-top: 4px solid var(--neutral); }
 
     /* ========================================= */
-    /* 举报列表 (Report List)               */
+    /* 请求列表 (Report List)              */
     /* ========================================= */
     .requests-container { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; position: relative; z-index: 10; }
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
@@ -126,8 +160,8 @@
     .filter-tab:hover { background: #f3f4f6; }
     .filter-tab.active { background: var(--primary); color: white; }
 
+    /* Card Styles */
     .requests-list { display: flex; flex-direction: column; gap: 15px; }
-
     .request-card {
       background: white; border-radius: 20px; padding: 20px 25px; box-shadow: var(--card-shadow);
       display: flex; align-items: center; gap: 20px; transition: all 0.3s ease;
@@ -139,9 +173,9 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.5rem; flex-shrink: 0;
     }
-    .type-product { background: #EEF2FF; color: var(--primary); }
-    .type-user { background: #FEF3C7; color: #D97706; }
-    .type-chat { background: #E0E7FF; color: #4338CA; }
+    .type-product { background: #EEF2FF; color: var(--primary); } /* Blue for Product */
+    .type-user { background: #FEF3C7; color: #D97706; } /* Orange for User */
+    .type-chat { background: #E0E7FF; color: #4338CA; } /* Indigo for Chat */
 
     .request-info { flex: 1; min-width: 0; }
     .target-title { font-weight: 700; font-size: 1rem; color: var(--text-dark); margin-bottom: 4px; }
@@ -176,11 +210,13 @@
     }
     .btn-dismiss:hover { background: #6B7280; transform: translateY(-2px); }
 
+    /* Status Badges */
     .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
     .status-Pending { background: #FEF3C7; color: #D97706; }
     .status-Resolved { background: #D1FAE5; color: #059669; }
     .status-Dismissed { background: #F3F4F6; color: #6B7280; }
 
+    /* Empty & Loading */
     .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 20px; box-shadow: var(--card-shadow); }
     .empty-icon { font-size: 4rem; margin-bottom: 15px; opacity: 0.5; }
     .empty-text { color: var(--text-gray); font-size: 1.1rem; }
@@ -192,7 +228,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ========================================= */
-    /* 弹窗样式 (Modal Styles)               */
+    /* 弹窗 (Modal)                           */
     /* ========================================= */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -233,8 +269,19 @@
     .btn-confirm.resolve { background: var(--success); }
     .btn-confirm.dismiss { background: var(--neutral); }
 
+    /* Toast notification */
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--text-dark); color: white; padding: 15px 25px; border-radius: 12px;
+      font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease; z-index: 3000;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+
     /* Responsive */
     @media (max-width: 768px) {
+      .navbar { padding: 15px; } .nav-btn { display: none; }
       .page-title { font-size: 1.8rem; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .stat-card { padding: 15px; }
@@ -246,12 +293,29 @@
 </head>
 <body>
 
+
+
 <div id="floating-container"></div>
 
-<script>
-  // 挂载公共导航栏，设置 basePath 确保链接正确
-  TreasureGoHeaderbar.mount({ basePath: '../../' });
-</script>
+<nav class="navbar">
+  <a href="../../index.html" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+    Treasure<span>Go</span>
+  </a>
+
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="window.location.href='../../Module_User_Account_Management/pages/admin_dashboard.php'">Admin Dashboard</button>
+    <button class="nav-btn" onclick="window.location.href='../../index.html'">Home</button>
+
+    <div id="nav-user-menu" class="menu-container">
+      <div id="nav-avatar" class="dots-btn">👤</div>
+      <div class="dropdown-content">
+        <a href="../../Module_User_Account_Management/pages/admin_dashboard.php" class="dropdown-item">Admin Dashboard</a>
+        <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <section class="page-header">
   <h1 class="page-title">🛡️ Report Center</h1>
@@ -340,8 +404,11 @@
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
   // --- Mock Data & Config ---
+  // In a real scenario, this would come from fetch('../api/admin_get_reports.php')
   let allReports = [
     {
       id: 105,
@@ -395,7 +462,7 @@
 
   let currentFilter = 'All';
   let currentReportId = null;
-  let currentActionType = null;
+  let currentActionType = null; // 'Resolved' or 'Dismissed'
 
   // --- Initialization ---
   document.addEventListener('DOMContentLoaded', () => {
@@ -574,29 +641,32 @@
     if(!currentReportId) return;
     const reply = document.getElementById('admin-reply').value;
 
-    // Mock Logic
+    // Mock API Call
+    // In real app: fetch('../api/admin_update_report.php', { method: 'POST', body: ... })
     const reportIndex = allReports.findIndex(r => r.id === currentReportId);
     if (reportIndex > -1) {
       allReports[reportIndex].status = currentActionType;
       allReports[reportIndex].adminReply = reply || (currentActionType === 'Resolved' ? 'Issue resolved.' : 'Report dismissed.');
 
+      showToast(`Report #${currentReportId} has been ${currentActionType.toLowerCase()}.`, 'success');
+
       closeActionModal();
       updateStatistics();
       renderReports();
-
-      // 🔥 2. 使用 StatusDialog 代替 Toast 显示结果
-      if(currentActionType === 'Resolved') {
-        StatusDialog.success('Success', `Report #${currentReportId} marked as resolved.`);
-      } else {
-        StatusDialog.success('Dismissed', `Report #${currentReportId} has been dismissed.`);
-      }
-
     } else {
-      StatusDialog.fail('Error', 'Report not found.');
+      showToast('Error: Report not found.', 'error');
     }
   }
 
-  // Close Modals on click outside
+  // --- Utilities ---
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // Close on click outside
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if(e.target === overlay) {

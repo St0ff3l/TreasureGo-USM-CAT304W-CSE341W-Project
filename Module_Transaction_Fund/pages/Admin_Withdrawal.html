@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TreasureGO - Admin Report Center</title>
+    <title>TreasureGO - Admin Withdrawal Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="../../Public_Assets/js/admin_guard.js"></script>
     <style>
         /* ========================================= */
@@ -18,11 +17,11 @@
             --text-dark: #1F2937;
             --text-gray: #6B7280;
             --glass-bg: rgba(255, 255, 255, 0.95);
+            --sidebar-radius: 50px;
             --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
             --success: #10B981;
             --danger: #EF4444;
             --warning: #F59E0B;
-            --neutral: #9CA3AF;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -84,31 +83,70 @@
             display: flex; align-items: center; gap: 10px; text-decoration: none;
         }
         .logo span { color: var(--text-dark); }
-        .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+
+        .logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            animation: glowAnimation 3s infinite alternate;
+        }
+
+        @keyframes glowAnimation {
+            0% {
+                box-shadow: 0 0 5px rgba(245, 158, 11, 0.2),
+                0 0 10px rgba(245, 158, 11, 0.1);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(245, 158, 11, 0.8),
+                0 0 25px rgba(245, 158, 11, 0.5);
+            }
+        }
 
         .nav-actions { display: flex; align-items: center; gap: 20px; }
+
         .nav-btn {
             border: none; background: transparent; font-weight: 600; color: var(--text-gray);
             padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
         }
         .nav-btn:hover { color: var(--text-dark); }
 
-        /* User Menu */
+        .btn-primary {
+            border: none; background-color: var(--text-dark); color: white;
+            font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px;
+            cursor: pointer; transition: all 0.2s; font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
+
+        /* --- 下拉菜单 --- */
         .menu-container { position: relative; display: inline-block; }
+
         .dots-btn {
-            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; cursor: pointer; color: var(--text-dark); background: #f3f4f6; transition: 0.2s;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; color: var(--text-dark);
+            font-weight: bold; transition: 0.2s; background: #f3f4f6;
         }
         .dots-btn:hover { background: #eee; }
+
         .dropdown-content {
-            display: none; position: absolute; right: 0; top: 100%; margin-top: 10px;
-            background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            border-radius: 16px; z-index: 1001; padding: 8px; animation: fadeIn 0.2s ease;
+            display: none; position: absolute; right: 0;
+            top: 100%; margin-top: 10px;
+            background-color: white; min-width: 160px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 16px; z-index: 1001; padding: 8px;
+            animation: fadeIn 0.2s ease;
         }
+        .dropdown-content::before {
+            content: ""; position: absolute; top: -20px; left: 0;
+            width: 100%; height: 20px; background: transparent;
+        }
+
         .menu-container:hover .dropdown-content { display: block; }
         .dropdown-item {
-            color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block;
-            font-size: 14px; font-weight: 500; border-radius: 10px;
+            color: var(--text-dark); padding: 12px 16px; text-decoration: none;
+            display: block; font-size: 14px; font-weight: 500; border-radius: 10px;
         }
         .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
@@ -117,183 +155,601 @@
         /* 主内容区域 (Main Content)             */
         /* ========================================= */
         .page-header {
-            text-align: center; padding: 60px 20px 40px; position: relative; z-index: 10;
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+            z-index: 10;
         }
+
         .page-title {
-            font-size: 2.5rem; line-height: 1.1; margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
             background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .page-subtitle { color: var(--text-gray); font-size: 1.1rem; }
+
+        .page-subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
 
         /* ========================================= */
         /* 统计卡片 (Statistics Cards)            */
         /* ========================================= */
-        .stats-container { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; position: relative; z-index: 10; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .stat-card {
-            background: white; border-radius: 20px; padding: 25px; text-align: center;
-            box-shadow: var(--card-shadow); transition: all 0.3s ease;
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
         }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .stat-icon { font-size: 2.5rem; margin-bottom: 10px; }
-        .stat-value { font-size: 2rem; font-weight: 800; color: var(--text-dark); }
-        .stat-label { font-size: 0.9rem; color: var(--text-gray); margin-top: 5px; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-top: 5px;
+        }
 
         .stat-card.total { border-top: 4px solid var(--primary); }
         .stat-card.pending { border-top: 4px solid var(--warning); }
-        .stat-card.resolved { border-top: 4px solid var(--success); }
-        .stat-card.dismissed { border-top: 4px solid var(--neutral); }
+        .stat-card.processed { border-top: 4px solid #3B82F6; }
+        .stat-card.approved { border-top: 4px solid var(--success); }
+        .stat-card.rejected { border-top: 4px solid var(--danger); }
+        .stat-card.amount { border-top: 4px solid #8B5CF6; }
 
         /* ========================================= */
-        /* 请求列表 (Report List)              */
+        /* 请求列表 (Request List)              */
         /* ========================================= */
-        .requests-container { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; position: relative; z-index: 10; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .section-title { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-
-        .filter-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
-        .filter-tab {
-            padding: 8px 20px; border-radius: 20px; border: none; background: white; color: var(--text-gray);
-            font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .requests-container {
+            max-width: 1200px;
+            margin: 0 auto 100px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
         }
-        .filter-tab:hover { background: #f3f4f6; }
-        .filter-tab.active { background: var(--primary); color: white; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            background: white;
+            color: var(--text-gray);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .filter-tab:hover {
+            background: #f3f4f6;
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+        }
 
         /* Card Styles */
-        .requests-list { display: flex; flex-direction: column; gap: 15px; }
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         .request-card {
-            background: white; border-radius: 20px; padding: 20px 25px; box-shadow: var(--card-shadow);
-            display: flex; align-items: center; gap: 20px; transition: all 0.3s ease;
-        }
-        .request-card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-
-        .report-icon-box {
-            width: 50px; height: 50px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; flex-shrink: 0;
-        }
-        .type-product { background: #EEF2FF; color: var(--primary); } /* Blue for Product */
-        .type-user { background: #FEF3C7; color: #D97706; } /* Orange for User */
-        .type-chat { background: #E0E7FF; color: #4338CA; } /* Indigo for Chat */
-
-        .request-info { flex: 1; min-width: 0; }
-        .target-title { font-weight: 700; font-size: 1rem; color: var(--text-dark); margin-bottom: 4px; }
-        .target-title span { font-weight: 400; color: #6B7280; font-size: 0.9rem; margin-left: 5px; }
-
-        .request-meta { display: flex; gap: 15px; flex-wrap: wrap; color: var(--text-gray); font-size: 0.85rem; }
-        .request-meta span { display: flex; align-items: center; gap: 5px; }
-
-        .reason-badge {
-            display: inline-block; font-size: 0.75rem; font-weight: 700;
-            padding: 4px 10px; border-radius: 6px; background: #F3F4F6; color: #374151; margin-top: 6px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px 25px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
         }
 
-        .request-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .action-buttons { display: flex; gap: 8px; }
+        .request-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .request-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .request-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .request-user {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .request-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+        }
+
+        .request-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .request-amount {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #EF4444;
+            margin-top: 6px;
+        }
+
+        .request-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #EEF2FF;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .user-info-small {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .user-id-sub {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+
+        .amount-text {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
 
         .btn-action-view {
-            padding: 8px 16px; background: #F3F4F6; color: #374151; border-radius: 8px;
-            font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s;
+            padding: 8px 16px;
+            background: #EEF2FF;
+            color: var(--primary);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .btn-action-view:hover { background: #E5E7EB; }
 
-        .btn-resolve {
-            padding: 8px 16px; border-radius: 8px; border: none; background: var(--success);
-            color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+        .btn-action-view:hover {
+            background: #E0E7FF;
+            transform: translateY(-1px);
         }
-        .btn-resolve:hover { background: #059669; transform: translateY(-2px); }
 
-        .btn-dismiss {
-            padding: 8px 16px; border-radius: 8px; border: none; background: var(--neutral);
-            color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+        .request-status {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
-        .btn-dismiss:hover { background: #6B7280; transform: translateY(-2px); }
 
-        /* Status Badges */
-        .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-        .status-Pending { background: #FEF3C7; color: #D97706; }
-        .status-Resolved { background: #D1FAE5; color: #059669; }
-        .status-Dismissed { background: #F3F4F6; color: #6B7280; }
+        .status-pending {
+            background: #FEF3C7;
+            color: #D97706;
+        }
 
-        /* Empty & Loading */
-        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 20px; box-shadow: var(--card-shadow); }
-        .empty-icon { font-size: 4rem; margin-bottom: 15px; opacity: 0.5; }
-        .empty-text { color: var(--text-gray); font-size: 1.1rem; }
-        .loading { text-align: center; padding: 60px 20px; }
+        .status-approved, .status-completed {
+            background: #D1FAE5;
+            color: #059669;
+        }
+
+        .status-rejected {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .btn-approve {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            background: var(--success);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-approve:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            background: var(--danger);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-reject:hover {
+            background: #DC2626;
+            transform: translateY(-2px);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-text {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
         .spinner {
-            width: 50px; height: 50px; border: 4px solid #f3f4f6; border-top-color: var(--primary);
-            border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f4f6;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
         /* ========================================= */
         /* 弹窗 (Modal)                           */
         /* ========================================= */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
-            display: none; align-items: center; justify-content: center; z-index: 2000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
         }
-        .modal-overlay.active { display: flex; }
+
+        .modal-overlay.active {
+            display: flex;
+        }
 
         .modal {
-            background: white; border-radius: 24px; padding: 30px; max-width: 550px; width: 90%;
-            max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease;
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
         }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-title { font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
         .modal-close {
-            width: 36px; height: 36px; border-radius: 50%; border: none; background: #f3f4f6;
-            cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f3f4f6;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .modal-close:hover { background: #e5e7eb; }
 
-        .detail-row { margin-bottom: 15px; }
-        .detail-label { font-size: 0.85rem; color: #6B7280; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
-        .detail-value { font-size: 1rem; color: #1F2937; background: #F9FAFB; padding: 12px; border-radius: 12px; line-height: 1.5; }
+        .modal-close:hover {
+            background: #e5e7eb;
+        }
 
-        .modal-form { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #E5E7EB; padding-top: 20px; }
+        .proof-image {
+            width: 100%;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .form-input, .form-textarea {
+            padding: 12px 15px;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
         .form-textarea {
-            padding: 12px 15px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 1rem;
-            font-family: inherit; transition: all 0.2s; resize: vertical; min-height: 100px; width: 100%;
+            resize: vertical;
+            min-height: 100px;
         }
-        .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
 
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-        .btn-cancel { padding: 12px 25px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; color: var(--text-gray); font-weight: 600; cursor: pointer; }
-        .btn-confirm { padding: 12px 25px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
 
-        .btn-confirm.resolve { background: var(--success); }
-        .btn-confirm.dismiss { background: var(--neutral); }
+        .btn-cancel {
+            padding: 12px 25px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            background: white;
+            color: var(--text-gray);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #f3f4f6;
+        }
+
+        .btn-confirm {
+            padding: 12px 25px;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-confirm.approve {
+            background: var(--success);
+        }
+
+        .btn-confirm.approve:hover {
+            background: #059669;
+        }
+
+        .btn-confirm.reject {
+            background: var(--danger);
+        }
+
+        .btn-confirm.reject:hover {
+            background: #DC2626;
+        }
 
         /* Toast notification */
         .toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: var(--text-dark); color: white; padding: 15px 25px; border-radius: 12px;
-            font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease; z-index: 3000;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-dark);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            z-index: 3000;
         }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-        .toast.success { background: var(--success); }
-        .toast.error { background: var(--danger); }
 
-        /* Responsive */
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        /* ========================================= */
+        /* 手机端适配 (Mobile Responsive)     */
+        /* ========================================= */
         @media (max-width: 768px) {
-            .navbar { padding: 15px; } .nav-btn { display: none; }
+            .navbar { padding: 15px; }
+            .nav-actions { gap: 10px; }
+            .nav-btn { display: none; }
+
             .page-title { font-size: 1.8rem; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .stat-card { padding: 15px; }
-            .request-card { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .request-actions { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+            .page-header { padding: 40px 20px 30px; }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-icon {
+                font-size: 2rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
             #floating-container { display: none !important; }
         }
     </style>
 </head>
 <body>
-
-
 
 <div id="floating-container"></div>
 
@@ -308,8 +764,11 @@
         <button class="nav-btn" onclick="window.location.href='../../index.html'">Home</button>
 
         <div id="nav-user-menu" class="menu-container">
-            <div id="nav-avatar" class="dots-btn">👤</div>
+            <div id="nav-avatar" class="dots-btn">
+                👤
+            </div>
             <div class="dropdown-content">
+                <a href="../../Module_User_Account_Management/pages/profile.php" class="dropdown-item">My Profile</a>
                 <a href="../../Module_User_Account_Management/pages/admin_dashboard.php" class="dropdown-item">Admin Dashboard</a>
                 <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
             </div>
@@ -318,83 +777,98 @@
 </nav>
 
 <section class="page-header">
-    <h1 class="page-title">🛡️ Report Center</h1>
-    <p class="page-subtitle">Review, investigate, and resolve community reports</p>
+    <h1 class="page-title">💸 Withdrawal Management</h1>
+    <p class="page-subtitle">Review and process user withdrawal requests</p>
 </section>
 
+<!-- 统计卡片 -->
 <section class="stats-container">
     <div class="stats-grid">
         <div class="stat-card total">
-            <div class="stat-icon">📢</div>
+            <div class="stat-icon">📋</div>
             <div class="stat-value" id="stat-total">--</div>
-            <div class="stat-label">Total Reports</div>
+            <div class="stat-label">Total Requests</div>
         </div>
         <div class="stat-card pending">
             <div class="stat-icon">⏳</div>
             <div class="stat-value" id="stat-pending">--</div>
-            <div class="stat-label">Pending Review</div>
+            <div class="stat-label">Pending</div>
         </div>
-        <div class="stat-card resolved">
+        <div class="stat-card processed">
             <div class="stat-icon">✅</div>
-            <div class="stat-value" id="stat-resolved">--</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value" id="stat-processed">--</div>
+            <div class="stat-label">Processed</div>
         </div>
-        <div class="stat-card dismissed">
-            <div class="stat-icon">🗑️</div>
-            <div class="stat-value" id="stat-dismissed">--</div>
-            <div class="stat-label">Dismissed</div>
+        <div class="stat-card approved">
+            <div class="stat-icon">👍</div>
+            <div class="stat-value" id="stat-approved">--</div>
+            <div class="stat-label">Approved</div>
+        </div>
+        <div class="stat-card rejected">
+            <div class="stat-icon">👎</div>
+            <div class="stat-value" id="stat-rejected">--</div>
+            <div class="stat-label">Rejected</div>
         </div>
     </div>
 </section>
 
+<!-- 请求列表 -->
 <section class="requests-container">
     <div class="section-header">
         <h2 class="section-title">
-            <span>🚩</span> Reports List
+            <span>📝</span> Withdrawal Requests
         </h2>
         <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="All">All</button>
-            <button class="filter-tab" data-filter="Pending">Pending</button>
-            <button class="filter-tab" data-filter="Resolved">Resolved</button>
-            <button class="filter-tab" data-filter="Dismissed">Dismissed</button>
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="pending">Pending</button>
+            <button class="filter-tab" data-filter="approved">Approved</button>
+            <button class="filter-tab" data-filter="rejected">Rejected</button>
         </div>
     </div>
 
     <div id="requests-list" class="requests-list">
         <div class="loading">
             <div class="spinner"></div>
-            <p>Loading reports...</p>
+            <p>Loading requests...</p>
         </div>
     </div>
 </section>
 
-<div id="details-modal" class="modal-overlay">
+<!-- 查看凭证弹窗 -->
+<div id="proof-modal" class="modal-overlay">
     <div class="modal">
         <div class="modal-header">
-            <h3 class="modal-title">📄 Report Details</h3>
-            <button class="modal-close" onclick="closeDetailsModal()">×</button>
+            <h3 class="modal-title">Payment Proof</h3>
+            <button class="modal-close" onclick="closeProofModal()">×</button>
         </div>
-        <div id="details-content">
+        <div id="proof-container" style="max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
+            <!-- Images will be inserted here -->
         </div>
         <div class="modal-actions">
-            <button class="btn-cancel" onclick="closeDetailsModal()">Close</button>
+            <button class="btn-cancel" onclick="closeProofModal()">Close</button>
         </div>
     </div>
 </div>
 
+<!-- 处理请求弹窗 -->
 <div id="action-modal" class="modal-overlay">
     <div class="modal">
         <div class="modal-header">
-            <h3 class="modal-title" id="action-title">Process Report</h3>
+            <h3 class="modal-title" id="action-modal-title">Process Request</h3>
             <button class="modal-close" onclick="closeActionModal()">×</button>
-        </div>
-        <div style="margin-bottom: 15px; color: #6B7280; font-size: 0.95rem;">
-            You are about to <strong id="action-type-text"></strong> this report. The user will be able to see your reply in their history.
         </div>
         <div class="modal-form">
             <div class="form-group">
-                <label class="detail-label">Admin Reply / Action Note</label>
-                <textarea class="form-textarea" id="admin-reply" placeholder="e.g., User has been banned. / No violation found."></textarea>
+                <label class="form-label">User</label>
+                <input type="text" class="form-input" id="action-user" readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Amount</label>
+                <input type="text" class="form-input" id="action-amount" readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Admin Remark (Optional)</label>
+                <textarea class="form-textarea" id="action-remark" placeholder="Enter any notes or remarks..."></textarea>
             </div>
         </div>
         <div class="modal-actions">
@@ -404,79 +878,48 @@
     </div>
 </div>
 
+<!-- Details Modal -->
+<div id="details-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Request Details</h3>
+            <button class="modal-close" onclick="closeDetailsModal()">×</button>
+        </div>
+        <div class="modal-form" id="details-content">
+            <!-- Content will be injected here -->
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeDetailsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 通知 -->
 <div id="toast" class="toast"></div>
 
 <script>
-    // --- Mock Data & Config ---
-    // In a real scenario, this would come from fetch('../api/admin_get_reports.php')
-    let allReports = [
-        {
-            id: 105,
-            type: 'product',
-            targetName: 'iPhone 15 Pro Max',
-            reporter: 'Alice',
-            reporterId: 202,
-            reason: 'Scam',
-            details: 'Seller asks for direct bank transfer outside the platform.',
-            status: 'Pending',
-            date: '2025-12-23T10:30:00',
-            adminReply: null
-        },
-        {
-            id: 104,
-            type: 'user',
-            targetName: 'User_Spammer_007',
-            reporter: 'Bob',
-            reporterId: 305,
-            reason: 'Harassment',
-            details: 'Sending inappropriate messages repeatedly in chat.',
-            status: 'Pending',
-            date: '2025-12-22T14:15:00',
-            adminReply: null
-        },
-        {
-            id: 101,
-            type: 'product',
-            targetName: 'Sony Headphones',
-            reporter: 'Charlie',
-            reporterId: 401,
-            reason: 'Fake Item',
-            details: 'Item received is a plastic toy, not original.',
-            status: 'Resolved',
-            date: '2025-12-20T09:00:00',
-            adminReply: 'Seller banned and refund processed.'
-        },
-        {
-            id: 99,
-            type: 'user',
-            targetName: 'JohnDoe',
-            reporter: 'Dave',
-            reporterId: 402,
-            reason: 'Other',
-            details: 'He is rude.',
-            status: 'Dismissed',
-            date: '2025-12-19T11:20:00',
-            adminReply: 'Evidence insufficient for ban.'
-        }
-    ];
+    // API 配置
+    const API_BASE = '../api/Fund_Request.php';
 
-    let currentFilter = 'All';
-    let currentReportId = null;
-    let currentActionType = null; // 'Resolved' or 'Dismissed'
+    // 全局变量
+    let allRequests = [];
+    let currentFilter = 'all';
+    let currentRequestId = null;
+    let currentAction = null;
 
-    // --- Initialization ---
+    // 页面初始化
     document.addEventListener('DOMContentLoaded', () => {
         initFloatingItems();
-        updateStatistics();
-        renderReports();
+        loadStatistics();
+        loadRequests();
         initFilterTabs();
     });
 
-    // --- Visual Effects ---
+    // 初始化浮动背景
     function initFloatingItems() {
         const container = document.getElementById('floating-container');
-        const items = ['🚩', '🛡️', '⚠️', '🔨', '📢', '🚫', '🔍'];
-        for (let i = 0; i < 12; i++) {
+        const items = ['💰', '💵', '💳', '🏦', '📊', '✨', '💎', '🪙'];
+        for (let i = 0; i < 10; i++) {
             const el = document.createElement('div');
             el.classList.add('floating-item');
             el.innerText = items[Math.floor(Math.random() * items.length)];
@@ -488,193 +931,457 @@
         }
     }
 
-    // --- Logic ---
-    function updateStatistics() {
-        document.getElementById('stat-total').textContent = allReports.length;
-        document.getElementById('stat-pending').textContent = allReports.filter(r => r.status === 'Pending').length;
-        document.getElementById('stat-resolved').textContent = allReports.filter(r => r.status === 'Resolved').length;
-        document.getElementById('stat-dismissed').textContent = allReports.filter(r => r.status === 'Dismissed').length;
+    // 加载统计数据
+    async function loadStatistics() {
+        try {
+            // Pass type=withdrawal to get withdrawal stats
+            const res = await fetch(`${API_BASE}?action=get_admin_statistics&type=withdrawal`);
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('stat-total').textContent = data.data.total_requests;
+                document.getElementById('stat-pending').textContent = data.data.pending_requests;
+                document.getElementById('stat-processed').textContent = data.data.processed_requests;
+                document.getElementById('stat-approved').textContent = data.data.approved_requests;
+                document.getElementById('stat-rejected').textContent = data.data.rejected_requests;
+            }
+        } catch (err) {
+            console.error('Failed to load statistics:', err);
+        }
     }
 
-    function renderReports() {
+    // 加载请求列表
+    async function loadRequests() {
         const container = document.getElementById('requests-list');
 
-        let filtered = allReports;
-        if(currentFilter !== 'All') {
-            filtered = allReports.filter(r => r.status === currentFilter);
-        }
+        try {
+            const res = await fetch(`${API_BASE}?action=get_all_requests`);
+            const data = await res.json();
 
-        if (filtered.length === 0) {
+            if (data.success) {
+                // Filter for withdrawal requests
+                allRequests = data.data.filter(r => r.Type === 'withdrawal');
+                renderRequests();
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <p class="empty-text">Failed to load requests</p>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('Failed to load requests:', err);
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📂</div>
-                    <p class="empty-text">No ${currentFilter === 'All' ? '' : currentFilter} reports found.</p>
-                </div>`;
+                    <div class="empty-icon">⚠️</div>
+                    <p class="empty-text">Network error. Please try again.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Helper to parse Admin Remark (Modified for Withdrawal)
+    function parseRemark(remark) {
+        if (!remark) return { duitNow: 'N/A', notes: '' };
+
+        const duitNowMatch = remark.match(/DuitNow: (.*?)(\n|$)/);
+        const duitNow = duitNowMatch ? duitNowMatch[1] : 'N/A';
+
+        // Extract notes (everything after DuitNow line)
+        let notes = remark;
+        if (duitNowMatch) {
+            notes = remark.replace(duitNowMatch[0], '').trim();
+            // Remove "User Notes: " prefix if present
+            notes = notes.replace(/^User Notes:\s*/, '');
+        }
+
+        return { duitNow, notes };
+    }
+
+    // 渲染请求列表
+    function renderRequests() {
+        const container = document.getElementById('requests-list');
+        let filteredRequests = allRequests;
+
+        // 应用筛选
+        if (currentFilter !== 'all') {
+            filteredRequests = allRequests.filter(r => {
+                if (currentFilter === 'approved') {
+                    return r.Status === 'approved' || r.Status === 'completed';
+                }
+                return r.Status === currentFilter;
+            });
+        }
+
+        if (filteredRequests.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p class="empty-text">No ${currentFilter === 'all' ? '' : currentFilter + ' '}withdrawal requests found</p>
+                </div>
+            `;
             return;
         }
 
-        container.innerHTML = filtered.map(r => {
-            const icon = r.type === 'product' ? '📦' : (r.type === 'user' ? '👤' : '💬');
-            const typeClass = r.type === 'product' ? 'type-product' : (r.type === 'user' ? 'type-user' : 'type-chat');
+        container.innerHTML = filteredRequests.map(request => {
+            const statusClass = getStatusClass(request.Status);
 
             return `
             <div class="request-card">
-                <div class="report-icon-box ${typeClass}">
-                    ${icon}
+                <div class="request-avatar">
+                    ${request.Username ? request.Username.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div class="request-info">
-                    <div class="target-title">${r.targetName} <span>(${r.type})</span></div>
+                    <div class="request-user">${request.Username || 'Unknown'}</div>
                     <div class="request-meta">
-                        <span>🆔 #${r.id}</span>
-                        <span>🗣️ By: ${r.reporter}</span>
-                        <span>📅 ${new Date(r.date).toLocaleDateString()}</span>
+                        <span>🆔 #FR${request.REQUEST_ID}</span>
+                        <span>👤 ID: ${request.User_ID}</span>
                     </div>
-                    <div class="reason-badge">⚠️ ${r.reason}</div>
+                    <div class="request-amount">- $${parseFloat(request.Amount).toFixed(2)}</div>
                 </div>
                 <div class="request-actions">
-                    <span class="status-badge status-${r.status}">${r.status}</span>
+                    <span class="request-status ${statusClass}">${formatStatus(request.Status)}</span>
                     <div class="action-buttons">
-                        <button class="btn-action-view" onclick="openDetailsModal(${r.id})">👁️ View</button>
-                        ${r.status === 'Pending' ? `
-                            <button class="btn-resolve" onclick="openActionModal(${r.id}, 'Resolved')">✓ Resolve</button>
-                            <button class="btn-dismiss" onclick="openActionModal(${r.id}, 'Dismissed')">✗ Dismiss</button>
+                        <button class="btn-action-view" onclick="openDetailsModal(${request.REQUEST_ID})">👁️ View</button>
+                        ${request.Status === 'pending' ? `
+                            <button class="btn-approve" onclick="handleActionClick(${request.REQUEST_ID}, 'approve')">✓ Approve</button>
+                            <button class="btn-reject" onclick="handleActionClick(${request.REQUEST_ID}, 'reject')">✗ Reject</button>
                         ` : ''}
                     </div>
                 </div>
-            </div>`;
-        }).join('');
+            </div>
+        `}).join('');
     }
 
+    // 初始化筛选标签
     function initFilterTabs() {
         document.querySelectorAll('.filter-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 currentFilter = tab.dataset.filter;
-                renderReports();
+                renderRequests();
             });
         });
     }
 
-    // --- Modal Logic ---
+    // 查看凭证
+    function viewProof(imageUrls) {
+        const modal = document.getElementById('proof-modal');
+        const container = document.getElementById('proof-container');
+        container.innerHTML = '';
 
-    // 1. Details Modal
-    function openDetailsModal(id) {
-        const r = allReports.find(x => x.id === id);
-        if(!r) return;
-
-        const content = `
-            <div class="detail-row">
-                <div class="detail-label">Report ID</div>
-                <div class="detail-value">#${r.id}</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Reporter</div>
-                <div class="detail-value">${r.reporter} (ID: ${r.reporterId})</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Target Object</div>
-                <div class="detail-value">
-                    <strong>${r.targetName}</strong><br>
-                    <small style="color:#666">Type: ${r.type}</small>
-                </div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Reason</div>
-                <div class="detail-value" style="color: #D97706; font-weight:600;">${r.reason}</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">Full Description</div>
-                <div class="detail-value">${r.details}</div>
-            </div>
-            ${r.adminReply ? `
-            <div class="detail-row">
-                <div class="detail-label">Admin Action Note</div>
-                <div class="detail-value" style="border-left: 4px solid var(--primary);">${r.adminReply}</div>
-            </div>` : ''}
-        `;
-        document.getElementById('details-content').innerHTML = content;
-        document.getElementById('details-modal').classList.add('active');
-    }
-
-    function closeDetailsModal() {
-        document.getElementById('details-modal').classList.remove('active');
-    }
-
-    // 2. Action Modal
-    function openActionModal(id, actionType) {
-        currentReportId = id;
-        currentActionType = actionType;
-
-        const modal = document.getElementById('action-modal');
-        const title = document.getElementById('action-title');
-        const textSpan = document.getElementById('action-type-text');
-        const btn = document.getElementById('action-confirm-btn');
-        const input = document.getElementById('admin-reply');
-
-        input.value = ''; // Reset input
-
-        if (actionType === 'Resolved') {
-            title.textContent = '✅ Resolve Report';
-            title.style.color = 'var(--success)';
-            textSpan.textContent = 'MARK AS RESOLVED';
-            btn.textContent = 'Confirm Resolution';
-            btn.className = 'btn-confirm resolve';
+        if (imageUrls) {
+            const urls = imageUrls.split(',');
+            urls.forEach(url => {
+                if (url.trim()) {
+                    const img = document.createElement('img');
+                    img.src = url.trim();
+                    img.className = 'proof-image';
+                    img.alt = 'Payment Proof';
+                    container.appendChild(img);
+                }
+            });
         } else {
-            title.textContent = '🗑️ Dismiss Report';
-            title.style.color = 'var(--text-gray)';
-            textSpan.textContent = 'DISMISS (Reject)';
-            btn.textContent = 'Dismiss Report';
-            btn.className = 'btn-confirm dismiss';
+            container.innerHTML = '<p style="text-align:center; color:#666;">No proof image available.</p>';
         }
 
-        btn.onclick = submitAction;
+        modal.classList.add('active');
+    }
+
+    function closeProofModal() {
+        document.getElementById('proof-modal').classList.remove('active');
+    }
+
+    // 打开操作弹窗
+    function openActionModal(requestId, action, username, amount) {
+        currentRequestId = requestId;
+        currentAction = action;
+
+        const modal = document.getElementById('action-modal');
+        const title = document.getElementById('action-modal-title');
+        const confirmBtn = document.getElementById('action-confirm-btn');
+
+        document.getElementById('action-user').value = username;
+        document.getElementById('action-amount').value = '$' + parseFloat(amount).toFixed(2);
+        document.getElementById('action-remark').value = '';
+
+        if (action === 'approve') {
+            title.textContent = '✅ Approve Withdrawal Request';
+            confirmBtn.textContent = 'Approve';
+            confirmBtn.className = 'btn-confirm approve';
+        } else {
+            title.textContent = '❌ Reject Withdrawal Request';
+            confirmBtn.textContent = 'Reject';
+            confirmBtn.className = 'btn-confirm reject';
+        }
+
+        confirmBtn.onclick = () => {
+            const remark = document.getElementById('action-remark').value;
+            const status = currentAction === 'approve' ? 'approved' : 'rejected';
+            performStatusUpdate(currentRequestId, status, remark);
+        };
         modal.classList.add('active');
     }
 
     function closeActionModal() {
         document.getElementById('action-modal').classList.remove('active');
-        currentReportId = null;
+        currentRequestId = null;
+        currentAction = null;
     }
 
-    function submitAction() {
-        if(!currentReportId) return;
-        const reply = document.getElementById('admin-reply').value;
+    // Handle Action Click (Approve/Reject)
+    async function handleActionClick(requestId, action) {
+        const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
+        if (!request) {
+            console.error('Request not found:', requestId);
+            showToast('Error: Request not found', 'error');
+            return;
+        }
 
-        // Mock API Call
-        // In real app: fetch('../api/admin_update_report.php', { method: 'POST', body: ... })
-        const reportIndex = allReports.findIndex(r => r.id === currentReportId);
-        if (reportIndex > -1) {
-            allReports[reportIndex].status = currentActionType;
-            allReports[reportIndex].adminReply = reply || (currentActionType === 'Resolved' ? 'Issue resolved.' : 'Report dismissed.');
+        const username = request.Username || 'User #' + request.User_ID;
+        const amount = request.Amount;
 
-            showToast(`Report #${currentReportId} has been ${currentActionType.toLowerCase()}.`, 'success');
+        if (action === 'reject') {
+            openActionModal(requestId, 'reject', username, amount);
+            return;
+        }
 
-            closeActionModal();
-            updateStatistics();
-            renderReports();
-        } else {
-            showToast('Error: Report not found.', 'error');
+        // For Approve, check balance first
+        try {
+
+            const res = await fetch(`${API_BASE}?action=get_wallet_balance&user_id=${request.User_ID}`);
+            const data = await res.json();
+
+            if (data.success) {
+                const balance = parseFloat(data.data.balance);
+                const reqAmount = parseFloat(amount);
+
+                if (balance < reqAmount) {
+                    // Insufficient balance - Auto Reject
+                    showToast(`⚠️ Insufficient Balance ($${balance.toFixed(2)}). Auto-rejecting...`, 'error');
+
+                    // Perform rejection immediately
+                    await performStatusUpdate(requestId, 'rejected', `System Auto-Reject: Insufficient Balance ($${balance.toFixed(2)} < $${reqAmount.toFixed(2)})`);
+                } else {
+                    // Sufficient balance - Ask for confirmation
+                    openActionModal(requestId, 'approve', username, amount);
+                }
+            } else {
+                showToast('Failed to check user balance: ' + data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error checking balance', 'error');
         }
     }
 
-    // --- Utilities ---
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = `toast ${type} show`;
-        setTimeout(() => toast.classList.remove('show'), 3000);
+    // Helper to perform status update directly
+    async function performStatusUpdate(requestId, status, remark) {
+        // Get existing remark to preserve DuitNow ID
+        const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
+        let finalRemark = request ? (request.Admin_Remark || '') : '';
+
+        if (remark) {
+            finalRemark += `\n\n[${new Date().toLocaleDateString()}]: ${remark}`;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}?action=update_fund_request_status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    request_id: requestId,
+                    status: status,
+                    admin_remark: finalRemark
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(
+                    status === 'approved'
+                        ? '✅ Withdrawal approved! User balance updated.'
+                        : '❌ Withdrawal rejected.',
+                    status === 'approved' ? 'success' : 'error'
+                );
+                closeActionModal();
+                loadStatistics();
+                loadRequests();
+            } else {
+                showToast('Failed to process request: ' + data.message, 'error');
+            }
+        } catch (err) {
+            console.error('Failed to process request:', err);
+            showToast('Network error. Please try again.', 'error');
+        }
     }
 
-    // Close on click outside
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', (e) => {
-            if(e.target === overlay) {
-                overlay.classList.remove('active');
+    // 工具函数
+    // 🔥 修改为马来西亚时区
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+
+        // 处理没有时区信息的时间戳
+        let dateString = dateStr;
+        if (!dateStr.includes('Z') && !dateStr.includes('+') && !dateStr.includes('T')) {
+            // 格式: "2025-12-22 06:07:45" -> "2025-12-22T06:07:45Z"
+            dateString = dateStr.replace(' ', 'T') + 'Z';
+        }
+
+        const date = new Date(dateString);
+
+        // 显示马来西亚本地时间
+        return date.toLocaleString('en-MY', {
+            timeZone: 'Asia/Kuala_Lumpur',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    }
+
+
+    function getStatusClass(status) {
+        switch (status) {
+            case 'pending': return 'status-pending';
+            case 'approved':
+            case 'completed': return 'status-approved';
+            case 'rejected': return 'status-rejected';
+            default: return '';
+        }
+    }
+
+    function formatStatus(status) {
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+
+    function showToast(message, type = '') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast ' + type + ' show';
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // 点击弹窗外部关闭
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
             }
         });
     });
 
+    // 打开详情弹窗
+    async function openDetailsModal(requestId) {
+        const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
+        if (!request) {
+            console.error('Request not found:', requestId);
+            showToast('Error: Request not found', 'error');
+            return;
+        }
+
+        const { duitNow, notes } = parseRemark(request.Admin_Remark);
+        const statusClass = getStatusClass(request.Status);
+        const processedAt = request.Processed_AT ? formatDate(request.Processed_AT) : '-';
+
+        const content = `
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Request ID:</strong> <span>#FR${request.REQUEST_ID}</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">User:</strong>
+                <div class="user-cell" style="margin-top: 5px;">
+                    <div class="user-avatar-small" style="font-size: 1.2rem;">
+                        ${request.Username ? request.Username.charAt(0).toUpperCase() : '?'}
+                    </div>
+                    <div class="user-info-small">
+                        <span class="user-name">${request.Username || 'Unknown'}</span>
+                        <span class="user-id-sub">ID: ${request.User_ID}</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Current Balance:</strong>
+                <span id="modal-user-balance" style="font-size: 1.2rem; font-weight: bold; color: #4F46E5;">Loading...</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Type:</strong> Fund Withdrawal
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Amount:</strong>
+                <span class="amount-text" style="font-size: 1.3rem;">$${parseFloat(request.Amount).toFixed(2)}</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Status:</strong>
+                <span class="request-status ${statusClass}" style="font-size: 1rem;">${formatStatus(request.Status)}</span>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Created At:</strong> ${formatDate(request.Created_AT)}
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Processed At:</strong> ${processedAt}
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Admin Remark:</strong>
+                <div style="background: #f9fafb; padding: 12px 15px; border-radius: 12px; border: 1px solid #e5e7eb; margin-top: 8px;">
+                    <div style="font-weight: 500; color: #374151;">DuitNow: ${duitNow}</div>
+                    <div style="color: #6b7280; font-size: 0.9rem; margin-top: 4px; white-space: pre-wrap;">${notes || 'No remarks added.'}</div>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <strong style="font-size: 1.1rem;">Proof Images:</strong>
+                <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    ${request.Proof_Image ? request.Proof_Image.split(',').map(url => `
+                        <img src="${url.trim()}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #e5e7eb;" onclick="viewProof('${request.Proof_Image}')" alt="Proof">
+                    `).join('') : '<span style="color: #9ca3af;">No proof images uploaded.</span>'}
+                </div>
+            </div>
+        `;
+
+        document.getElementById('details-content').innerHTML = content;
+        document.getElementById('details-modal').classList.add('active');
+
+        // Fetch balance asynchronously
+        try {
+            const res = await fetch(`${API_BASE}?action=get_wallet_balance&user_id=${request.User_ID}`);
+            const data = await res.json();
+            const balanceEl = document.getElementById('modal-user-balance');
+            if (balanceEl) {
+                if (data.success) {
+                    const balance = parseFloat(data.data.balance);
+                    balanceEl.textContent = '$' + balance.toFixed(2);
+                    // Highlight if insufficient funds for pending request
+                    if (request.Status === 'pending' && balance < parseFloat(request.Amount)) {
+                        balanceEl.style.color = '#EF4444';
+                        balanceEl.innerHTML += ' <span style="font-size: 0.8rem; color: #EF4444;">(Insufficient Funds)</span>';
+                    }
+                } else {
+                    balanceEl.textContent = 'Error loading balance';
+                    balanceEl.style.color = '#EF4444';
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch balance:', err);
+            const balanceEl = document.getElementById('modal-user-balance');
+            if (balanceEl) {
+                balanceEl.textContent = 'Error';
+            }
+        }
+    }
+
+    function closeDetailsModal() {
+        document.getElementById('details-modal').classList.remove('active');
+    }
 </script>
+
 </body>
 </html>
