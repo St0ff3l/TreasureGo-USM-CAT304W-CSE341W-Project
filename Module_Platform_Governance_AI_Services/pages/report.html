@@ -7,6 +7,7 @@
 
   <script src="../../Public_Assets/js/headerbar.js"></script>
   <script src="../../Public_Assets/js/status_dialog.js"></script>
+  <script src="../../Public_Assets/js/auth_modal.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
@@ -212,6 +213,62 @@
 </div>
 
 <script>
+  // ==========================================
+  // 1. 🔥 强制定义 AuthModal (确保一定能找到)
+  // ==========================================
+  window.AuthModal = {
+    htmlContent: `
+        <dialog id="globalLoginDialog" class="tg-auth-modal">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+            <h3 style="margin-bottom:10px; color: #1F2937; font-size: 1.2rem; font-family: 'Poppins', sans-serif;">Login Required</h3>
+            <p style="margin-bottom:25px; color:#6B7280; font-size: 0.95rem; line-height: 1.5; font-family: 'Poppins', sans-serif;">
+                You need to log in to submit a report.
+            </p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button onclick="window.AuthModal.close()"
+                        style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer; font-weight: 600;">
+                    Cancel
+                </button>
+                <button onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'"
+                        style="padding:10px 20px; border:none; background:#4F46E5; color:white; border-radius:12px; cursor:pointer; font-weight: 600;">
+                    Go to Login
+                </button>
+            </div>
+        </dialog>
+    `,
+    init: function() {
+      if (document.getElementById('globalLoginDialog')) return;
+      const style = document.createElement('style');
+      style.innerHTML = `
+            .tg-auth-modal::backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+            .tg-auth-modal {
+                position: fixed; top: 30%; bottom: auto; left: 0; right: 0; margin: 0 auto;
+                border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+                text-align: center; width: 320px; border: none; outline: none;
+                animation: tgSlideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+                z-index: 10000;
+            }
+            @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        `;
+      document.head.appendChild(style);
+      document.body.insertAdjacentHTML('beforeend', this.htmlContent);
+    },
+    show: function() {
+      this.init();
+      const dialog = document.getElementById('globalLoginDialog');
+      if (dialog) dialog.showModal();
+    },
+    close: function() {
+      const dialog = document.getElementById('globalLoginDialog');
+      if (dialog) dialog.close();
+      // 弹窗关闭后，如果确实没登录，建议跳回主页或留在这里只能看
+      // window.location.href = '../../index.html';
+    }
+  };
+
+  // ==========================================
+  // 2. 辅助工具函数
+  // ==========================================
   function normalizeType(t) {
     if (!t) return 'user';
     t = String(t).toLowerCase();
@@ -244,33 +301,30 @@
 
   function setTypeBadge(type) {
     const badge = document.getElementById('reportTypeBadge');
-    const text = type === 'product' ? 'Report Product' : (type === 'chat' ? 'Report Chat' : 'Report User');
-    badge.textContent = text;
+    if(badge) badge.textContent = type === 'product' ? 'Report Product' : (type === 'chat' ? 'Report Chat' : 'Report User');
   }
 
   function setVisibleByType(type) {
     const productSection = document.getElementById('productSection');
     const chatSection = document.getElementById('chatSection');
+    if(productSection) productSection.classList.add('hidden');
+    if(chatSection) chatSection.classList.add('hidden');
 
-    productSection.classList.add('hidden');
-    chatSection.classList.add('hidden');
-
-    if (type === 'product') productSection.classList.remove('hidden');
-    if (type === 'chat') chatSection.classList.remove('hidden');
-
+    if (type === 'product' && productSection) productSection.classList.remove('hidden');
+    if (type === 'chat' && chatSection) chatSection.classList.remove('hidden');
     setTypeBadge(type);
   }
 
-  // 移除了 setMsg 函数，改用 StatusDialog
-
-  async function ensureLoggedIn() {
+  async function checkLoginStatus() {
     try {
       const res = await fetch('../../Module_User_Account_Management/api/session_status.php');
       const data = await res.json();
-      if (data && data.is_logged_in) return { ok: true, user: data.user || null };
-      return { ok: false };
-    } catch {
-      return { ok: false, error: 'Session check failed' };
+      // 这里加个Log方便调试
+      console.log("[ReportPage] Login Status:", data.is_logged_in);
+      return data && data.is_logged_in;
+    } catch (e) {
+      console.error("[ReportPage] Status check failed:", e);
+      return false;
     }
   }
 
@@ -283,9 +337,7 @@
     const userHint = document.getElementById('userSectionHint');
     const productIdHint = document.getElementById('productIdHint');
     const productNameHint = document.getElementById('productNameHint');
-
     if (note) note.classList.toggle('hidden', !isLocked);
-
     if (userHint) userHint.classList.toggle('hidden', isLocked);
     if (productIdHint) productIdHint.classList.toggle('hidden', isLocked);
     if (productNameHint) productNameHint.classList.toggle('hidden', isLocked);
@@ -294,20 +346,17 @@
   function lockReportTypeUI(type) {
     const reportTypeEl = document.getElementById('reportType');
     const hintEl = document.getElementById('reportTypeHint');
+    if (!reportTypeEl) return;
 
     Array.from(reportTypeEl.options).forEach(opt => {
       opt.hidden = opt.value !== type;
       opt.disabled = opt.value !== type;
     });
-
     reportTypeEl.value = type;
     reportTypeEl.disabled = true;
     reportTypeEl.style.opacity = '0.85';
     reportTypeEl.style.cursor = 'not-allowed';
-
-    if (hintEl) {
-      hintEl.textContent = 'Report type is locked.';
-    }
+    if (hintEl) hintEl.textContent = 'Report type is locked.';
   }
 
   function lockInput(el) {
@@ -333,9 +382,42 @@
     }
   }
 
+  // ==========================================
+  // 3. 页面初始化逻辑
+  // ==========================================
   document.addEventListener('DOMContentLoaded', async () => {
-    const q = parseQuery();
+    // ----------------------------------------
+    // 🔥 第一步：立即检查登录状态并弹窗
+    // ----------------------------------------
+    console.log("[ReportPage] Checking login...");
+    const isLoggedIn = await checkLoginStatus();
+    const submitBtn = document.getElementById('submitBtn');
 
+    if (!isLoggedIn) {
+      console.log("[ReportPage] Not logged in. Triggering AuthModal.");
+
+      // 禁用按钮
+      if(submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.65';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.textContent = 'Login Required to Submit';
+      }
+
+      // 强制调用 AuthModal
+      if (window.AuthModal) {
+        window.AuthModal.show();
+      } else {
+        console.error("[ReportPage] AuthModal not found immediately.");
+      }
+    } else {
+      console.log("[ReportPage] User is logged in.");
+    }
+
+    // ----------------------------------------
+    // 第二步：处理表单逻辑
+    // ----------------------------------------
+    const q = parseQuery();
     const reportTypeEl = document.getElementById('reportType');
     const reportedUserIdEl = document.getElementById('reportedUserId');
     const reportedUserNameEl = document.getElementById('reportedUserName');
@@ -344,14 +426,14 @@
     const chatIdEl = document.getElementById('chatId');
     const reasonEl = document.getElementById('reason');
     const detailsEl = document.getElementById('details');
-    const submitBtn = document.getElementById('submitBtn');
     const form = document.getElementById('reportForm');
 
-    reportTypeEl.value = q.type;
+    // 初始化值
+    if(reportTypeEl) reportTypeEl.value = q.type;
     setVisibleByType(q.type);
+    if (q.itemId && reportedItemIdEl) reportedItemIdEl.value = q.itemId;
 
-    if (q.itemId) reportedItemIdEl.value = q.itemId;
-
+    // 处理锁定逻辑
     const productLocked = isProductContextLocked(q);
     setLockedProductHintsVisible(productLocked);
 
@@ -370,123 +452,95 @@
           if (reportedItemNameEl) reportedItemNameEl.value = title;
           if (reportedUserIdEl) reportedUserIdEl.value = sellerId;
           if (reportedUserNameEl) reportedUserNameEl.value = sellerName;
-
           lockProductContextFields();
         }
       } catch (e) {
-        // 使用 StatusDialog 提示获取信息失败，但不阻塞
-        StatusDialog.fail('Error', 'Failed to load product details. You can still try to report.');
+        // StatusDialog 可能还没加载，用 safe check
+        if(typeof StatusDialog !== 'undefined') StatusDialog.fail('Error', 'Failed to load details.');
       }
     } else {
-      if (q.reportedUserId) reportedUserIdEl.value = q.reportedUserId;
-      if (q.reportedUserName) reportedUserNameEl.value = q.reportedUserName;
+      if (q.reportedUserId && reportedUserIdEl) reportedUserIdEl.value = q.reportedUserId;
+      if (q.reportedUserName && reportedUserNameEl) reportedUserNameEl.value = q.reportedUserName;
       if (q.itemName && reportedItemNameEl) reportedItemNameEl.value = q.itemName;
-      if (q.chatId) chatIdEl.value = q.chatId;
-      if (q.reason) reasonEl.value = q.reason;
-      if (q.details) detailsEl.value = q.details;
+      if (q.chatId && chatIdEl) chatIdEl.value = q.chatId;
+      if (q.reason && reasonEl) reasonEl.value = q.reason;
+      if (q.details && detailsEl) detailsEl.value = q.details;
     }
 
-    reportTypeEl.addEventListener('change', () => {
-      if (productLocked) {
-        reportTypeEl.value = 'product';
-        return;
-      }
-
-      const t = normalizeType(reportTypeEl.value);
-      reportTypeEl.value = t;
-      setVisibleByType(t);
-
-      if (t !== 'product') reportedItemIdEl.value = '';
-      if (t !== 'chat') chatIdEl.value = '';
-    });
-
-    const session = await ensureLoggedIn();
-    if (!session.ok) {
-      // 未登录提示
-      StatusDialog.fail('Login Required', 'You need to be logged in to submit a report.', 'Login Now', () => {
-        window.location.href = '../../Module_User_Account_Management/views/login.html';
-      });
-      submitBtn.disabled = true;
-      submitBtn.style.opacity = '0.65';
-      submitBtn.style.cursor = 'not-allowed';
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const type = normalizeType(reportTypeEl.value);
-
-      const payload = {
-        type,
-        reportReason: reasonEl.value,
-        details: detailsEl.value || '',
-        reportedUserId: reportedUserIdEl.value ? Number(reportedUserIdEl.value) : null,
-        reportedUserName: reportedUserNameEl.value ? reportedUserNameEl.value.trim() : null,
-        reportedItemId: null,
-        chatId: null,
-        contactEmail: (document.getElementById('contactEmail').value || '').trim() || null
-      };
-
-      if (!payload.reportReason) {
-        StatusDialog.fail('Missing Info', 'Please select a reason.');
-        return;
-      }
-
-      if (!payload.details.trim()) {
-        StatusDialog.fail('Missing Info', 'Please provide detailed description.');
-        return;
-      }
-
-      if (type === 'product') {
-        payload.reportedItemId = reportedItemIdEl.value ? Number(reportedItemIdEl.value) : null;
-        if (!payload.reportedItemId) {
-          StatusDialog.fail('Missing Info', 'Product ID is required for product reports.');
+    if(reportTypeEl) {
+      reportTypeEl.addEventListener('change', () => {
+        if (productLocked) {
+          reportTypeEl.value = 'product';
           return;
         }
-      }
+        const t = normalizeType(reportTypeEl.value);
+        reportTypeEl.value = t;
+        setVisibleByType(t);
+        if (t !== 'product' && reportedItemIdEl) reportedItemIdEl.value = '';
+      });
+    }
 
-      if (type === 'user' && !payload.reportedUserId && !payload.reportedUserName) {
-        StatusDialog.fail('Missing Info', 'For user reports, please provide the reported user ID or name.');
-        return;
-      }
+    // 表单提交
+    if(form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-      if (!session.ok) {
-        StatusDialog.fail('Login Required', 'You need to be logged in to submit a report.');
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-
-      try {
-        const res = await fetch('../api/report_submit.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.message || `Request failed (HTTP ${res.status})`);
+        // 提交前再次检查登录
+        const checkAgain = await checkLoginStatus();
+        if (!checkAgain) {
+          if (window.AuthModal) window.AuthModal.show();
+          return;
         }
 
-        // 成功弹窗，点击后返回上一页
-        StatusDialog.success(
-                'Report Submitted',
-                'Thank you for helping us keep TreasureGO safe.',
-                'Close',
-                () => { handleGoBack(); }
-        );
+        const type = normalizeType(reportTypeEl.value);
+        const payload = {
+          type,
+          reportReason: reasonEl.value,
+          details: detailsEl.value || '',
+          reportedUserId: reportedUserIdEl.value ? Number(reportedUserIdEl.value) : null,
+          reportedUserName: reportedUserNameEl.value ? reportedUserNameEl.value.trim() : null,
+          reportedItemId: null,
+          chatId: null,
+          contactEmail: (document.getElementById('contactEmail').value || '').trim() || null
+        };
 
-        form.reset();
+        if (!payload.reportReason) { StatusDialog.fail('Missing Info', 'Please select a reason.'); return; }
+        if (!payload.details.trim()) { StatusDialog.fail('Missing Info', 'Please provide description.'); return; }
 
-      } catch (err) {
-        StatusDialog.fail('Submission Error', err && err.message ? err.message : 'Failed to submit report. Please try again.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Report';
-      }
-    });
+        if (type === 'product') {
+          payload.reportedItemId = reportedItemIdEl.value ? Number(reportedItemIdEl.value) : null;
+          if (!payload.reportedItemId) { StatusDialog.fail('Missing Info', 'Product ID required.'); return; }
+        }
+        if (type === 'user' && !payload.reportedUserId && !payload.reportedUserName) {
+          StatusDialog.fail('Missing Info', 'User info required.'); return;
+        }
+
+        if(submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Submitting...';
+        }
+
+        try {
+          const res = await fetch('../api/report_submit.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || 'Request failed');
+
+          StatusDialog.success('Submitted', 'Thank you for your report.', 'Close', () => { handleGoBack(); });
+          form.reset();
+        } catch (err) {
+          StatusDialog.fail('Error', err.message || 'Failed to submit.');
+        } finally {
+          if(submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Report';
+          }
+        }
+      });
+    }
   });
 </script>
 

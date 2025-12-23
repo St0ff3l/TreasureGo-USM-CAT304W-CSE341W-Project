@@ -146,7 +146,6 @@
 
         .market-container { max-width: 1200px; margin: 0 auto 50px; padding: 0 20px; position: relative; z-index: 10; }
 
-        /* 🔥 核心网格布局：一行 4 列 */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -169,12 +168,8 @@
         .price-tag { font-weight: 800; font-size: 1.3rem; color: var(--text-dark); }
         .category-tag { font-size: 0.85rem; color: #9ca3af; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; }
 
-        /* ========================================= */
-        /* 手机端适配 (Mobile Responsive)     */
-        /* ========================================= */
         @media (max-width: 768px) {
             .sidebar.left { display: none !important; }
-
             .sidebar.right {
                 top: auto; bottom: 25px; right: auto; left: 50%;
                 transform: translateX(-50%);
@@ -184,24 +179,17 @@
                 gap: 0; z-index: 9999; border-radius: 50px;
                 box-shadow: 0 10px 40px rgba(0,0,0,0.15);
             }
-
             .sidebar.right .sidebar-icon { font-size: 22px; margin-bottom: 2px; }
             .sidebar.right .sidebar-text { font-size: 10px; }
-
-            /* 手机端隐藏 Feedback，显示 Category */
             .sidebar.right .sidebar-item:nth-child(4) { display: none; }
             .sidebar.right .sidebar-item:nth-child(6) { display: flex !important; order: 4; }
-
             .sidebar.right .sidebar-item:nth-child(1) { transform: scale(1); }
             #floating-container { display: none !important; }
-
-            /* 手机端保持一行 2 列 */
             .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 15px !important; }
             .card-img-container { height: 160px; }
             .card-emoji { font-size: 4rem; }
             .card-info { padding: 1rem; }
             .card-footer h4 { font-size: 1rem; }
-
             .main-title { font-size: 2.2rem; }
             .search-section { padding-top: 60px; padding-bottom: 40px; }
             .search-input { padding: 12px 20px; font-size: 1rem; }
@@ -237,26 +225,31 @@
 </div>
 
 <div class="sidebar right">
-    <a href="Module_Product_Ecosystem/pages/Publish_Page.html" class="sidebar-item" onclick="handlePublishClick(event)">
+    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('Module_Product_Ecosystem/pages/Publish_Page.html')">
         <span class="sidebar-icon">📢</span>
         <span class="sidebar-text">Publish</span>
     </a>
-    <a href="Module_User_Account_Management/pages/chat.php" class="sidebar-item">
+
+    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('Module_User_Account_Management/pages/chat.php')">
         <span class="sidebar-icon">💬</span>
         <span class="sidebar-text">Chat</span>
     </a>
-    <a href="Module_Platform_Governance_AI_Services/pages/report.html" class="sidebar-item">
+
+    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('Module_Platform_Governance_AI_Services/pages/report.html')">
         <span class="sidebar-icon">🏴</span>
         <span class="sidebar-text">Report</span>
     </a>
-    <a href="#" class="sidebar-item">
+
+    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('#')">
         <span class="sidebar-icon">📝</span>
         <span class="sidebar-text">Feedback</span>
     </a>
-    <a href="Module_Platform_Governance_AI_Services/pages/support.html" class="sidebar-item">
+
+    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('Module_Platform_Governance_AI_Services/pages/support.html')">
         <span class="sidebar-icon">🎧</span>
         <span class="sidebar-text">Support</span>
     </a>
+
     <a href="Module_Product_Ecosystem/pages/Search_Results_Page.html" class="sidebar-item">
         <span class="sidebar-icon">📂</span>
         <span class="sidebar-text">Category</span>
@@ -314,7 +307,8 @@
 
 <script>
     // 1. AuthModal 逻辑
-    const AuthModal = {
+    // 🔥 修改点 2: 显式挂载到 window 对象，确保 headerbar.js 能访问到
+    window.AuthModal = {
         htmlContent: `
             <dialog id="globalLoginDialog" class="tg-auth-modal">
                 <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
@@ -323,7 +317,7 @@
                     You need to log in to access this feature.
                 </p>
                 <div style="display:flex; gap:10px; justify-content:center;">
-                    <button onclick="AuthModal.close()"
+                    <button onclick="window.AuthModal.close()"
                             style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer; font-weight: 600;">
                         Cancel
                     </button>
@@ -344,6 +338,7 @@
                     border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
                     text-align: center; width: 320px; border: none; outline: none;
                     animation: tgSlideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+                    z-index: 10000; /* 确保层级够高 */
                 }
                 @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             `;
@@ -365,10 +360,22 @@
     let isUserLoggedIn = false;
     let currentUserId = null;
 
-    function handlePublishClick(event) {
+    // 🔥 核心跳转逻辑：通用权限控制函数
+    // 如果未登录 -> 弹窗
+    // 如果已登录 -> 跳转到 targetUrl
+    function handleProtectedNavigation(targetUrl) {
         if (!isUserLoggedIn) {
-            event.preventDefault();
-            AuthModal.show();
+            // 未登录：显示弹窗
+            window.AuthModal.show();
+        } else {
+            // 已登录：执行跳转
+            if (targetUrl && targetUrl !== '#') {
+                window.location.href = targetUrl;
+            } else {
+                console.log("User is logged in, but no URL defined for this button (e.g. Feedback).");
+                // 这里以后可以扩展，比如 Feedback 登录后是弹出一个模态框而不是跳转页面
+                alert("Feedback feature coming soon!");
+            }
         }
     }
 
@@ -386,6 +393,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
         // --- 任务 A: 挂载 Headerbar 组件 ---
         if (typeof TreasureGoHeaderbar !== 'undefined') {
+            // 此时 window.AuthModal 已经定义好了，mount 内部的 checkSession 会用到它
             TreasureGoHeaderbar.mount({ basePath: './' });
         } else {
             console.error("TreasureGoHeaderbar script not loaded.");
@@ -437,20 +445,12 @@
             if (result.success && result.data.length > 0) {
                 freshContainer.innerHTML = '';
                 marketContainer.innerHTML = '';
-
-                // 1. 获取所有数据
                 const allItems = result.data;
-
-                // 2. Fresh Arrivals: 取前 4 个
                 const freshItems = allItems.slice(0, 4);
-
-                // 🔥 3. Market: 取剩下的所有 (从第5个开始)
                 const marketItems = allItems.slice(4);
 
-                // 4. 渲染 Fresh Arrivals
                 renderProductsToContainer(freshItems, freshContainer);
 
-                // 5. 渲染 Market (如果还有剩下的)
                 if (marketItems.length > 0) {
                     renderProductsToContainer(marketItems, marketContainer);
                 } else {
@@ -468,7 +468,6 @@
         }
     }
 
-    // 辅助渲染函数
     function renderProductsToContainer(items, containerElement) {
         items.forEach(item => {
             let imgHtml = '';
