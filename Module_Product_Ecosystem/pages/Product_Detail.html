@@ -29,57 +29,24 @@
             padding-bottom: 50px;
         }
 
-        /* --- 2. Navbar --- */
-        .navbar {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.5);
-        }
-
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .logo span { color: var(--text-dark); }
-        .logo-img { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
-        .nav-actions { display: flex; align-items: center; gap: 20px; }
-        .nav-btn { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem; }
-        .nav-btn:hover { color: var(--text-dark); }
-
-        .btn-primary { border: none; background-color: var(--text-dark); color: white; font-weight: 600; padding: 0.7rem 1.8rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
-
-        .menu-container { position: relative; display: inline-block; }
-        .dots-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: var(--text-dark); font-weight: bold; padding-bottom: 6px; transition: 0.2s; }
-        .dots-btn:hover { background: #eee; }
-        .dropdown-content { display: none; position: absolute; right: 0; top: 130%; background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 16px; z-index: 1001; padding: 8px; }
-        .menu-container:hover .dropdown-content { display: block; }
-        .dropdown-item { color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; font-weight: 500; border-radius: 10px; }
-        .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
-
-        /* --- 3. Breadcrumb & Layout --- */
+        /* --- 2. Navbar & Layout --- */
+        /* Note: Navbar styles are handled by headerbar.js generally, but keeping layout basics */
         .breadcrumb { max-width: 1100px; margin: 20px auto; padding: 0 20px; font-size: 0.9rem; color: var(--text-gray); }
         .breadcrumb a { text-decoration: none; color: var(--text-gray); }
 
         .product-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: start; }
 
-        /* --- Gallery Styles (Updated to Match Source) --- */
+        /* --- 3. Gallery Styles --- */
         .gallery-wrapper { position: sticky; top: 100px; }
 
         .main-image-box {
             width: 100%; height: 500px; background: white; border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
             font-size: 8rem; box-shadow: var(--card-shadow); margin-bottom: 15px;
-            position: relative; overflow: hidden; /* 防止图片溢出圆角 */
+            position: relative; overflow: hidden;
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* 🔥 Updated Arrow Styles */
         .nav-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 44px; height: 44px;
@@ -89,18 +56,15 @@
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; color: var(--text-dark); z-index: 10;
             transition: all 0.2s ease;
-            opacity: 0; /* Default hidden */
+            opacity: 0; /* Hidden by default */
         }
-        .main-image-box:hover .nav-arrow { opacity: 1; } /* Show on hover */
+        .main-image-box:hover .nav-arrow { opacity: 1; }
         .nav-arrow:hover { background: var(--primary); color: white; transform: translateY(-50%) scale(1.1); }
 
         .prev-btn { left: 15px; }
         .next-btn { right: 15px; }
 
-        /* 🔥 Added Fade Animation */
-        .fade-anim {
-            animation: fadeScale 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
+        .fade-anim { animation: fadeScale 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         @keyframes fadeScale {
             from { opacity: 0.6; transform: scale(0.98); }
             to { opacity: 1; transform: scale(1); }
@@ -116,83 +80,77 @@
         .thumb img { width: 100%; height: 100%; object-fit: cover; }
         .thumb.active { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
 
-        /* Info */
+        /* --- 4. Product Info & Report --- */
         .product-info { padding-top: 10px; }
 
         .tag-report-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; margin-bottom: 15px;
         }
 
         .product-tag {
-            display: inline-block;
-            background: #DEF7EC;
-            color: var(--success);
-            padding: 6px 12px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            display: inline-block; background: #DEF7EC; color: var(--success);
+            padding: 6px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: 600;
         }
 
         .report-inline-btn {
-            height: 36px;
-            padding: 0 12px;
-            background: white;
-            border: 1px solid #E5E7EB;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #9CA3AF;
-            transition: all 0.2s ease;
+            height: 36px; padding: 0 12px; background: white;
+            border: 1px solid #E5E7EB; border-radius: 30px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none; color: #9CA3AF; transition: all 0.2s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-
         .report-text { font-size: 0.9rem; font-weight: 600; }
         .report-icon { font-size: 1.1rem; }
-
         .report-inline-btn:hover {
-            color: #EF4444;
-            border-color: #EF4444;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+            color: #EF4444; border-color: #EF4444;
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
         }
 
         .product-title { font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
         .product-price { font-size: 2rem; color: var(--primary); font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
-        .original-price { font-size: 1.2rem; color: #ccc; text-decoration: line-through; font-weight: 400; }
 
-        /* Badges */
         .delivery-badges { display: flex; gap: 10px; margin-bottom: 30px; }
         .badge { padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
         .badge-meet { background: #ECFDF5; color: #059669; }
         .badge-ship { background: #EEF2FF; color: #4F46E5; }
 
-        /* Seller & Location */
-        .seller-card { background: white; padding: 20px; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.03); }
+        /* --- 5. Seller & Location --- */
+        .seller-card {
+            background: white; padding: 20px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 25px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
         .seller-info { display: flex; align-items: center; gap: 15px; }
         .seller-avatar { width: 50px; height: 50px; background: #ddd; border-radius: 50%; font-size: 25px; display: flex; align-items: center; justify-content: center; }
-        .chat-btn-small { background: #f0f0f0; color: var(--text-dark); border: none; padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+
+        .chat-btn-small {
+            background: #f0f0f0; color: var(--text-dark); border: none;
+            padding: 8px 16px; border-radius: 12px; font-weight: 600;
+            cursor: pointer; transition: 0.2s;
+        }
+        .chat-btn-small:hover { background: #e5e7eb; }
 
         .location-box { display: flex; align-items: center; gap: 12px; background: #f9f9fb; padding: 14px 16px; border-radius: 16px; margin-bottom: 30px; border: 1px solid #eee; color: var(--text-dark); font-size: 0.95rem; font-weight: 500; }
-
         .description-text { color: var(--text-gray); line-height: 1.7; font-size: 1rem; margin-bottom: 40px; }
 
-        /* Actions */
+        /* --- 6. Actions --- */
         .action-buttons { display: flex; gap: 15px; margin-top: 20px; }
-        .btn-buy { flex: 1; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); transition: 0.2s; text-align: center; text-decoration: none; }
+        .btn-buy {
+            flex: 1; background: var(--primary); color: white; border: none;
+            padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+            transition: 0.2s; text-align: center; text-decoration: none;
+        }
         .btn-buy:hover { background: var(--primary-hover); transform: translateY(-2px); }
+
         .btn-fav { width: 60px; background: white; border: 2px solid #eee; border-radius: 16px; font-size: 1.5rem; cursor: pointer; color: #ccc; transition: 0.2s; }
         .btn-fav.active { background: #fef2f2; border-color: #ef4444; color: #ef4444; }
 
         .safety-box { margin-top: 30px; background: #EFF6FF; border-radius: 16px; padding: 20px; color: #1E40AF; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; }
 
-        /* Toast */
+        /* --- 7. Toast --- */
         .toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         .toast.show { visibility: visible; opacity: 1; bottom: 50px; }
 
@@ -208,59 +166,10 @@
 <body>
 
 <script src="../../Public_Assets/js/headerbar.js"></script>
+<script src="../../Public_Assets/js/auth_modal.js"></script>
 
 <script>
-    // 1. 🔥 定义全局 AuthModal (适配当前页面的路径)
-    // 必须定义在 window 上，headerbar.js 才能找到它
-    window.AuthModal = {
-        htmlContent: `
-            <dialog id="globalLoginDialog" class="tg-auth-modal">
-                <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
-                <h3 style="margin-bottom:10px; color: #1F2937; font-size: 1.2rem; font-family: 'Poppins', sans-serif;">Login Required</h3>
-                <p style="margin-bottom:25px; color:#6B7280; font-size: 0.95rem; line-height: 1.5; font-family: 'Poppins', sans-serif;">
-                    You need to log in to access this feature.
-                </p>
-                <div style="display:flex; gap:10px; justify-content:center;">
-                    <button onclick="window.AuthModal.close()"
-                            style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer; font-weight: 600;">
-                        Cancel
-                    </button>
-                    <button onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'"
-                            style="padding:10px 20px; border:none; background:#4F46E5; color:white; border-radius:12px; cursor:pointer; font-weight: 600;">
-                        Go to Login
-                    </button>
-                </div>
-            </dialog>
-        `,
-        init: function() {
-            if (document.getElementById('globalLoginDialog')) return;
-            const style = document.createElement('style');
-            style.innerHTML = `
-                .tg-auth-modal::backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
-                .tg-auth-modal {
-                    position: fixed; top: 30%; bottom: auto; left: 0; right: 0; margin: 0 auto;
-                    border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-                    text-align: center; width: 320px; border: none; outline: none;
-                    animation: tgSlideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-                    z-index: 10000;
-                }
-                @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-            `;
-            document.head.appendChild(style);
-            document.body.insertAdjacentHTML('beforeend', this.htmlContent);
-        },
-        show: function() {
-            this.init();
-            const dialog = document.getElementById('globalLoginDialog');
-            if (dialog) dialog.showModal();
-        },
-        close: function() {
-            const dialog = document.getElementById('globalLoginDialog');
-            if (dialog) dialog.close();
-        }
-    };
-
-    // 2. 🔥 挂载 Headerbar (必须在定义 AuthModal 之后)
+    // 统一挂载 Headerbar
     TreasureGoHeaderbar.mount({ basePath: '../../' });
 </script>
 
@@ -280,7 +189,7 @@
     <div class="product-info">
         <div class="tag-report-wrapper">
             <div class="product-tag">Condition: Loading...</div>
-            <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="report-inline-btn" id="reportBtn" title="Report this item">
+            <a href="javascript:void(0)" class="report-inline-btn" id="reportBtn" title="Report this item">
                 <span class="report-text">Report</span>
                 <span class="report-icon">🏴</span>
             </a>
@@ -301,7 +210,7 @@
                     <div class="seller-rating">...</div>
                 </div>
             </div>
-            <button class="chat-btn-small" onclick="showToast('💬 Opening Chat...')">Chat</button>
+            <button class="chat-btn-small" onclick="showToast('💬 Checking status...')">Chat</button>
         </div>
 
         <div class="location-box">
@@ -316,7 +225,7 @@
 
         <div class="action-buttons">
             <button class="btn-fav" id="favBtn" onclick="toggleFav()">♥</button>
-            <a href="Order_Confirmation.html" class="btn-buy">Buy Now</a>
+            <a href="#" class="btn-buy">Buy Now</a>
         </div>
 
         <div class="safety-box">
@@ -329,18 +238,18 @@
 <div id="toast" class="toast">Action Successful</div>
 
 <script>
-    // 1. 获取 URL 中的商品 ID
+    // --- 1. 全局变量 ---
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
 
-    // 全局变量 for Images
+    // 图片画廊变量
     let globalImageList = [];
     let currentImageIndex = 0;
 
-    // 🔥新增：保存当前商品信息，给 Report 跳转用
+    // Report 数据缓存
     let currentProductForReport = null;
 
-    // 2. 初始化
+    // --- 2. 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
         if (!productId) {
             alert("Product not found!");
@@ -348,14 +257,12 @@
             return;
         }
 
-        // 加载详情
+        // 加载详情 & 检查收藏 (并行)
         loadProductDetails(productId);
-
-        // 🔥 核心修改：加载收藏状态 🔥
         checkFavoriteStatus();
     });
 
-    // 3. 加载商品详情
+    // --- 3. 核心加载逻辑 ---
     async function loadProductDetails(id) {
         try {
             const response = await fetch(`../api/Get_Products.php?product_id=${id}`);
@@ -372,153 +279,173 @@
         }
     }
 
-    // 4. 渲染页面
+    // --- 4. 渲染页面 ---
     function renderProduct(item) {
-        // --- 基础信息渲染 (保持不变) ---
+        // A. 基础文本
         document.querySelector('.product-title').innerText = item.Product_Title;
         document.querySelector('.product-price').innerHTML = `$${parseFloat(item.Product_Price).toFixed(2)}`;
-
-        // --- 🔥 修改点：动态渲染交易方式标签 (START) 🔥 ---
-        const badgesContainer = document.querySelector('.delivery-badges');
-        badgesContainer.innerHTML = ''; // 清空原有内容
-
-        // 获取 Delivery_Method 字段 (meetup, shipping, both)
-        const method = item.Delivery_Method;
-
-        if (method === 'meetup' || method === 'both') {
-            badgesContainer.innerHTML += `<span class="badge badge-meet">🤝 Meet-up Available</span>`;
-        }
-
-        if (method === 'shipping' || method === 'both') {
-            badgesContainer.innerHTML += `<span class="badge badge-ship">🚚 Shipping Available</span>`;
-        }
-        // --- 🔥 修改点：动态渲染交易方式标签 (END) 🔥 ---
-
-        item.Product_Description ? document.querySelector('.description-text').innerText = item.Product_Description : document.querySelector('.description-text').innerText = "No description available.";
-        document.querySelector('.product-tag').innerText = `Condition: ${item.Product_Condition}`;
-        const location = item.Product_Location || 'Unknown Location';
-        document.querySelector('.location-box div strong').innerText = location;
+        document.querySelector('.description-text').innerText = item.Product_Description || "No description available.";
         document.querySelector('.seller-details h4').innerText = item.User_Username;
         const rating = item.User_Average_Rating ? `★ ${item.User_Average_Rating}` : 'New Seller';
         document.querySelector('.seller-rating').innerText = rating;
 
+        const location = item.Product_Location || 'Unknown Location';
+        document.querySelector('.location-box div strong').innerText = location;
+
+        const conditionTag = document.querySelector('.product-tag');
+        conditionTag.innerText = `Condition: ${item.Product_Condition}`;
+
+        // B. 动态渲染交易方式标签 (Badges)
+        const badgesContainer = document.querySelector('.delivery-badges');
+        badgesContainer.innerHTML = '';
+        const method = item.Delivery_Method;
+        if (method === 'meetup' || method === 'both') {
+            badgesContainer.innerHTML += `<span class="badge badge-meet">🤝 Meet-up Available</span>`;
+        }
+        if (method === 'shipping' || method === 'both') {
+            badgesContainer.innerHTML += `<span class="badge badge-ship">🚚 Shipping Available</span>`;
+        }
+
+        // C. 按钮状态逻辑 (Sold vs Active)
         const buyBtn = document.querySelector('.btn-buy');
-        const conditionTag = document.querySelector('.product-tag'); // 获取标签以便修改颜色
-
-        // 核心判断：如果是 Sold (已售出)
         if (item.Product_Status === 'Sold' || item.Product_Status === 'Inactive') {
-            // 1. 按钮变灰、改文字、禁用
+            // 已售出
             buyBtn.innerText = "Sold Out";
-            buyBtn.style.background = "#9CA3AF"; // 灰色背景
-            buyBtn.style.cursor = "not-allowed"; // 禁止手势
-            buyBtn.style.boxShadow = "none";     // 去掉阴影
-            buyBtn.href = "javascript:void(0)";  // 移除链接
-            buyBtn.onclick = (e) => e.preventDefault(); // 彻底禁止点击
+            buyBtn.style.background = "#9CA3AF";
+            buyBtn.style.cursor = "not-allowed";
+            buyBtn.style.boxShadow = "none";
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.onclick = (e) => e.preventDefault();
 
-            // 2. 顶部的标签也变红提示
             conditionTag.innerText = "● SOLD OUT";
-            conditionTag.style.background = "#FEE2E2"; // 淡红色背景
-            conditionTag.style.color = "#EF4444";      // 红色文字
+            conditionTag.style.background = "#FEE2E2";
+            conditionTag.style.color = "#EF4444";
         } else {
-            // 3. 正常状态 (Active)：保持原有购买逻辑
+            // 正常状态
             buyBtn.innerText = "Buy Now";
             buyBtn.href = `Order_Confirmation.html?id=${item.Product_ID}`;
-
-            // 拦截点击事件，检查登录状态
             buyBtn.onclick = function(event) {
                 event.preventDefault();
                 checkLoginAndProceed(this.href);
             };
         }
 
-        // 🔥🔥🔥 【新增代码】Chat 按钮逻辑 （张峻12/22，14:11添加）🔥🔥🔥
+        // D. 举报按钮链接生成 (Report)
+        currentProductForReport = {
+            productId: item.Product_ID,
+            sellerUserId: item.User_ID,
+            sellerUserName: item.User_Username || ''
+        };
+        const reportUrl = buildReportSubmitUrlForProduct();
+        const reportBtn = document.getElementById('reportBtn');
+        if(reportBtn && reportUrl) {
+            reportBtn.href = reportUrl;
+        }
+
+        // E. 聊天按钮逻辑 (Chat) - 检查是否为本人
+        setupChatButton(item);
+
+        // F. 图片处理
+        handleImages(item);
+    }
+
+    // --- 5. 辅助功能逻辑 ---
+
+    // 5.1 Chat Button Setup
+    function setupChatButton(item) {
         const chatBtn = document.querySelector('.chat-btn-small');
-        // 获取当前用户ID (异步)
+
+        // 检查 Session (使用统一的 Session API)
         fetch('../../Module_User_Account_Management/api/session_status.php')
             .then(res => res.json())
             .then(session => {
-                if (session.is_logged_in && session.user.user_id == item.User_ID) {
-                    // 是自己的商品，隐藏 Chat 按钮
+                // 如果已登录 且 当前用户是卖家 -> 隐藏按钮
+                if (session.is_logged_in && String(session.user.user_id) === String(item.User_ID)) {
                     chatBtn.style.display = 'none';
                 } else {
-                    // 不是自己的商品，或者是未登录
+                    // 否则绑定点击事件
+                    chatBtn.style.display = 'block';
                     chatBtn.onclick = function() {
-                        // 检查登录，如果已登录则跳转到 chat.php (带上 contact_id 和 product_id)
-                        checkLoginAndProceed(`../../Module_User_Account_Management/pages/chat.php?contact_id=${item.User_ID}&product_id=${item.Product_ID}`);
+                        // 检查登录后跳转聊天页
+                        const chatUrl = `../../Module_User_Account_Management/pages/chat.php?contact_id=${item.User_ID}&product_id=${item.Product_ID}`;
+                        checkLoginAndProceed(chatUrl);
                     };
                 }
-            });
+            })
+            .catch(err => console.error("Session Check Error:", err));
+    }
 
-        // 🔥🔥 图片处理核心逻辑 (多图 + 箭头 + 动画) - Updated to match Source 🔥🔥
-        globalImageList = []; // 重置
+    // 5.2 Build Report URL
+    function buildReportSubmitUrlForProduct() {
+        if (!currentProductForReport || !currentProductForReport.productId) return null;
+
+        const baseUrl = '../../Module_Platform_Governance_AI_Services/pages/report_submit.html';
+        const params = new URLSearchParams();
+        params.set('itemId', String(currentProductForReport.productId));
+        if (currentProductForReport.sellerUserId) {
+            params.set('reportedUserId', String(currentProductForReport.sellerUserId));
+        }
+        if (currentProductForReport.sellerUserName) {
+            params.set('reportedUserName', String(currentProductForReport.sellerUserName));
+        }
+        params.set('type', 'product');
+
+        return `${baseUrl}?${params.toString()}`;
+    }
+
+    // 5.3 Image Gallery Logic
+    function handleImages(item) {
+        globalImageList = [];
+        // 解析图片路径
         if (item.All_Images) {
             globalImageList = item.All_Images.split(',').map(path => {
-                const cleanPath = path.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+                const cleanPath = path.replace(/^.*?Public_Images\//, 'Public_Images/');
                 return `../${cleanPath}`;
             });
         } else if (item.Main_Image) {
-            const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+            const cleanPath = item.Main_Image.replace(/^.*?Public_Images\//, 'Public_Images/');
             globalImageList = [`../${cleanPath}`];
         }
 
-        // 如果没有图片
         if (globalImageList.length === 0) {
             document.getElementById('mainImage').innerHTML = '<div style="font-size:5rem;">📦</div>';
             return;
         }
 
-        // 渲染第一张图片和控件
         updateMainImageDisplay();
         renderThumbnails();
-
-        // 🔥新增：保存举报要用到的信息
-        currentProductForReport = {
-            productId: item.Product_ID,
-            sellerUserId: item.User_ID,           // seller's user id (reported user)
-            sellerUserName: item.User_Username || ''
-        };
-
-        // 🔥新增：更新 Report 按钮链接（带参数）
-        const reportBtn = document.getElementById('reportBtn');
-        if (reportBtn) {
-            reportBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                goToReportPageFromProduct();
-            }, { once: true });
-        }
     }
 
-    // 🔥 核心函数：更新主图显示 (From Source)
     function updateMainImageDisplay() {
         const mainImgBox = document.getElementById('mainImage');
-        mainImgBox.innerHTML = ''; // Clear container
+        mainImgBox.innerHTML = '';
 
-        // 1. 创建图片元素
+        // Main Image
         const img = document.createElement('img');
         img.src = globalImageList[currentImageIndex];
         img.style.width = '100%';
         img.style.height = '100%';
         img.style.objectFit = 'contain';
-        img.className = 'fade-anim'; // 添加淡入动画类
+        img.className = 'fade-anim';
         mainImgBox.appendChild(img);
 
-        // 2. 如果有多张图，添加箭头
+        // Arrows
         if (globalImageList.length > 1) {
             const prevBtn = document.createElement('button');
             prevBtn.className = 'nav-arrow prev-btn';
             prevBtn.innerHTML = '❮';
-            prevBtn.onclick = () => changeImage(-1); // 上一张
+            prevBtn.onclick = () => changeImage(-1);
 
             const nextBtn = document.createElement('button');
             nextBtn.className = 'nav-arrow next-btn';
             nextBtn.innerHTML = '❯';
-            nextBtn.onclick = () => changeImage(1); // 下一张
+            nextBtn.onclick = () => changeImage(1);
 
             mainImgBox.appendChild(prevBtn);
             mainImgBox.appendChild(nextBtn);
         }
 
-        // 3. 更新缩略图高亮
+        // Highlight Active Thumb
         const thumbs = document.querySelectorAll('.thumb');
         thumbs.forEach((t, idx) => {
             if (idx === currentImageIndex) t.classList.add('active');
@@ -526,16 +453,13 @@
         });
     }
 
-    // 🔥 核心函数：渲染缩略图 (From Source)
     function renderThumbnails() {
         const thumbContainer = document.querySelector('.thumbnails');
         thumbContainer.innerHTML = '';
-
         globalImageList.forEach((imgSrc, index) => {
             const thumb = document.createElement('div');
             thumb.className = index === currentImageIndex ? 'thumb active' : 'thumb';
             thumb.innerHTML = `<img src="${imgSrc}">`;
-
             thumb.onclick = () => {
                 currentImageIndex = index;
                 updateMainImageDisplay();
@@ -544,91 +468,42 @@
         });
     }
 
-    // 🔥 核心函数：切换上一张/下一张 (From Source)
     function changeImage(direction) {
         currentImageIndex += direction;
-
-        // 循环播放逻辑
-        if (currentImageIndex < 0) {
-            currentImageIndex = globalImageList.length - 1; // 到了第一张，跳到最后一张
-        } else if (currentImageIndex >= globalImageList.length) {
-            currentImageIndex = 0; // 到了最后一张，跳回第一张
-        }
-
+        if (currentImageIndex < 0) currentImageIndex = globalImageList.length - 1;
+        else if (currentImageIndex >= globalImageList.length) currentImageIndex = 0;
         updateMainImageDisplay();
     }
 
-    // 🔥新增：从商品详情页跳到举报页，并自动带上商品ID + 对方用户ID/名称
-    function goToReportPageFromProduct() {
-        if (!currentProductForReport || !currentProductForReport.productId) {
-            alert('Product info not loaded yet. Please try again.');
-            return;
-        }
-
-        const url = new URL('../../Module_Platform_Governance_AI_Services/pages/report.html', window.location.href);
-        url.searchParams.set('type', 'product');
-        url.searchParams.set('itemId', String(currentProductForReport.productId));
-
-        // Report table requires Reported_User_ID NOT NULL, so pass seller id whenever possible
-        if (currentProductForReport.sellerUserId) {
-            url.searchParams.set('reportedUserId', String(currentProductForReport.sellerUserId));
-        }
-        if (currentProductForReport.sellerUserName) {
-            url.searchParams.set('reportedUserName', currentProductForReport.sellerUserName);
-        }
-
-        window.location.href = url.toString();
-    }
-
-    // 🔥 新增：检查收藏状态 (修复版) 🔥
+    // 5.4 Favorites Logic
     async function checkFavoriteStatus() {
-        // 使用全局变量 productId
         if (!productId) return;
-
         try {
             const response = await fetch('../api/Get_User_Favorites.php');
             const result = await response.json();
-
             if (result.success && Array.isArray(result.data)) {
-
-                // 🔍 调试信息：按 F12 看 Console
-                // console.log("当前商品ID:", productId);
-                // console.log("收藏列表:", result.data);
-
-                // 🔥 关键修复：把两边都转成 String 再比较，防止类型不匹配 (1 vs "1")
+                // String comparison to be safe
                 const isFavorited = result.data.some(item => String(item.Product_ID) === String(productId));
-
                 if (isFavorited) {
-                    const btn = document.getElementById('favBtn');
-                    if (btn) {
-                        btn.classList.add('active'); // 添加红色样式
-                    }
+                    document.getElementById('favBtn').classList.add('active');
                 }
             }
         } catch (error) {
-            console.error('检查收藏状态出错:', error);
+            console.error('Check Fav Error:', error);
         }
     }
 
-    // 🔥 Fav Logic (已替换为 API 交互) 🔥
     async function toggleFav() {
-        const btn = document.getElementById('favBtn');
-
-        // 这里的 productId 是你页面顶部 urlParams 获取到的全局变量
         if (!productId) return;
-
+        const btn = document.getElementById('favBtn');
         const formData = new FormData();
         formData.append('product_id', productId);
 
         try {
-            const response = await fetch('../api/Toggle_Favorite.php', {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch('../api/Toggle_Favorite.php', { method: 'POST', body: formData });
             const result = await response.json();
 
             if (result.success) {
-                // 根据后端返回的动作更新 UI
                 if (result.action === 'added') {
                     btn.classList.add('active');
                     showToast('❤️ Added to Favorites');
@@ -637,10 +512,11 @@
                     showToast('💔 Removed from Favorites');
                 }
             } else {
-                // 如果失败（例如未登录）
                 if(result.message === 'Please login first') {
-                    if(confirm("You need to login to add favorites. Go to login?")) {
-                        window.location.href = '../Auth/login.html';
+                    if (typeof AuthModal !== 'undefined' && AuthModal.show) {
+                        AuthModal.show();
+                    } else if(confirm("Login required. Go to login?")) {
+                        window.location.href = '../../Module_User_Account_Management/pages/login.php';
                     }
                 } else {
                     showToast('⚠️ ' + result.message);
@@ -652,39 +528,35 @@
         }
     }
 
+    // 5.5 Check Login Middleware
+    async function checkLoginAndProceed(targetUrl) {
+        try {
+            // 使用统一的 session 检查点
+            const response = await fetch('../../Module_User_Account_Management/api/session_status.php');
+            const result = await response.json();
+
+            if (result.is_logged_in) {
+                window.location.href = targetUrl;
+            } else {
+                if (typeof AuthModal !== 'undefined' && AuthModal.show) {
+                    AuthModal.show();
+                } else if (confirm("Please login to continue. Go to login page?")) {
+                    window.location.href = '../../Module_User_Account_Management/pages/login.php';
+                }
+            }
+        } catch (error) {
+            console.error('Session check failed:', error);
+            alert("Network error. Please check your connection.");
+        }
+    }
+
     function showToast(message) {
         var x = document.getElementById("toast");
         x.innerText = message;
         x.className = "toast show";
         setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
     }
-
-    // 🔥 新增：购买前检查登录状态 🔥
-    async function checkLoginAndProceed(targetUrl) {
-        try {
-            const response = await fetch('../api/Session_Status.php');
-            const result = await response.json();
-
-            if (result.is_logged_in) {
-                window.location.href = targetUrl;
-            } else {
-                // 未登录，显示全局登录弹窗
-                if (typeof AuthModal !== 'undefined') {
-                    AuthModal.show();
-                } else {
-                    // 降级处理：如果 AuthModal 未加载
-                    if(confirm("Please login to continue. Go to login page?")) {
-                        window.location.href = '../../Module_User_Account_Management/pages/login.php';
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Session check failed:', error);
-            // 网络错误等情况，安全起见提示用户
-            alert("Network error. Please check your connection.");
-        }
-    }
 </script>
-<script src="../../Public_Assets/js/auth_modal.js"></script>
+
 </body>
 </html>

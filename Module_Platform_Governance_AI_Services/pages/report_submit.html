@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TreasureGO - Report</title>
+
+  <script src="../../Public_Assets/js/headerbar.js"></script>
+  <script src="../../Public_Assets/js/status_dialog.js"></script>
+  <script src="../../Public_Assets/js/auth_modal.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      min-height: 100vh;
+      background-image:
+              radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+    }
+
+    .page-wrapper {
+      padding-top: 30px;
+      padding-bottom: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .report-container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 560px;
+      padding: 40px;
+      border-radius: 30px;
+      box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.15);
+      border: 1px solid rgba(255,255,255,0.8);
+      position: relative;
+      animation: slideUp 0.5s ease-out;
+      margin: 0 20px;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .header { text-align: center; margin-bottom: 26px; }
+    .header h1 { font-size: 1.8rem; margin-bottom: 8px; color: var(--text-dark); }
+    .header p { color: #6B7280; font-size: 0.9rem; }
+    .emoji-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+
+    .form-group { margin-bottom: 18px; }
+
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: #374151; }
+
+    input, select, textarea {
+      width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 12px;
+      font-family: inherit; font-size: 0.95rem; transition: all 0.3s; background: #F9FAFB; outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    textarea { resize: vertical; min-height: 110px; }
+
+    .submit-btn {
+      width: 100%; padding: 14px; background: var(--primary); color: white;
+      border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+      cursor: pointer; transition: all 0.2s; margin-top: 6px;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-hover); transform: translateY(-2px);
+      box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.4);
+    }
+
+    .back-link {
+      display: block; text-align: center; margin-top: 18px; color: #6B7280;
+      text-decoration: none; font-size: 0.9rem; font-weight: 500;
+    }
+    .back-link:hover { color: var(--primary); }
+
+    .hint { margin-top: 6px; font-size: 0.82rem; color: #6B7280; line-height: 1.35; }
+
+    .badge {
+      display: inline-block; padding: 4px 10px; border-radius: 999px;
+      background: rgba(79, 70, 229, 0.10); color: #3730a3; font-weight: 600; font-size: 0.82rem;
+    }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .row-2 { grid-template-columns: 1fr; } }
+    .hidden { display: none; }
+
+    .locked-note {
+      margin: 8px 0 18px; padding: 12px 14px; background: rgba(79, 70, 229, 0.08);
+      border: 1px solid rgba(79, 70, 229, 0.18); border-radius: 14px;
+      color: #374151; font-size: 0.88rem; line-height: 1.45;
+    }
+    .locked-note strong { color: #3730a3; }
+  </style>
+</head>
+<body>
+
+<script>
+  TreasureGoHeaderbar.mount({ basePath: '../../' });
+</script>
+
+<div class="page-wrapper">
+  <div class="report-container">
+    <!-- 🔎 DEBUG 面板：临时显示从上一页传递的 query（排查用，确认后可移除） -->
+    <div id="tgQueryDebug" class="locked-note" style="display:none;"></div>
+
+    <div class="header">
+      <span class="emoji-icon">🏴</span>
+      <h1>Report Center</h1>
+      <p><span class="badge" id="reportTypeBadge">Report</span></p>
+      <p>Help us keep TreasureGO safe and friendly.</p>
+    </div>
+
+    <form id="reportForm">
+      <div class="form-group">
+        <label for="reportType">Report Type</label>
+        <select id="reportType" required>
+          <option value="user">User</option>
+          <option value="product">Product</option>
+          <option value="chat">Chat</option>
+        </select>
+        <div class="hint" id="reportTypeHint">This page is reusable. Fields will adapt based on the selected type.</div>
+      </div>
+
+      <div id="lockedProductNote" class="locked-note hidden">
+        <strong>Note:</strong> You opened this page from a product. Report type and product/seller details are locked and auto-filled from the database.
+      </div>
+
+      <div id="targetUserSection">
+        <div class="row-2">
+          <div class="form-group">
+            <label for="reportedUserName">Reported User Name</label>
+            <input id="reportedUserName" type="text" placeholder="e.g. Alice" />
+          </div>
+          <div class="form-group">
+            <label for="reportedUserId">Reported User ID</label>
+            <input id="reportedUserId" type="number" min="1" placeholder="e.g. 123" />
+          </div>
+        </div>
+        <div class="hint" id="userSectionHint">For product reports, the reported user ID is required by the system.</div>
+      </div>
+
+      <div id="productSection" class="hidden">
+        <div class="row-2">
+          <div class="form-group">
+            <label for="reportedItemId">Product ID</label>
+            <input id="reportedItemId" type="number" min="1" placeholder="e.g. 456" />
+            <div class="hint" id="productIdHint">Required for product reports. Auto-filled when you report from a product detail page.</div>
+          </div>
+          <div class="form-group">
+            <label for="reportedItemName">Product Name</label>
+            <input id="reportedItemName" type="text" placeholder="e.g. Sony Headphones" />
+            <div class="hint" id="productNameHint">Auto-filled when you report from a product detail page.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="chatSection" class="hidden">
+        <div class="form-group">
+          <label for="chatId">Chat ID</label>
+          <input id="chatId" type="text" placeholder="e.g. 789" />
+          <div class="hint">Chat reports are not supported yet.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reason">Report Reason</label>
+        <select id="reason" required>
+          <option value="" disabled selected>Please select a reason...</option>
+          <option value="Spam">Spam</option>
+          <option value="Scam">Scam / Fraud</option>
+          <option value="Harassment">Harassment</option>
+          <option value="Fake Item">Fake Item</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="details">Detailed Description</label>
+        <textarea id="details" placeholder="Please describe the issue in detail..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="contactEmail">Your Email (optional)</label>
+        <input id="contactEmail" type="email" placeholder="So we can update you (optional)" />
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Submit Report</button>
+    </form>
+
+    <a href="javascript:void(0)" onclick="handleGoBack()" class="back-link">← Back</a>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // 1. AuthModal (由外部 js 提供)
+  // ==========================================
+
+  // ==========================================
+  // 2. 辅助工具函数
+  // ==========================================
+  function normalizeType(t) {
+    if (!t) return 'user';
+    t = String(t).toLowerCase();
+    if (t === 'product' || t === 'chat' || t === 'user') return t;
+    return 'user';
+  }
+
+  function parseQuery() {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      type: normalizeType(p.get('type')),
+      reportedUserId: p.get('reportedUserId'),
+      reportedUserName: p.get('reportedUserName'),
+      // 兼容不同的参数命名
+      itemId: p.get('itemId') || p.get('reportedItemId') || p.get('product_id'),
+      itemName: p.get('itemName') || p.get('reportedItemName') || p.get('productName'),
+      chatId: p.get('chatId'),
+      reason: p.get('reason'),
+      details: p.get('details')
+    };
+  }
+
+  async function fetchProductContext(productId) {
+    // 防止 productId 为空时发起无效请求
+    if (!productId) return null;
+    const res = await fetch(`../api/report_product_context.php?product_id=${encodeURIComponent(productId)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      // 不抛出错误，而是静默失败，这样至少还能显示 URL 里的数据
+      console.warn("API context fetch failed:", data.message);
+      return null;
+    }
+    return data.data;
+  }
+
+  function setTypeBadge(type) {
+    const badge = document.getElementById('reportTypeBadge');
+    if(badge) badge.textContent = type === 'product' ? 'Report Product' : (type === 'chat' ? 'Report Chat' : 'Report User');
+  }
+
+  function setVisibleByType(type) {
+    const productSection = document.getElementById('productSection');
+    const chatSection = document.getElementById('chatSection');
+    if(productSection) productSection.classList.add('hidden');
+    if(chatSection) chatSection.classList.add('hidden');
+
+    if (type === 'product' && productSection) productSection.classList.remove('hidden');
+    if (type === 'chat' && chatSection) chatSection.classList.remove('hidden');
+    setTypeBadge(type);
+  }
+
+  async function checkLoginStatus() {
+    try {
+      const res = await fetch('../../Module_User_Account_Management/api/session_status.php');
+      const data = await res.json();
+      return data && data.is_logged_in;
+    } catch (e) {
+      console.error("[ReportPage] Status check failed:", e);
+      return false;
+    }
+  }
+
+  function isProductContextLocked(q) {
+    return q && q.type === 'product' && !!q.itemId;
+  }
+
+  function setLockedProductHintsVisible(isLocked) {
+    const note = document.getElementById('lockedProductNote');
+    const userHint = document.getElementById('userSectionHint');
+    const productIdHint = document.getElementById('productIdHint');
+    const productNameHint = document.getElementById('productNameHint');
+    if (note) note.classList.toggle('hidden', !isLocked);
+    if (userHint) userHint.classList.toggle('hidden', isLocked);
+    if (productIdHint) productIdHint.classList.toggle('hidden', isLocked);
+    if (productNameHint) productNameHint.classList.toggle('hidden', isLocked);
+  }
+
+  function lockReportTypeUI(type) {
+    const reportTypeEl = document.getElementById('reportType');
+    const hintEl = document.getElementById('reportTypeHint');
+    if (!reportTypeEl) return;
+
+    Array.from(reportTypeEl.options).forEach(opt => {
+      opt.hidden = opt.value !== type;
+      opt.disabled = opt.value !== type;
+    });
+    reportTypeEl.value = type;
+    reportTypeEl.disabled = true;
+    reportTypeEl.style.opacity = '0.85';
+    reportTypeEl.style.cursor = 'not-allowed';
+    if (hintEl) hintEl.textContent = 'Report type is locked.';
+  }
+
+  function lockInput(el) {
+    if (!el) return;
+    el.readOnly = true;
+    el.setAttribute('aria-readonly', 'true');
+    el.style.opacity = '0.92';
+    el.style.cursor = 'not-allowed';
+  }
+
+  function lockProductContextFields() {
+    lockInput(document.getElementById('reportedUserId'));
+    lockInput(document.getElementById('reportedUserName'));
+    lockInput(document.getElementById('reportedItemId'));
+    lockInput(document.getElementById('reportedItemName'));
+  }
+
+  function handleGoBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '../../index.html';
+    }
+  }
+
+  // ==========================================
+  // 3. 页面初始化逻辑
+  // ==========================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1. 解析 URL 参数
+    const q = parseQuery();
+
+    // 移除 Debug 面板的显示逻辑 (如果不需要了)
+    const dbg = document.getElementById('tgQueryDebug');
+    if (dbg) dbg.style.display = 'none';
+
+    // 2. 登录检查
+    const isLoggedIn = await checkLoginStatus();
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (!isLoggedIn) {
+      if(submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.65';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.textContent = 'Login Required to Submit';
+      }
+      if (typeof AuthModal !== 'undefined' && AuthModal && typeof AuthModal.show === 'function') {
+        AuthModal.show();
+      }
+    }
+
+    // 3. 获取 DOM 元素
+    const reportTypeEl = document.getElementById('reportType');
+    const reportedUserIdEl = document.getElementById('reportedUserId');
+    const reportedUserNameEl = document.getElementById('reportedUserName');
+    const reportedItemIdEl = document.getElementById('reportedItemId');
+    const reportedItemNameEl = document.getElementById('reportedItemName');
+    const chatIdEl = document.getElementById('chatId');
+    const reasonEl = document.getElementById('reason');
+    const detailsEl = document.getElementById('details');
+    const form = document.getElementById('reportForm');
+
+    // 4. 设置初始状态
+    if(reportTypeEl) reportTypeEl.value = q.type;
+    setVisibleByType(q.type);
+
+    // 判断是否锁定
+    const productLocked = isProductContextLocked(q);
+    setLockedProductHintsVisible(productLocked);
+
+    // ============================================================
+    // 🔥 核心修复逻辑在这里 🔥
+    // ============================================================
+    if (productLocked) {
+      // 1. 锁定 UI
+      lockReportTypeUI('product');
+      setVisibleByType('product');
+
+      // 2. 【关键修复】立刻使用 URL 参数填充表单
+      // 这样即便 API 很慢或者挂了，用户也能看到从上一页带来的数据
+      if (reportedItemIdEl) reportedItemIdEl.value = q.itemId || '';
+      if (reportedUserIdEl) reportedUserIdEl.value = q.reportedUserId || '';
+      if (reportedUserNameEl) reportedUserNameEl.value = q.reportedUserName || '';
+      if (reportedItemNameEl) reportedItemNameEl.value = q.itemName || '';
+
+      // 3. 锁定输入框
+      lockProductContextFields();
+
+      // 4. (可选) 尝试从 API 获取更详细/最新的数据覆盖
+      try {
+        const ctx = await fetchProductContext(q.itemId);
+        if (ctx) {
+          const title = ctx.reported_item_title || ctx.product_title || '';
+          const sellerId = ctx.reported_user_id || ctx.seller_user_id || '';
+          const sellerName = ctx.reported_user_name || ctx.seller_username || '';
+
+          // 只有当 API 返回有效值时才覆盖
+          if (title && reportedItemNameEl) reportedItemNameEl.value = title;
+          if (sellerId && reportedUserIdEl) reportedUserIdEl.value = sellerId;
+          if (sellerName && reportedUserNameEl) reportedUserNameEl.value = sellerName;
+        }
+      } catch (e) {
+        console.warn('Backend context fetch failed, using URL params.');
+      }
+
+    } else {
+      // 非锁定模式 (User Report / Chat Report)
+      if (q.reportedUserId && reportedUserIdEl) reportedUserIdEl.value = q.reportedUserId;
+      if (q.reportedUserName && reportedUserNameEl) reportedUserNameEl.value = q.reportedUserName;
+      if (q.itemId && reportedItemIdEl) reportedItemIdEl.value = q.itemId; // 允许填充
+      if (q.itemName && reportedItemNameEl) reportedItemNameEl.value = q.itemName;
+      if (q.chatId && chatIdEl) chatIdEl.value = q.chatId;
+    }
+
+    // 填充公共字段
+    if (q.reason && reasonEl) reasonEl.value = q.reason;
+    if (q.details && detailsEl) detailsEl.value = q.details;
+
+    // 监听类型切换 (仅限非锁定状态)
+    if(reportTypeEl) {
+      reportTypeEl.addEventListener('change', () => {
+        if (productLocked) {
+          reportTypeEl.value = 'product'; // 强制回退
+          return;
+        }
+        const t = normalizeType(reportTypeEl.value);
+        reportTypeEl.value = t;
+        setVisibleByType(t);
+        // 如果切出 product 模式，清空 product ID 防止混淆
+        if (t !== 'product' && reportedItemIdEl) reportedItemIdEl.value = '';
+      });
+    }
+
+    // 提交逻辑
+    if(form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const checkAgain = await checkLoginStatus();
+        if (!checkAgain) {
+          if (typeof AuthModal !== 'undefined' && AuthModal.show) AuthModal.show();
+          return;
+        }
+
+        const type = normalizeType(reportTypeEl.value);
+        const payload = {
+          type,
+          reportReason: reasonEl.value,
+          details: detailsEl.value || '',
+          reportedUserId: reportedUserIdEl.value ? Number(reportedUserIdEl.value) : null,
+          reportedUserName: reportedUserNameEl.value ? reportedUserNameEl.value.trim() : null,
+          reportedItemId: null,
+          chatId: null,
+          contactEmail: (document.getElementById('contactEmail').value || '').trim() || null
+        };
+
+        if (type === 'product') {
+          payload.reportedItemId = reportedItemIdEl.value ? Number(reportedItemIdEl.value) : null;
+        }
+
+        // 简单验证
+        if (!payload.reportReason) { if(typeof StatusDialog!=='undefined') StatusDialog.fail('Missing Info', 'Please select a reason.'); return; }
+        if (type === 'product' && !payload.reportedItemId) { if(typeof StatusDialog!=='undefined') StatusDialog.fail('Error', 'Product ID is missing.'); return; }
+
+        if(submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Submitting...';
+        }
+
+        try {
+          const res = await fetch('../api/report_submit.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok || !data.success) throw new Error(data.message || 'Request failed');
+
+          if(typeof StatusDialog !== 'undefined') {
+            StatusDialog.success('Submitted', 'Thank you for your report.', 'Close', () => { handleGoBack(); });
+          } else {
+            alert('Report Submitted!');
+            handleGoBack();
+          }
+          form.reset();
+        } catch (err) {
+          if(typeof StatusDialog !== 'undefined') StatusDialog.fail('Error', err.message || 'Failed to submit.');
+          else alert('Error: ' + err.message);
+        } finally {
+          if(submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Report';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
