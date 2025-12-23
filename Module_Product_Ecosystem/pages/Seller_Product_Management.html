@@ -37,7 +37,6 @@
       z-index: 1000;
       border-bottom: 1px solid rgba(255,255,255,0.5);
     }
-    /* (Navbar styles omitted - same as before) */
 
     /* --- Layout --- */
     .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: start; }
@@ -72,15 +71,41 @@
     .fade-anim { animation: fadeScale 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
     @keyframes fadeScale { from { opacity: 0.6; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 
-    .thumbnails { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
-    .thumb {
-      width: 70px; height: 70px; background: white; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; border: 2px solid transparent; cursor: pointer;
-      flex-shrink: 0; overflow: hidden; transition: all 0.2s;
+    /* 🔥🔥🔥 核心修改：全新缩略图选中样式 (缩放+光圈) 🔥🔥🔥 */
+    .thumbnails {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      /* 增加内边距，防止选中时的阴影被切掉 */
+      padding: 10px 5px;
     }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .thumb.active { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
+    .thumb {
+      width: 70px; height: 70px;
+      background: white;
+      border-radius: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+      overflow: hidden;
+      /* 默认半透明且稍微缩小 */
+      opacity: 0.6;
+      transform: scale(0.95);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* 弹性动画 */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .thumb:hover {
+      opacity: 0.8;
+    }
+    .thumb.active {
+      opacity: 1;
+      /* 选中时：恢复原大并稍微放大，加上主色边框投影 */
+      transform: scale(1.05);
+      box-shadow: 0 0 0 3px var(--primary), 0 5px 15px rgba(79, 70, 229, 0.3);
+    }
+    /* 🔥🔥🔥 修改结束 🔥🔥🔥 */
 
     /* Right: Management Controls */
     .product-info { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
@@ -99,6 +124,24 @@
     /* Management Buttons */
     .management-actions { display: flex; flex-direction: column; gap: 12px; }
     .btn-manage { width: 100%; padding: 15px; border-radius: 14px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    /* 全量编辑按钮样式 */
+    .btn-full-edit {
+      background: #4F46E5;
+      color: white;
+      margin-bottom: 10px;
+      border: 1px solid transparent;
+    }
+    .btn-full-edit:hover {
+      background: #4338CA;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    }
+
+    /* 审核中状态按钮 (不可点击) */
+    .btn-pending-status {
+      background: #FFFBEB; color: #D97706; border: 1px dashed #FCD34D; cursor: default;
+    }
+
     .btn-edit { background: #EEF2FF; color: var(--primary); }
     .btn-edit:hover { background: #E0E7FF; }
     .btn-save { background: var(--success); color: white; display: none; }
@@ -156,6 +199,15 @@
     </p>
 
     <div class="management-actions">
+
+      <button class="btn-manage btn-pending-status" id="btnPendingStatus" style="display: none;">
+        ⏳ Review in Progress - Editing Locked
+      </button>
+
+      <button class="btn-manage btn-full-edit" id="btnFullEdit" onclick="goToFullEditPage()" style="display: none;">
+        🛠️ Edit Details / Fix Issues
+      </button>
+
       <button class="btn-manage btn-edit" id="btnEdit" onclick="toggleEditMode()">✏️ Modify Price</button>
       <button class="btn-manage btn-save" id="btnSave" onclick="savePrice()">💾 Save New Price</button>
       <button class="btn-manage btn-unlist" id="btnUnlist" onclick="toggleStatus()">🔒 Pull Off Shelf (Unlist)</button>
@@ -212,25 +264,32 @@
 
     const statusBadge = document.getElementById('statusBadge');
     const unlistBtn = document.getElementById('btnUnlist');
+    const fullEditBtn = document.getElementById('btnFullEdit');
+    const pendingStatusBtn = document.getElementById('btnPendingStatus');
+    const priceEditBtn = document.getElementById('btnEdit');
 
-    // 获取两个状态字段
+    // 获取状态
     const reviewStatus = (item.Product_Review_Status || 'pending').toLowerCase();
     const sellerStatus = (item.Product_Status || 'active').toLowerCase();
 
-    // 默认情况
+    // 默认样式
     let badgeText = '● On Sale';
-    let badgeClass = 'status-active'; // 绿色
 
-    // 🔥🔥🔥 核心修改：状态逻辑判断 🔥🔥🔥
+    // 🔥🔥🔥 核心：根据状态控制按钮显示 🔥🔥🔥
+
     if (reviewStatus === 'rejected') {
-      // --- 1. 被拒绝状态 ---
+      // --- 1. 被拒绝 (Rejected) ---
       badgeText = '🚫 Rejected';
-
-      // 强制修改样式为红色
       statusBadge.style.backgroundColor = '#FEF2F2';
       statusBadge.style.color = '#DC2626';
 
-      // 插入拒绝理由警告框
+      // 显示 "全量编辑"
+      fullEditBtn.style.display = 'flex';
+      // 隐藏 "价格修改" 和 "下架" (因为需要全量修改)
+      priceEditBtn.style.display = 'none';
+      unlistBtn.style.display = 'none';
+
+      // 插入拒绝理由警告
       const reason = item.Product_Review_Comment || "No specific reason provided.";
       const alertHtml = `
             <div style="background: #FFF5F5; border: 1px solid #FECACA; color: #B91C1C; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
@@ -241,41 +300,57 @@
                     <strong>Reason:</strong> ${reason}
                 </p>
                 <p style="font-size: 0.85rem; margin-top:5px; color: #991B1B;">
-                    Please fix the issue and contact admin or re-submit.
+                    Please click "Edit Details" below to fix the issue and re-submit.
                 </p>
             </div>
         `;
       document.getElementById('rejection-alert-container').innerHTML = alertHtml;
 
     } else if (reviewStatus === 'pending') {
-      // --- 2. 审核中 ---
+      // --- 2. 审核中 (Pending) ---
       badgeText = '⏳ Under Review';
-      statusBadge.style.backgroundColor = '#FFFBEB'; // 黄色
+      statusBadge.style.backgroundColor = '#FFFBEB';
       statusBadge.style.color = '#D97706';
 
+      // 显示 "审核中占位按钮"
+      pendingStatusBtn.style.display = 'flex';
+
+      // 🔥 隐藏所有编辑/下架操作，只留删除和返回
+      fullEditBtn.style.display = 'none';
+      priceEditBtn.style.display = 'none';
+      unlistBtn.style.display = 'none';
+
     } else if (sellerStatus === 'unlisted') {
-      // --- 3. 卖家自己下架 ---
+      // --- 3. 卖家下架 (Unlisted) ---
       badgeText = '● Unlisted';
-      statusBadge.style.backgroundColor = '#F3F4F6'; // 灰色
+      statusBadge.style.backgroundColor = '#F3F4F6';
       statusBadge.style.color = '#6B7280';
 
       unlistBtn.innerText = '📢 Re-list Item';
       unlistBtn.style.background = '#ECFDF5';
       unlistBtn.style.color = '#059669';
       unlistBtn.style.border = '1px solid #A7F3D0';
+
+      // 正常显示操作
+      priceEditBtn.style.display = 'flex';
+      unlistBtn.style.display = 'flex';
+
     } else {
-      // --- 4. 正常在售 (Active & Approved) ---
+      // --- 4. 正常在售 (Active) ---
       badgeText = '● On Sale';
-      statusBadge.style.backgroundColor = '#ECFDF5'; // 绿色
+      statusBadge.style.backgroundColor = '#ECFDF5';
       statusBadge.style.color = '#10B981';
 
       unlistBtn.innerText = '🔒 Pull Off Shelf (Unlist)';
       unlistBtn.style.background = '#FFF7ED';
       unlistBtn.style.color = '#F59E0B';
       unlistBtn.style.border = '1px solid #FFEDD5';
+
+      // 正常显示操作
+      priceEditBtn.style.display = 'flex';
+      unlistBtn.style.display = 'flex';
     }
 
-    // 应用文字
     statusBadge.innerText = badgeText;
 
     // 图片渲染逻辑 (保持不变)
@@ -359,7 +434,11 @@
     document.getElementById('inputPrice').focus();
   }
 
-  // 🔥 1. 修改价格逻辑 (使用 StatusDialog)
+  // 跳转到发布页（带上 ID）进行全量编辑
+  function goToFullEditPage() {
+    window.location.href = `Publish_Page.html?edit_id=${productId}`;
+  }
+
   async function savePrice() {
     const newPrice = document.getElementById('inputPrice').value;
     try {
@@ -376,7 +455,6 @@
         document.getElementById('btnEdit').style.display = 'flex';
         document.getElementById('btnSave').style.display = 'none';
 
-        // 使用弹窗
         StatusDialog.success('Price Updated', 'The new price has been saved successfully.');
       } else {
         StatusDialog.fail('Update Failed', result.message);
@@ -387,7 +465,6 @@
     }
   }
 
-  // 🔥 2. 下架/上架逻辑 (使用 StatusDialog)
   async function toggleStatus() {
     const badge = document.getElementById('statusBadge');
     const btn = document.getElementById('btnUnlist');
@@ -400,22 +477,16 @@
       const result = await response.json();
       if (result.success) {
         if (result.new_status === 'Unlisted') {
-          // 更新 UI
           badge.className = 'status-badge status-inactive';
           badge.innerText = '● Unlisted';
           btn.innerText = '📢 Re-list Item';
           btn.style.background = '#ECFDF5'; btn.style.color = '#059669'; btn.style.border = '1px solid #A7F3D0';
-
-          // 弹窗
           StatusDialog.success('Item Unlisted', 'This product is now hidden from the marketplace.', 'Okay');
         } else {
-          // 更新 UI
           badge.className = 'status-badge status-active';
           badge.innerText = '● On Sale';
           btn.innerText = '🔒 Pull Off Shelf (Unlist)';
           btn.style.background = '#FFF7ED'; btn.style.color = '#F59E0B'; btn.style.border = '1px solid #FFEDD5';
-
-          // 弹窗
           StatusDialog.success('Item Relisted', 'This product is now visible to buyers.', 'Great');
         }
       } else {
@@ -427,14 +498,12 @@
     }
   }
 
-  // 🔥 3. 删除逻辑 (二次确认 + 成功弹窗)
   function confirmDelete() {
     StatusDialog.confirm(
             'Delete Item?',
             'Are you sure you want to PERMANENTLY delete this item? This action cannot be undone.',
             'Yes, Delete',
             async function() {
-              // 用户点击确认后执行
               try {
                 const response = await fetch('../../Module_Product_Ecosystem/api/Update_Product.php', {
                   method: 'POST',
@@ -443,12 +512,10 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                  // 删除成功后，弹出成功提示，点击返回跳转
                   StatusDialog.success(
                           'Deleted',
                           'Item deleted successfully.',
                           'Back to List',
-                          // 直接跳转到当前目录下的文件
                           () => { window.location.href = 'My_Listings.html'; }
                   );
                 } else {
