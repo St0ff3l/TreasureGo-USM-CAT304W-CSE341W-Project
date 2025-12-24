@@ -262,7 +262,10 @@
             font-weight: 600;
             display: inline-block;
         }
-
+        .status-paid {
+            background: #FFEFD5; /* 米黄色背景 */
+            color: #8B4513;      /* 深褐色文字，匹配图片效果 */
+        }
         .status-pending {
             background: #FEF3C7;
             color: #92400E;
@@ -621,6 +624,7 @@
                         Status
                         <select id="statusFilter" class="filter-select-small" onchange="filterOrders()" title="Filter by Status">
                             <option value="all">All</option>
+                            <option value="paid">Paid</option>
                             <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
                             <option value="completed">Completed</option>
@@ -1083,6 +1087,7 @@
 
     function getStatusClass(status) {
         const statusLower = status ? status.toLowerCase() : 'pending';
+        if (statusLower === 'paid') return 'status-paid';
         if (statusLower === 'completed' || statusLower === 'approved') return 'status-completed';
         if (statusLower === 'processing' || statusLower === 'shipped') return 'status-processing';
         if (statusLower === 'pending') return 'status-pending';

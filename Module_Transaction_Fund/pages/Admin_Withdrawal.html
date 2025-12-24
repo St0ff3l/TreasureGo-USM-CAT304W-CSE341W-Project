@@ -990,11 +990,11 @@
 
         // Extract notes (everything after DuitNow line)
         let notes = remark;
-        if (duitNowMatch) {
-            notes = remark.replace(duitNowMatch[0], '').trim();
-            // Remove "User Notes: " prefix if present
-            notes = notes.replace(/^User Notes:\s*/, '');
-        }
+        if (duitNowMatch) notes = remark.replace(duitNowMatch[0], '').trim();
+// 精准删除包含 [System] Fee 的那一段小字
+        notes = notes.split('\n').filter(line => !line.includes('[System] Fee')).join('\n').trim();
+        notes = notes.replace('User Notes:', '');
+
 
         return { duitNow, notes };
     }
@@ -1331,12 +1331,28 @@
                 <strong style="font-size: 1.1rem;">Processed At:</strong> ${processedAt}
             </div>
             <div style="margin-bottom: 20px;">
-                <strong style="font-size: 1.1rem;">Admin Remark:</strong>
-                <div style="background: #f9fafb; padding: 12px 15px; border-radius: 12px; border: 1px solid #e5e7eb; margin-top: 8px;">
-                    <div style="font-weight: 500; color: #374151;">DuitNow: ${duitNow}</div>
-                    <div style="color: #6b7280; font-size: 0.9rem; margin-top: 4px; white-space: pre-wrap;">${notes || 'No remarks added.'}</div>
-                </div>
+    <strong style="font-size: 1.1rem;">Admin Remark</strong>
+    <div style="background: #f9fafb; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; margin-top: 8px;">
+        <!-- 1. DuitNow 保持原样 -->
+        <div style="font-weight: 500; color: #374151; margin-bottom: 12px;">DuitNow: ${duitNow}</div>
+
+        <!-- 2. 规整化 Fee 区域 -->
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <div style="flex: 1; background: white; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;">
+                <div style="color: #94a3b8; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Fee (3%)</div>
+                <div style="color: #ef4444; font-weight: 700; font-size: 1rem;">$${(request.Amount * 0.03).toFixed(2)}</div>
             </div>
+            <div style="flex: 1; background: white; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;">
+                <div style="color: #94a3b8; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Net Pay</div>
+                <div style="color: #10b981; font-weight: 700; font-size: 1rem;">$${(request.Amount * 0.97).toFixed(2)}</div>
+            </div>
+        </div>
+
+        <!-- 3. 其他备注 -->
+        <div style="color: #64748b; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #e2e8f0; white-space: pre-wrap;">${notes || 'No remarks added.'}</div>
+    </div>
+</div>
+
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Proof Images:</strong>
                 <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
