@@ -402,15 +402,72 @@ require_login();
 
         /* 移动端适配 */
         @media (max-width: 768px) {
-            .chat-container { margin: 0; padding: 0; height: calc(100vh - 70px); border-radius: 0; }
-            .contacts-sidebar { width: 100%; border-radius: 0; }
-            .chat-area { 
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                z-index: 2000; transform: translateX(100%); transition: transform 0.3s ease;
-                border-radius: 0;
+            body {
+                height: 100dvh; /* 使用动态高度适配移动端浏览器地址栏 */
+                overflow: hidden;
             }
+
+            .navbar {
+                padding: 0.8rem 1rem;
+            }
+            .logo { font-size: 1.2rem; }
+            .logo-img { width: 32px; height: 32px; }
+
+            /* 移动端隐藏部分导航按钮，只保留头像/登录 */
+            .nav-actions { gap: 10px; }
+            .nav-actions .nav-btn { display: none; }
+            
+            .chat-container { 
+                margin: 0; 
+                padding: 0; 
+                height: calc(100dvh - 65px); /* 减去 Navbar 高度 */
+                border-radius: 0; 
+            }
+            
+            .contacts-sidebar { 
+                width: 100%; 
+                border-radius: 0; 
+                box-shadow: none;
+            }
+            
+            .chat-area { 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100%; 
+                height: 100dvh; /* 聊天窗口全屏覆盖 */
+                z-index: 2000; 
+                transform: translateX(100%); 
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-radius: 0;
+                background: #fff;
+            }
+            
             .chat-area.active { transform: translateX(0); }
-            .back-btn { display: block !important; margin-right: 10px; cursor: pointer; font-size: 1.2rem; }
+            
+            .back-btn { 
+                display: flex !important; 
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                margin-right: 5px; 
+                cursor: pointer; 
+                font-size: 1.2rem; 
+                border-radius: 50%;
+            }
+            .back-btn:active { background: #f3f4f6; }
+
+            .chat-header { padding: 10px 15px; }
+            
+            .product-context-card { padding: 8px; }
+            .p-ctx-img { width: 40px; height: 40px; }
+            .p-ctx-title { font-size: 0.85rem; }
+            
+            .chat-input-area { padding: 10px; gap: 8px; }
+            .add-btn { width: 36px; height: 36px; font-size: 1.2rem; }
+            .send-btn { width: 36px; height: 36px; }
+            .chat-input { padding: 8px 15px; }
         }
         .back-btn { display: none; }
 
@@ -708,10 +765,18 @@ require_login();
                 
                 // 设置标题和价格
                 document.getElementById('pCtxTitle').innerText = product.Product_Title;
-                document.getElementById('pCtxPrice').innerText = '$' + parseFloat(product.Product_Price).toFixed(2);
+                document.getElementById('pCtxPrice').innerText = 'RM' + parseFloat(product.Product_Price).toFixed(2);
                 
                 // 设置购买链接
-                document.getElementById('pCtxBtn').href = `../../Module_Product_Ecosystem/pages/Order_Confirmation.html?id=${product.Product_ID}`;
+                const buyBtn = document.getElementById('pCtxBtn');
+                buyBtn.href = `../../Module_Product_Ecosystem/pages/Order_Confirmation.html?id=${product.Product_ID}`;
+                buyBtn.onclick = (e) => e.stopPropagation(); // 防止触发卡片点击
+                
+                // 设置卡片点击跳转详情页
+                card.style.cursor = 'pointer';
+                card.onclick = () => {
+                    window.location.href = `../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${product.Product_ID}`;
+                };
                 
                 // 显示卡片
                 card.style.display = 'flex';

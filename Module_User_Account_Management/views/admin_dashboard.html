@@ -159,6 +159,13 @@
         .settings-card canvas { max-width: 100%; height: auto; }
 
         /* --- 响应式调整 --- */
+        .layout-container.wide-view {
+            grid-template-columns: 240px 1fr;
+        }
+        .layout-container.wide-view .action-card {
+            display: none;
+        }
+
         @media (max-width: 1200px) {
             .stats-grid { grid-template-columns: repeat(3, 1fr); }
             div[style*="grid-template-columns: 2fr 1fr"] { grid-template-columns: 1fr !important; }
@@ -700,6 +707,15 @@
         const allBtns = document.querySelectorAll('.sidebar-card button[onclick^="switchView"]');
         allBtns.forEach(btn => btn.classList.remove('active-view'));
         if (btnElement) { btnElement.classList.add('active-view'); }
+
+        // 动态调整布局：User Management 需要更多空间，隐藏右侧栏
+        const layoutContainer = document.querySelector('.layout-container');
+        
+        if (viewName === 'users') {
+            layoutContainer.classList.add('wide-view');
+        } else {
+            layoutContainer.classList.remove('wide-view');
+        }
     }
 
     function escapeHtml(text) {
