@@ -21,8 +21,10 @@ $buyerId = $_SESSION['user_id'];
 $input = json_decode(file_get_contents('php://input'), true);
 $totalAmount = isset($input['total_amount']) ? floatval($input['total_amount']) : 0.00;
 $productId   = isset($input['product_id']) ? intval($input['product_id']) : 0;
-// 配送方式虽然还没存入Orders表，但逻辑上可以保留，或者你在Orders表再加个字段存它
 $shippingType = isset($input['shipping_type']) ? $input['shipping_type'] : 'meetup';
+
+// ✅ NEW: Address ID (for shipping only)
+$addressId = isset($input['address_id']) && $input['address_id'] !== '' ? intval($input['address_id']) : null;
 
 if ($totalAmount <= 0 || $productId === 0) {
     echo json_encode(['success' => false, 'msg' => 'Invalid payment data']);
@@ -34,6 +36,21 @@ try {
 
     // === 开启事务 (Transaction) ===
     $conn->beginTransaction();
+
+    // ✅ Validate address_id (only when shipping)
+    if ($shippingType === 'shipping') {
+        if (!$addressId) {
+            throw new Exception('Shipping address is required');
+        }
+        $stmtAddr = $conn->prepare("SELECT Address_ID FROM Address WHERE Address_ID = :aid AND Address_User_ID = :uid");
+        $stmtAddr->execute([':aid' => $addressId, ':uid' => $buyerId]);
+        if (!$stmtAddr->fetch(PDO::FETCH_ASSOC)) {
+            throw new Exception('Invalid shipping address');
+        }
+    } else {
+        // meetup -> force NULL
+        $addressId = null;
+    }
 
     // ----------------------------------------------------------------
     // 3. 获取商品信息 & 卖家ID (关键步骤：使用 FOR UPDATE 锁住商品防止并发购买)
@@ -97,26 +114,26 @@ try {
     // ----------------------------------------------------------------
     // 6. 生成订单 (插入 Orders 表)
     // ----------------------------------------------------------------
-    // 计算 2% 的平台服务费 (注意：通常是按商品原价算的，不是按含运费的总价)
-    // 这里我们用商品原价 * 0.02 记录下来
     $platformFee = $productPrice * 0.02;
 
     $sqlOrder = "INSERT INTO Orders (
                     Orders_Buyer_ID, 
                     Orders_Seller_ID, 
-                    Product_ID,          /* 记得执行SQL添加这个字段 */
+                    Product_ID,
                     Orders_Total_Amount, 
                     Orders_Platform_Fee, 
                     Orders_Status, 
-                    Orders_Created_AT
+                    Orders_Created_AT,
+                    Address_ID
                 ) VALUES (
                     :buyer_id,
                     :seller_id,
                     :product_id,
                     :total_amount,
                     :platform_fee,
-                    'Paid',              /* 初始状态为已支付 */
-                    NOW()
+                    'Paid',
+                    NOW(),
+                    :address_id
                 )";
 
     $stmtOrder = $conn->prepare($sqlOrder);
@@ -126,6 +143,7 @@ try {
         ':product_id' => $productId,
         ':total_amount' => $totalAmount,
         ':platform_fee' => $platformFee,
+        ':address_id' => $addressId
     ]);
 
     // ----------------------------------------------------------------
