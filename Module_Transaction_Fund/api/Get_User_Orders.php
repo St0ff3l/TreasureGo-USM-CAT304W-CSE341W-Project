@@ -25,9 +25,10 @@ try {
                     o.Orders_Order_ID, 
                     o.Orders_Total_Amount, 
                     o.Orders_Status, 
-                    o.Orders_Created_AT,
+                    MAX(o.Orders_Created_AT) AS Orders_Created_AT,
                     o.Orders_Seller_ID,
                     o.Orders_Buyer_ID,
+                    MAX(o.Address_ID) AS Address_ID,
                     
                     /* 🔥🔥 修改：使用 MAX() 解决 GROUP BY 报错 🔥🔥 */
                     MAX(s.Shipments_Shipped_Time) AS Orders_Shipped_At,
@@ -58,7 +59,7 @@ try {
                
                WHERE o.Orders_Buyer_ID = :uid
                GROUP BY o.Orders_Order_ID
-               ORDER BY o.Orders_Created_AT DESC";
+               ORDER BY Orders_Created_AT DESC";
 
     $stmtBuy = $conn->prepare($sqlBuy);
     $stmtBuy->execute([':uid' => $userId]);
@@ -71,9 +72,10 @@ try {
                     o.Orders_Order_ID, 
                     o.Orders_Total_Amount, 
                     o.Orders_Status, 
-                    o.Orders_Created_AT,
+                    MAX(o.Orders_Created_AT) AS Orders_Created_AT,
                     o.Orders_Seller_ID,
                     o.Orders_Buyer_ID,
+                    MAX(o.Address_ID) AS Address_ID,
 
                     /* 🔥🔥 修改：使用 MAX() 解决 GROUP BY 报错 🔥🔥 */
                     MAX(s.Shipments_Shipped_Time) AS Orders_Shipped_At,
@@ -104,7 +106,7 @@ try {
 
                WHERE o.Orders_Seller_ID = :uid
                GROUP BY o.Orders_Order_ID
-               ORDER BY o.Orders_Created_AT DESC";
+               ORDER BY Orders_Created_AT DESC";
 
     $stmtSell = $conn->prepare($sqlSell);
     $stmtSell->execute([':uid' => $userId]);

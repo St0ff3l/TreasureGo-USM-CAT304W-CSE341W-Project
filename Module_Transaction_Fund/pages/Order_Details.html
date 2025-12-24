@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Details - TreasureGO</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <style>
     /* =========================================
        1. Global Variables & Reset
@@ -206,6 +207,61 @@
       padding: 10px 24px; border-radius: 12px; cursor: pointer; font-weight: 600;
     }
     .btn-modal-submit:hover { background: #DC2626; }
+
+    /* =========================================
+       Address card styles (aligned with profile.html)
+       ========================================= */
+    .address-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 16px;
+      padding: 20px; transition: all 0.2s;
+    }
+    .address-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+    .addr-content { flex: 1; padding-right: 20px; }
+
+    .addr-main-text {
+      font-size: 1.1rem; font-weight: 700; color: #111827;
+      line-height: 1.4; margin-bottom: 8px;
+      display: inline-flex; align-items: center;
+    }
+
+    .addr-meta-row {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    .addr-name-bold {
+      font-weight: 700; font-size: 0.95rem; color: #374151;
+      display: inline-flex; align-items: center;
+    }
+
+    .addr-phone-text {
+      color: #6B7280; font-size: 0.9rem; font-family: monospace; letter-spacing: 0.5px;
+      display: inline-flex; align-items: center;
+    }
+
+    .addr-tag {
+      font-size: 0.7rem; background: #FEF2F2; color: #EF4444;
+      padding: 2px 8px; border-radius: 6px; font-weight: 600; border: 1px solid #FEE2E2;
+      margin-left: 8px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .addr-main-text i {
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin-right: 8px;
+    }
+
+    .addr-meta-row i {
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      margin-right: 4px;
+    }
+
+    /* ...existing code... */
   </style>
 </head>
 <body>
@@ -279,11 +335,15 @@
   const urlParams = new URLSearchParams(window.location.search);
   const ORDER_ID = urlParams.get('id');
   const API_URL = '../api/Get_User_Orders.php';
+  const ORDER_ADDRESS_API = '../api/Get_Order_Address.php';
   let CURRENT_USER_ID = null;
 
   // --- 全局变量用于图片画廊 ---
   let globalOrderImages = [];
   let currentOrderImageIndex = 0;
+
+  // --- Shipping address state ---
+  let currentOrderAddress = null;
 
   async function init() {
     if (!ORDER_ID) {
@@ -311,6 +371,10 @@
 
       if (targetOrder) {
         console.log("Full Order Data:", targetOrder);
+
+        // Fetch buyer shipping address for both roles (if any)
+        await loadOrderAddress(targetOrder);
+
         renderOrder(targetOrder);
       } else {
         document.getElementById('detailContent').innerHTML = '<h2 style="text-align:center;">Order not found.</h2>';
@@ -319,6 +383,23 @@
     } catch (error) {
       console.error(error);
       document.getElementById('detailContent').innerHTML = '<h2 style="text-align:center; color:red;">Error loading details.</h2>';
+    }
+  }
+
+  async function loadOrderAddress(order) {
+    currentOrderAddress = null;
+
+    try {
+      const res = await fetch(`${ORDER_ADDRESS_API}?order_id=${encodeURIComponent(order.Orders_Order_ID)}`);
+      const json = await res.json();
+      if (json.success) {
+        currentOrderAddress = json.data; // can be null for meetup
+      } else {
+        currentOrderAddress = null;
+      }
+    } catch (e) {
+      console.warn('Failed to load order address:', e);
+      currentOrderAddress = null;
     }
   }
 
@@ -455,6 +536,58 @@
             ? (order.Seller_Username || `ID: ${order.Orders_Seller_ID}`)
             : (order.Buyer_Username || `ID: ${order.Orders_Buyer_ID}`);
 
+    const addrIdFromOrder = order.Address_ID ?? order.address_id ?? order.Orders_Address_ID ?? null;
+    const addressBlock = (() => {
+      // meetup or not provided in order list -> also treat as meetup
+      if (!addrIdFromOrder) {
+        return `
+          <div class="info-section">
+            <div class="section-label">Shipping Address (Buyer)</div>
+            <div class="address-item">
+              <div class="addr-content">
+                <div class="addr-main-text"><i class="ri-handshake-line"></i>Meet-up order (no shipping address)</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // We queried by order_id; if still null it means address missing or not accessible
+      if (!currentOrderAddress) {
+        return `
+          <div class="info-section">
+            <div class="section-label">Shipping Address (Buyer)</div>
+            <div class="address-item">
+              <div class="addr-content">
+                <div class="addr-main-text"><i class="ri-map-pin-2-line"></i>Address ID: #${escapeHtml(addrIdFromOrder)} (unable to load details)</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const a = currentOrderAddress;
+      const tagHtml = (String(a.Address_Is_Default) === '1')
+        ? `<span class="addr-tag"><i class="ri-star-line"></i>Default</span>`
+        : '';
+
+      return `
+        <div class="info-section">
+          <div class="section-label">Shipping Address (Buyer)</div>
+          <div class="address-item">
+            <div class="addr-content">
+              <div class="addr-main-text"><i class="ri-map-pin-2-line"></i>${escapeHtml(a.Address_Detail)}${tagHtml}</div>
+              <div class="addr-meta-row">
+                <span class="addr-name-bold"><i class="ri-user-line"></i>${escapeHtml(a.Address_Receiver_Name)}</span>
+                <span class="addr-phone-text"><i class="ri-phone-line"></i>${escapeHtml(a.Address_Phone_Number)}</span>
+                <span class="addr-phone-text" style="opacity:0.75;"><i class="ri-hashtag"></i>ID: #${escapeHtml(a.Address_ID)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    })();
+
     const html = `
             <div class="detail-header">
                 <div class="detail-title">
@@ -481,7 +614,7 @@
                 <div class="order-info">
                     <div class="section-label">Product Details</div>
                     <h2 class="product-title-large">${order.Product_Title}</h2>
-                    <span class="price-tag">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
+                    <span class="price-tag">RM${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
 
                     <div class="specs-grid">
                         <div class="spec-item"><span class="spec-key">Role</span><span class="spec-value">${isBuyer ? '🛒 Buying' : '🏷️ Selling'}</span></div>
@@ -502,6 +635,8 @@
                         <div class="spec-item"><span class="spec-key">Product ID</span><span class="spec-value">#${order.Product_ID}</span></div>
                     </div>
 
+                    ${addressBlock}
+
                     <div class="info-section">
                         <div class="section-label">Description</div>
                         <div class="description-box">${order.Product_Description || 'No description provided.'}</div>
@@ -514,6 +649,15 @@
 
     document.getElementById('detailContent').innerHTML = html;
     updateGalleryDisplay();
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 
   // --- 画廊更新逻辑 ---

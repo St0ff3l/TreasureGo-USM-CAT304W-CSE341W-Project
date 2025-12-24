@@ -8,6 +8,9 @@
 
     <script src="../../Public_Assets/js/status_dialog.js"></script>
 
+    <!-- Add Remixicon so the confirm page can use the same icons as profile address cards -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
     <style>
         /* --- Core Variables & Reset --- */
         :root {
@@ -235,6 +238,32 @@
         }
         .btn-cancel:hover { background: #F8FAFC; color: var(--text-dark); border-color: #CBD5E1; transform: translateY(-2px); }
 
+        /* --- Address card (match profile.html style) --- */
+        .addr-main-text {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .addr-main-text i { font-size: 1.2rem; color: var(--primary); margin-right: 8px; }
+        .addr-meta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .addr-meta-row i { font-size: 0.9rem; color: var(--text-gray); margin-right: 4px; }
+        .addr-name-bold { font-weight: 700; font-size: 0.95rem; color: #374151; display: inline-flex; align-items: center; }
+        .addr-phone-text { color: #6B7280; font-size: 0.9rem; font-family: monospace; letter-spacing: 0.5px; display: inline-flex; align-items: center; }
+        .addr-tag {
+            font-size: 0.7rem;
+            background: #FEF2F2;
+            color: #EF4444;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: 1px solid #FEE2E2;
+            margin-left: 8px;
+        }
+
         @media (max-width: 768px) {
             .navbar { padding: 1rem 20px; }
             .container { margin-top: 20px; grid-template-columns: 1fr; gap: 20px; padding: 0 20px; }
@@ -285,9 +314,27 @@
             </div>
 
             <div id="shipping-form">
-                <div class="input-group"><label>Full Name</label><input type="text" class="input-field" placeholder="Receiver's Name"></div>
-                <div class="input-group"><label>Street Address</label><input type="text" class="input-field" placeholder="123 Main St, Apt 4B"></div>
-                <div class="input-group"><label>City & Zip Code</label><div style="display:flex; gap:16px;"><input type="text" class="input-field" placeholder="City"><input type="text" class="input-field" placeholder="Zip Code"></div></div>
+                <!-- Shipping address pulled from Address book -->
+                <div class="input-group">
+                    <label>Shipping Address</label>
+                    <div id="shipping-address-box" style="background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px;">
+                        <div id="ship-addr-detail" class="addr-main-text">
+                            <i class="ri-map-pin-2-line"></i>Loading address...
+                        </div>
+                        <div class="addr-meta-row" style="margin-top:6px; color:#64748B;">
+                            <span class="addr-name-bold"><i class="ri-user-line"></i><span id="ship-addr-name">-</span></span>
+                            <span class="addr-phone-text"><i class="ri-phone-line"></i><span id="ship-addr-phone">-</span></span>
+                            <span id="ship-addr-default-tag" class="addr-tag" style="display:none;">Default</span>
+                        </div>
+                    </div>
+                    <small id="ship-addr-hint" style="display:block; margin-top:10px; color:#64748B;">
+                        Address will be used for delivery.
+                    </small>
+                </div>
+
+                <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                    <button type="button" class="btn-cancel" style="margin-top:0; width:auto; padding:12px 16px;" onclick="goManageAddress()">Add / Manage Address</button>
+                </div>
             </div>
         </div>
     </div>
@@ -324,6 +371,9 @@
     let currentShippingCost = 7.00;
     let userCurrentBalance = 0.00;
 
+    // Shipping address state
+    let selectedShippingAddress = null;
+
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
 
@@ -337,6 +387,7 @@
         document.getElementById('btn-cancel').href = `Product_Detail.html?id=${productId}`;
         fetchProductData(productId);
         fetchUserBalance();
+        fetchShippingAddress();
     });
 
     async function fetchProductData(id) {
@@ -380,7 +431,7 @@
 
         const imgBox = document.getElementById('order-img');
         if (item.Main_Image) {
-            const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+            const cleanPath = String(item.Main_Image).replace(/^.*?Public_Products\//, 'Public_Products/');
             imgBox.innerHTML = `<img src="../${cleanPath}" alt="Product Image">`;
         } else {
             imgBox.innerText = '📷';
@@ -389,30 +440,23 @@
         const meetOpt = document.getElementById('opt-meet');
         const shipOpt = document.getElementById('opt-ship');
 
-        // --- 核心判断逻辑修改 ---
         if (item.Delivery_Method === 'shipping') {
-            // 情况1：仅支持快递 -> 禁用面交
             selectDelivery('ship');
             meetOpt.classList.add('disabled');
             meetOpt.innerHTML += '<div style="font-size:0.7rem; margin-top:5px; color:#ef4444; font-weight:600;">(Unavailable)</div>';
         }
         else if (item.Delivery_Method === 'meetup') {
-            // 情况2：仅支持面交 -> 禁用快递 (新增逻辑)
             selectDelivery('meet');
             shipOpt.classList.add('disabled');
             shipOpt.innerHTML += '<div style="font-size:0.7rem; margin-top:5px; color:#ef4444; font-weight:600;">(Unavailable)</div>';
         }
         else {
-            // 情况3：两者都支持 -> 默认选中快递
             selectDelivery('ship');
         }
 
         calculateTotals();
     }
 
-    // ==============================================
-    // 3. 配送切换逻辑 (复用旧版 0 vs 7 的逻辑)
-    // ==============================================
     function selectDelivery(type) {
         const meetOpt = document.getElementById('opt-meet');
         const shipOpt = document.getElementById('opt-ship');
@@ -442,18 +486,11 @@
         document.getElementById('total-price-display').innerText = `RM${total.toFixed(2)}`;
     }
 
-    // ==============================================
-    // 4. 支付触发器：仅保留二次确认 UI
-    // ==============================================
     function handlePayClick() {
-        if (currentShippingCost > 0) {
-            const addressInputs = document.querySelectorAll('#shipping-form .input-field');
-            for (let input of addressInputs) {
-                if (input.value.trim() === "") {
-                    StatusDialog.fail('Missing Info', 'Please fill in all shipping details.', 'OK');
-                    return;
-                }
-            }
+        const isShipping = currentShippingCost > 0;
+        if (isShipping && !selectedShippingAddress) {
+            StatusDialog.fail('No Address', 'Please add/select a shipping address first.', 'Go to Address', goManageAddress);
+            return;
         }
 
         const totalAmount = parseFloat(document.getElementById('total-price-display').innerText.replace('RM', ''));
@@ -468,9 +505,6 @@
         );
     }
 
-    // ==============================================
-    // 5. 核心支付逻辑 (复用旧版：余额不足直接跳失败页)
-    // ==============================================
     async function processPayment(totalAmount) {
         const payBtn = document.querySelector('.btn-pay');
 
@@ -484,7 +518,8 @@
         const payload = {
             product_id: productId,
             total_amount: totalAmount,
-            shipping_type: shippingType
+            shipping_type: shippingType,
+            address_id: (shippingType === 'shipping' && selectedShippingAddress) ? selectedShippingAddress.Address_ID : null
         };
 
         payBtn.disabled = true;
@@ -500,7 +535,6 @@
             const result = await response.json();
 
             if (result.success) {
-                // 兼容当前 Payment_Success.html 的逻辑：带 type=order
                 window.location.href = "Payment_Success.html?type=order";
             } else {
                 console.warn("Payment failed:", result.msg);
@@ -519,6 +553,77 @@
             payBtn.innerText = "Pay Now";
         }
     }
+
+    async function fetchShippingAddress() {
+        try {
+            const res = await fetch('../../Module_User_Account_Management/api/get_addresses.php');
+            const json = await res.json();
+
+            if (json.status !== 'success' || !Array.isArray(json.data) || json.data.length === 0) {
+                selectedShippingAddress = null;
+                renderNoShippingAddress();
+                return;
+            }
+
+            const list = json.data;
+            const def = list.find(a => String(a.Address_Is_Default) === '1');
+            selectedShippingAddress = def || list[0];
+            renderShippingAddress(selectedShippingAddress);
+
+        } catch (err) {
+            console.error('Fetch shipping address error:', err);
+            selectedShippingAddress = null;
+            renderNoShippingAddress();
+        }
+    }
+
+    function renderShippingAddress(addr) {
+        const detailEl = document.getElementById('ship-addr-detail');
+        const nameEl = document.getElementById('ship-addr-name');
+        const phoneEl = document.getElementById('ship-addr-phone');
+        const tagEl = document.getElementById('ship-addr-default-tag');
+        const hintEl = document.getElementById('ship-addr-hint');
+
+        if (detailEl) {
+            const text = addr.Address_Detail || '-';
+            detailEl.innerHTML = `<i class="ri-map-pin-2-line"></i>${escapeHtml(text)}`;
+        }
+        if (nameEl) nameEl.innerText = addr.Address_Receiver_Name || '-';
+        if (phoneEl) phoneEl.innerText = addr.Address_Phone_Number || '-';
+
+        const isDef = String(addr.Address_Is_Default) === '1';
+        if (tagEl) tagEl.style.display = isDef ? 'inline-block' : 'none';
+        if (hintEl) hintEl.innerText = 'Using your saved address for delivery.';
+    }
+
+    function renderNoShippingAddress() {
+        const detailEl = document.getElementById('ship-addr-detail');
+        const nameEl = document.getElementById('ship-addr-name');
+        const phoneEl = document.getElementById('ship-addr-phone');
+        const tagEl = document.getElementById('ship-addr-default-tag');
+        const hintEl = document.getElementById('ship-addr-hint');
+
+        if (detailEl) detailEl.innerHTML = `<i class="ri-map-pin-2-line"></i>No saved address found.`;
+        if (nameEl) nameEl.innerText = '-';
+        if (phoneEl) phoneEl.innerText = '-';
+        if (tagEl) tagEl.style.display = 'none';
+        if (hintEl) hintEl.innerText = 'Please add an address to use Shipping.';
+    }
+
+    function goManageAddress() {
+        window.location.href = '/Module_User_Account_Management/views/profile.html#address';
+    }
+
+    function escapeHtml(str) {
+        return String(str ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    window.goManageAddress = goManageAddress;
 </script>
 </body>
 </html>
