@@ -19,11 +19,20 @@ if (!$contact_id) {
     exit();
 }
 
+// Product chat is required here to prevent mixing with support tickets.
+if ($product_id === null || $product_id === '' || strtolower((string)$product_id) === 'null') {
+    echo json_encode(['status' => 'error', 'message' => 'product_id is required for product chat messages']);
+    exit();
+}
+if (!ctype_digit((string)$product_id)) {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid product_id']);
+    exit();
+}
+$product_id = (int)$product_id;
+
 try {
     $pdo = getDBConnection();
-    
-    // 获取与指定联系人的聊天记录
-    // 映射字段名以匹配前端逻辑
+
     $sql = "
         SELECT 
             Message_ID,
@@ -32,22 +41,16 @@ try {
             Message_Content,
             Message_Type,
             Message_Sent_At as Created_At,
-            Message_Is_Read as Is_Read
+            Message_Is_Read as Is_Read,
+            Product_ID
         FROM Message 
         WHERE ((Message_Sender_ID = ? AND Message_Reciver_ID = ?) 
            OR (Message_Sender_ID = ? AND Message_Reciver_ID = ?))
+          AND Product_ID = ?
+        ORDER BY Message_Sent_At ASC
     ";
-    
-    $params = [$current_user_id, $contact_id, $contact_id, $current_user_id];
 
-    if ($product_id) {
-        $sql .= " AND Product_ID = ?";
-        $params[] = $product_id;
-    } else {
-        $sql .= " AND Product_ID IS NULL";
-    }
-
-    $sql .= " ORDER BY Message_Sent_At ASC";
+    $params = [$current_user_id, $contact_id, $contact_id, $current_user_id, $product_id];
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -58,18 +61,10 @@ try {
         UPDATE Message 
         SET Message_Is_Read = 1 
         WHERE Message_Sender_ID = ? AND Message_Reciver_ID = ? AND Message_Is_Read = 0
+          AND Product_ID = ?
     ";
-    $updateParams = [$contact_id, $current_user_id];
-
-    if ($product_id) {
-        $updateSql .= " AND Product_ID = ?";
-        $updateParams[] = $product_id;
-    } else {
-        $updateSql .= " AND Product_ID IS NULL";
-    }
-
     $updateStmt = $pdo->prepare($updateSql);
-    $updateStmt->execute($updateParams);
+    $updateStmt->execute([$contact_id, $current_user_id, $product_id]);
 
     echo json_encode(['status' => 'success', 'data' => $messages]);
 

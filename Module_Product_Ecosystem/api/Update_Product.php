@@ -59,7 +59,6 @@ try {
 
     } elseif ($action === 'toggle_status') {
         // --- 上下架切换 ---
-        // 如果当前是 Active，就改成 Unlisted；反之亦然
         $newStatus = ($product['Product_Status'] === 'Active') ? 'Unlisted' : 'Active';
 
         $updateSql = "UPDATE Product SET Product_Status = ? WHERE Product_ID = ?";
@@ -69,21 +68,37 @@ try {
         echo json_encode(['success' => true, 'new_status' => $newStatus, 'message' => 'Status changed to ' . $newStatus]);
 
     } elseif ($action === 'delete') {
-        // --- 删除商品 ---
-        // 1. 先删图片 (可选，防止孤儿数据)
-        $delImg = "DELETE FROM Product_Images WHERE Product_ID = ?";
-        $pdo->prepare($delImg)->execute([$product_id]);
+        // --- 删除商品 (带事务和外键处理) ---
+        try {
+            $pdo->beginTransaction();
 
-        // 2. 再删商品
-        $delProd = "DELETE FROM Product WHERE Product_ID = ?";
-        $stmt = $pdo->prepare($delProd);
-        $stmt->execute([$product_id]);
+            // 1. 先删图片记录
+            $delImg = "DELETE FROM Product_Images WHERE Product_ID = ?";
+            $pdo->prepare($delImg)->execute([$product_id]);
 
-        echo json_encode(['success' => true, 'message' => 'Product deleted.']);
+            // 2. 再删审核记录 (修复外键报错的关键)
+            $delReview = "DELETE FROM Product_Admin_Review WHERE Product_ID = ?";
+            $pdo->prepare($delReview)->execute([$product_id]);
+
+            // 3. 最后删除商品本身
+            $delProd = "DELETE FROM Product WHERE Product_ID = ?";
+            $stmt = $pdo->prepare($delProd);
+            $stmt->execute([$product_id]);
+
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Product and related records deleted successfully.']);
+
+        } catch (Exception $e) {
+            // 如果出错，回滚所有删除操作
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
 }
 ?>

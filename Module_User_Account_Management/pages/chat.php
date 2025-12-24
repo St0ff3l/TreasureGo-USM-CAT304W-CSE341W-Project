@@ -773,11 +773,18 @@ require_login();
     async function loadMessages() {
         if (!currentContactId) return;
 
-        try {
-            let url = `../api/chat/get_messages.php?contact_id=${currentContactId}`;
-            if (currentProductId) {
-                url += `&product_id=${currentProductId}`;
+        // Product chat requires product_id; don't fall back to support (Product_ID IS NULL).
+        if (!currentProductId) {
+            console.warn('Missing currentProductId; refusing to load messages without product_id to avoid mixing with support chat.');
+            const container = document.getElementById('messagesContainer');
+            if (container) {
+                container.innerHTML = '<div style="padding:16px;color:#9CA3AF;">This conversation is missing a Product_ID, so messages can\'t be loaded here.</div>';
             }
+            return;
+        }
+
+        try {
+            let url = `../api/chat/get_messages.php?contact_id=${currentContactId}&product_id=${currentProductId}`;
 
             const res = await fetch(url);
             const json = await res.json();

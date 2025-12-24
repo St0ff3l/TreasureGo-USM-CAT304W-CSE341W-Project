@@ -107,7 +107,7 @@
     .item-summary {
       display: grid;
       /* 调整列宽比例，给内容更多空间 */
-      grid-template-columns: 90px 2fr 1.5fr 1fr 1fr 140px;
+      grid-template-columns: 90px 2fr 1.5fr 1fr 1fr 160px; /* 微调最后一列宽度 */
       align-items: center;
       padding: 30px; /* 卡片内边距大幅增加 */
       gap: 30px;     /* 列之间的间距增加 */
@@ -157,18 +157,84 @@
     .status-approved { background: #D1FAE5; color: #059669; }
     .status-rejected { background: #FEE2E2; color: #DC2626; }
 
-    /* 操作按钮 */
-    .col-actions { display: flex; gap: 15px; justify-content: flex-end; }
-    .btn-action {
-      width: 44px; height: 44px; /* 按钮变大 */
-      border-radius: 50%; border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: var(--transition); font-size: 1.4rem;
+    /* --- 操作按钮 (Actions) - 重点修改 --- */
+    .col-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      align-items: center;
     }
-    .btn-approve { background: #D1FAE5; color: #059669; }
-    .btn-approve:hover { background: #059669; color: white; transform: scale(1.1); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
-    .btn-reject { background: #FEE2E2; color: #DC2626; }
-    .btn-reject:hover { background: #DC2626; color: white; transform: scale(1.1); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3); }
+
+    .btn-action {
+      /* 强制正圆的关键属性 */
+      width: 46px;
+      height: 46px;
+      min-width: 46px; /* 防止被挤压 */
+      min-height: 46px;
+
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* 有弹性的动画 */
+      font-size: 1.3rem;
+      flex-shrink: 0; /* 严禁缩小 */
+      position: relative;
+    }
+
+    /* 通用悬停效果：上浮 + 阴影加深 */
+    .btn-action:hover {
+      transform: translateY(-3px) scale(1.05);
+    }
+    .btn-action:active {
+      transform: scale(0.95);
+    }
+
+    /* 1. 批准按钮 (Approve) - 绿色 */
+    .btn-approve {
+      background: #ECFDF5; /* 浅绿背景 */
+      color: #059669;      /* 深绿图标 */
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.15); /* 绿色柔光 */
+    }
+    .btn-approve:hover {
+      background: #059669;
+      color: white;
+      box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+    }
+
+    /* 2. 拒绝按钮 (Reject) - 红色 */
+    .btn-reject {
+      background: #FEF2F2; /* 浅红背景 */
+      color: #DC2626;      /* 深红图标 */
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.15); /* 红色柔光 */
+    }
+    .btn-reject:hover {
+      background: #DC2626;
+      color: white;
+      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+    }
+
+    /* 3. AI 按钮 - 紫色渐变 */
+    .btn-ai {
+      background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35); /* 紫色柔光 */
+    }
+    .btn-ai:hover {
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5);
+      transform: translateY(-3px) rotate(-10deg); /* AI按钮特有的旋转动效 */
+    }
+    .btn-ai.loading { cursor: wait; opacity: 0.8; animation: pulse 1.5s infinite; pointer-events: none; }
+
+    /* 分割线 */
+    .action-divider {
+      width: 1px;
+      height: 24px;
+      background: #E5E7EB;
+      margin: 0 4px;
+    }
 
     /* --- 详情展开区域 (Details Panel) --- */
     .item-details {
@@ -273,6 +339,21 @@
       .details-content { flex-direction: column; gap: 30px; padding: 25px; }
       .detail-meta { border-left: none; border-top: 1px solid #e5e7eb; padding-left: 0; padding-top: 20px; }
     }
+
+    /* AI 结果框 */
+    .ai-result-box {
+      margin-top: 20px; padding: 20px; border-radius: 16px;
+      background: #F8FAFC; border: 1px solid #E2E8F0;
+      display: none; animation: fadeIn 0.3s ease;
+    }
+    .ai-result-box.safe { border-left: 5px solid #10B981; background: #ECFDF5; }
+    .ai-result-box.risky { border-left: 5px solid #EF4444; background: #FEF2F2; }
+
+    .ai-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .risk-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; color:white; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
   </style>
 </head>
 <body>
@@ -315,6 +396,10 @@
   let currentRejectId = null;
   const API_BASE = '../api/';
 
+  // ✨ AI 功能专用路径
+  const AI_API_PATH = '../../Module_Product_Ecosystem/api/AI_Check_Product.php';
+  const CRON_API_PATH = '../api/Cron_AI_Audit.php';
+
   // --- 1. Load Data ---
   async function loadAuditList(status = 'pending') {
     const container = document.getElementById('audit-list-container');
@@ -338,6 +423,11 @@
   // --- 2. Initial Load ---
   document.addEventListener('DOMContentLoaded', () => {
     loadAuditList('pending');
+
+    // ✨ 页面加载3秒后，自动触发一次后台AI扫描
+    setTimeout(triggerBackgroundAudit, 3000);
+    // ✨ 每隔30秒，再次触发
+    setInterval(triggerBackgroundAudit, 30000);
   });
 
   // --- 3. Filter Tabs ---
@@ -358,20 +448,17 @@
     }
 
     items.forEach(item => {
-      // ✅ 修复：解析后端 GROUP_CONCAT 返回的逗号分隔字符串
       let imagePaths = [];
       if (item.image) {
         imagePaths = item.image.toString().split(',').map(path => path.trim());
       }
 
-      // 辅助函数：处理相对路径
       const getCleanPath = (rawPath) => {
         if (!rawPath) return '';
         const clean = rawPath.replace(/^\.\.\//, '');
         return '../../' + clean;
       };
 
-      // 1. 列表封面图 (只显示第1张)
       let thumbHtml = '<div class="no-img">📦</div>';
       if (imagePaths.length > 0) {
         const firstPath = getCleanPath(imagePaths[0]);
@@ -380,7 +467,6 @@
                        onerror="this.onerror=null; this.outerHTML='<div class=\\'no-img\\'>📦</div>'">`;
       }
 
-      // 2. 详情页多图画廊 (显示所有图)
       let galleryHtml = '';
       if (imagePaths.length > 0) {
         imagePaths.forEach(path => {
@@ -395,7 +481,6 @@
         galleryHtml = '<span style="color:#999; font-style:italic;">No images uploaded</span>';
       }
 
-      // 状态标准化
       const rawStatus = item.status || 'pending';
       const normalizedStatus = rawStatus.toLowerCase();
       const statusClass = `status-${normalizedStatus}`;
@@ -405,14 +490,21 @@
       let actionsHtml = '';
       if (normalizedStatus === 'pending') {
         actionsHtml = `
-            <button class="btn-action btn-approve" title="Approve" onclick="handleApprove(event, ${item.id})">✓</button>
-            <button class="btn-action btn-reject" title="Reject" onclick="openRejectModal(event, ${item.id})">✕</button>
+            <button class="btn-action btn-ai" title="Manual AI Check" onclick="runAICheck(event, ${item.id})">✨</button>
+            <div class="action-divider"></div>
+
+            <button class="btn-action btn-approve" title="Approve" onclick="handleApprove(event, ${item.id})">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+
+            <button class="btn-action btn-reject" title="Reject" onclick="openRejectModal(event, ${item.id})">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         `;
       } else {
         actionsHtml = `<span style="color:#ccc; font-size:1rem; font-weight:600;">${statusText}</span>`;
       }
 
-      // 审核日志
       let auditLogHtml = '';
       if (item.comment && normalizedStatus !== 'pending') {
         const logColor = normalizedStatus === 'rejected' ? '#FEF2F2' : '#F0FDF4';
@@ -428,7 +520,6 @@
           `;
       }
 
-      // 渲染 HTML
       const html = `
           <div class="audit-item" id="item-${item.id}">
               <div class="item-summary" onclick="toggleDetails(${item.id})">
@@ -461,7 +552,11 @@
               <div class="item-details" id="details-${item.id}">
                   <div class="details-content">
                       <div class="detail-desc">
-                          ${auditLogHtml} <br>
+                          ${auditLogHtml}
+
+                          <div id="ai-result-${item.id}" class="ai-result-box"></div>
+                          <br>
+
                           <span class="detail-label">Description</span>
                           <p class="detail-text">${item.description}</p>
 
@@ -585,6 +680,76 @@
       closeRejectModal();
     }
   });
+
+  async function runAICheck(e, id) {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const resultBox = document.getElementById(`ai-result-${id}`);
+    const originalIcon = btn.innerHTML;
+    btn.innerHTML = '⏳';
+    btn.classList.add('loading');
+
+    if (!document.getElementById(`details-${id}`).classList.contains('open')) {
+      toggleDetails(id);
+    }
+
+    try {
+      const res = await fetch(AI_API_PATH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: id })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const ai = data.ai_analysis;
+        const isSafe = ai.suggestion === 'Approve';
+        const boxClass = isSafe ? 'safe' : 'risky';
+        const badgeColor = isSafe ? '#10B981' : '#EF4444';
+        const icon = isSafe ? '🛡️ Safe' : '⚠️ Risk';
+
+        resultBox.className = `ai-result-box ${boxClass}`;
+        resultBox.innerHTML = `
+            <div class="ai-header">
+                <strong style="color:${badgeColor}; font-size:1.1rem;">${icon}</strong>
+                <span class="risk-badge" style="background:${badgeColor}">Risk: ${ai.risk_score}%</span>
+            </div>
+            <div style="margin-bottom:8px; font-weight:700; color:#333;">
+                Suggestion: ${ai.suggestion}
+            </div>
+            <p style="color:#555; line-height:1.5;">${ai.reason}</p>
+        `;
+        resultBox.style.display = 'block';
+
+        if (!isSafe) {
+          currentRejectId = id;
+          document.getElementById('rejectReasonInput').value = "[AI Audit] " + ai.reason;
+        }
+      } else {
+        alert('AI 报错: ' + data.msg);
+        console.error(data);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('网络错误，请检查控制台');
+    } finally {
+      btn.innerHTML = originalIcon;
+      btn.classList.remove('loading');
+    }
+  }
+
+  function triggerBackgroundAudit() {
+    fetch(CRON_API_PATH, { method: 'GET' })
+            .then(res => res.json())
+            .then(data => {
+              if (data.processed && data.processed.length > 0) {
+                console.log('🤖 后台已处理:', data.processed);
+              }
+            })
+            .catch(err => {
+              console.log('后台任务静默运行中...');
+            });
+  }
 
 </script>
 

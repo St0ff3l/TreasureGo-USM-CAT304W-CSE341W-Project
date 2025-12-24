@@ -126,6 +126,7 @@
 
     /* Empty State */
     .empty-state { text-align: center; padding: 60px 20px; display: none; }
+    .empty-state.visible { display: block; }
     .empty-icon { font-size: 4rem; margin-bottom: 20px; display: block; opacity: 0.5; }
 
     /* --- 已售出商品样式 --- */
@@ -181,25 +182,55 @@
   <div class="tabs-container">
     <button class="tab-btn active" onclick="switchTab('active', this)">Active <span class="tab-count" id="count-active">0</span></button>
     <button class="tab-btn" onclick="switchTab('review', this)">Under Review <span class="tab-count" id="count-review">0</span></button>
+    <button class="tab-btn" onclick="switchTab('unlisted', this)">Unlisted <span class="tab-count" id="count-unlisted">0</span></button>
+    <button class="tab-btn" onclick="switchTab('rejected', this)">Rejected <span class="tab-count" id="count-rejected">0</span></button>
     <button class="tab-btn" onclick="switchTab('sold', this)">Sold <span class="tab-count" id="count-sold">0</span></button>
-    <button class="tab-btn" onclick="switchTab('inactive', this)">Inactive <span class="tab-count" id="count-inactive">0</span></button>
   </div>
 
+  <!-- Tab Contents -->
   <div id="tab-active" class="tab-content active">
     <div class="product-grid" id="grid-active"></div>
-    <div class="empty-state" id="empty-active"><span class="empty-icon">📦</span><p style="color:#999;">No active listings.</p></div>
+    <div class="empty-state" id="empty-active">
+      <span class="empty-icon">🛍️</span>
+      <h3>No active listings</h3>
+      <p style="color:var(--text-gray); margin-top:10px;">Your items for sale will appear here.</p>
+    </div>
   </div>
+
   <div id="tab-review" class="tab-content">
     <div class="product-grid" id="grid-review"></div>
-    <div class="empty-state" id="empty-review"><span class="empty-icon">📝</span><p style="color:#999;">No items under review.</p></div>
+    <div class="empty-state" id="empty-review">
+      <span class="empty-icon">⏳</span>
+      <h3>No items under review</h3>
+      <p style="color:var(--text-gray); margin-top:10px;">Items waiting for approval will appear here.</p>
+    </div>
   </div>
+
+  <div id="tab-unlisted" class="tab-content">
+    <div class="product-grid" id="grid-unlisted"></div>
+    <div class="empty-state" id="empty-unlisted">
+      <span class="empty-icon">📁</span>
+      <h3>No unlisted items</h3>
+      <p style="color:var(--text-gray); margin-top:10px;">Drafts and hidden items will appear here.</p>
+    </div>
+  </div>
+
+  <div id="tab-rejected" class="tab-content">
+    <div class="product-grid" id="grid-rejected"></div>
+    <div class="empty-state" id="empty-rejected">
+      <span class="empty-icon">⚠️</span>
+      <h3>No rejected items</h3>
+      <p style="color:var(--text-gray); margin-top:10px;">Items that need changes will appear here.</p>
+    </div>
+  </div>
+
   <div id="tab-sold" class="tab-content">
     <div class="product-grid" id="grid-sold"></div>
-    <div class="empty-state" id="empty-sold"><span class="empty-icon">💰</span><p style="color:#999;">No sold items yet.</p></div>
-  </div>
-  <div id="tab-inactive" class="tab-content">
-    <div class="product-grid" id="grid-inactive"></div>
-    <div class="empty-state" id="empty-inactive"><span class="empty-icon">🗑</span><h3>No inactive items</h3><p style="color:#999;">Items you unlist or delete will appear here.</p></div>
+    <div class="empty-state" id="empty-sold">
+      <span class="empty-icon">💰</span>
+      <h3>No sold items yet</h3>
+      <p style="color:var(--text-gray); margin-top:10px;">Your sold items history will appear here.</p>
+    </div>
   </div>
 </div>
 
@@ -240,134 +271,106 @@
 
   // 🔥 核心渲染函数 🔥
   function renderListings(products) {
-    const grids = {
-      'active': document.getElementById('grid-active'),
-      'review': document.getElementById('grid-review'),
-      'sold': document.getElementById('grid-sold'),
-      'inactive': document.getElementById('grid-inactive')
+    const groups = {
+      active: [],
+      review: [],
+      unlisted: [],
+      rejected: [],
+      sold: []
     };
-    const counts = { 'active': 0, 'review': 0, 'sold': 0, 'inactive': 0 };
-
-    // 清空现有列表
-    for (let key in grids) { if(grids[key]) grids[key].innerHTML = ''; }
 
     products.forEach(item => {
-      // 1. 获取两个状态
-      const sellerStatus = (item.Product_Status || '').toLowerCase(); // active, sold, unlisted
-      const reviewStatus = (item.Product_Review_Status || 'pending').toLowerCase(); // pending, approved, rejected
+      const sellerStatus = (item.Product_Status || '').toLowerCase();
+      const reviewStatus = (item.Product_Review_Status || 'pending').toLowerCase();
 
-      // 2. 判定逻辑：决定这个商品去哪个 Tab
-      let tabCategory = 'inactive'; // 默认兜底
-      let displayStatus = sellerStatus; // 用于显示的文字
-      let badgeColorClass = 'status-active'; // 徽章颜色
-
-      // --- 优先级判断 ---
-
-      // A. 已售出 (最高优先级)
+      // 优先级判断
       if (sellerStatus === 'sold') {
-        tabCategory = 'sold';
-        displayStatus = 'Sold';
-        badgeColorClass = 'status-sold';
+        groups.sold.push(item);
+      } else if (reviewStatus === 'rejected') {
+        groups.rejected.push(item);
+      } else if (sellerStatus === 'unlisted') {
+        groups.unlisted.push(item);
+      } else if (reviewStatus === 'pending') {
+        groups.review.push(item);
+      } else if (reviewStatus === 'approved' && sellerStatus === 'active') {
+        groups.active.push(item);
+      } else {
+        groups.unlisted.push(item);
       }
-      // B. 被拒绝 (Rejected) -> 归入 Inactive
-      else if (reviewStatus === 'rejected') {
-        tabCategory = 'inactive';
-        displayStatus = 'Rejected';
-        badgeColorClass = 'status-unlisted'; // 用红色的样式
-      }
-      // C. 审核中 (Pending) -> 归入 Under Review
-      else if (reviewStatus === 'pending') {
-        tabCategory = 'review';
-        displayStatus = 'Under Review';
-        badgeColorClass = 'status-review';
-      }
-      // D. 审核通过 (Approved) 且 卖家设为 Active -> 真正的 Active
-      else if (reviewStatus === 'approved' && sellerStatus === 'active') {
-        tabCategory = 'active';
-        displayStatus = 'Active';
-        badgeColorClass = 'status-active';
-      }
-      // E. 审核通过 但卖家下架 -> Inactive
-      else if (sellerStatus === 'unlisted') {
-        tabCategory = 'inactive';
-        displayStatus = 'Unlisted';
-        badgeColorClass = 'status-unlisted';
+    });
+
+    // 更新计数
+    document.getElementById('count-active').textContent = groups.active.length;
+    document.getElementById('count-review').textContent = groups.review.length;
+    document.getElementById('count-unlisted').textContent = groups.unlisted.length;
+    document.getElementById('count-rejected').textContent = groups.rejected.length;
+    document.getElementById('count-sold').textContent = groups.sold.length;
+
+    // 渲染网格
+    renderGrid('grid-active', 'empty-active', groups.active, 'Active');
+    renderGrid('grid-review', 'empty-review', groups.review, 'Under Review');
+    renderGrid('grid-unlisted', 'empty-unlisted', groups.unlisted, 'Unlisted');
+    renderGrid('grid-rejected', 'empty-rejected', groups.rejected, 'Rejected');
+    renderGrid('grid-sold', 'empty-sold', groups.sold, 'Sold');
+  }
+
+  function renderGrid(containerId, emptyId, items, statusLabel) {
+    const container = document.getElementById(containerId);
+    const emptyState = document.getElementById(emptyId);
+    
+    if (!container || !emptyState) return;
+
+    container.innerHTML = '';
+
+    if (items.length === 0) {
+      container.style.display = 'none';
+      emptyState.classList.add('visible');
+      return;
+    }
+
+    container.style.display = 'grid';
+    emptyState.classList.remove('visible');
+
+    items.forEach(item => {
+      let imgUrl = DEFAULT_IMG;
+      if (item.Main_Image) {
+        const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
+        imgUrl = '../' + cleanPath;
       }
 
-      // 3. 渲染卡片
-      if (grids[tabCategory]) {
-        counts[tabCategory]++;
+      let badgeClass = 'status-active';
+      if(statusLabel === 'Sold') badgeClass = 'status-sold';
+      else if(statusLabel === 'Rejected' || statusLabel === 'Unlisted') badgeClass = 'status-unlisted';
+      else if(statusLabel === 'Under Review') badgeClass = 'status-review';
 
-        let imgUrl = DEFAULT_IMG;
-        if (item.Main_Image) {
-          const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
-          imgUrl = '../' + cleanPath;
-        }
+      const soldCssClass = (statusLabel === 'Sold') ? 'sold-item' : '';
 
-        const soldCssClass = (tabCategory === 'sold') ? 'sold-item' : '';
-
-        // 🔥 防止图片一直闪烁：添加了 this.onerror=null 🔥
-        const cardHtml = `
+      const cardHtml = `
           <div class="product-card ${soldCssClass}" onclick="window.location.href='Seller_Product_Management.html?id=${item.Product_ID}'">
-
             <div class="card-action-btn" onclick="event.stopPropagation(); handleAction('${item.Product_ID}')">
               ✎
             </div>
-
             <div class="card-img-container">
               <img src="${imgUrl}"
                    alt="${item.Product_Title}"
                    style="width:100%; height:100%; object-fit:cover;"
                    onerror="this.onerror=null; this.src='${DEFAULT_IMG}'">
             </div>
-
             <div class="card-info">
               <h4 class="card-title">${item.Product_Title}</h4>
               <div class="card-footer">
                 <span class="card-price">$${parseFloat(item.Product_Price).toFixed(2)}</span>
-                <span class="status-badge ${badgeColorClass}">${displayStatus}</span>
+                <span class="status-badge ${badgeClass}">${statusLabel}</span>
               </div>
             </div>
           </div>
         `;
-        grids[tabCategory].innerHTML += cardHtml;
-      }
+      container.innerHTML += cardHtml;
     });
-
-    updateTabCounts(counts);
-    checkEmptyStates(counts);
   }
 
   function handleAction(id) {
     window.location.href = `Seller_Product_Management.html?id=${id}`;
-  }
-
-  function updateTabCounts(counts) {
-    if(document.getElementById('count-active')) document.getElementById('count-active').innerText = counts.active;
-    if(document.getElementById('count-review')) document.getElementById('count-review').innerText = counts.review;
-    if(document.getElementById('count-sold')) document.getElementById('count-sold').innerText = counts.sold;
-    if(document.getElementById('count-inactive')) document.getElementById('count-inactive').innerText = counts.inactive;
-  }
-
-  function checkEmptyStates(counts) {
-    toggleDisplay('active', counts.active);
-    toggleDisplay('review', counts.review);
-    toggleDisplay('sold', counts.sold);
-    toggleDisplay('inactive', counts.inactive);
-  }
-
-  function toggleDisplay(type, count) {
-    const grid = document.getElementById(`grid-${type}`);
-    const empty = document.getElementById(`empty-${type}`);
-    if(grid && empty) {
-      if(count > 0) {
-        grid.style.display = 'grid';
-        empty.style.display = 'none';
-      } else {
-        grid.style.display = 'none';
-        empty.style.display = 'block';
-      }
-    }
   }
 </script>
 

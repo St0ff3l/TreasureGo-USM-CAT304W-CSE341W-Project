@@ -16,7 +16,7 @@ try {
     $pdo = getDBConnection();
     
     // 获取最近联系人列表及其最后一条消息
-    // 逻辑：找到所有与我有关的消息，按对方ID和产品ID分组，取最新的那条
+    // 只返回商品咨询：排除 Product_ID 为 NULL 的客服/工单聊天
     $sql = "
         SELECT 
             u.User_ID, 
@@ -40,7 +40,8 @@ try {
                 Product_ID,
                 MAX(Message_ID) as Last_Msg_ID
             FROM Message
-            WHERE Message_Sender_ID = ? OR Message_Reciver_ID = ?
+            WHERE (Message_Sender_ID = ? OR Message_Reciver_ID = ?)
+              AND Product_ID IS NOT NULL
             GROUP BY Contact_ID, Product_ID
         ) last_msg ON u.User_ID = last_msg.Contact_ID
         JOIN Message m ON m.Message_ID = last_msg.Last_Msg_ID

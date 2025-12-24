@@ -20,7 +20,18 @@ function is_logged_in() {
 // 强制要求登录 (用于 Pages 层的门卫)
 function require_login() {
     if (!is_logged_in()) {
-        header("Location: login.php");
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $xrw = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        $wantsJson = str_contains($accept, 'application/json') || ($xrw === 'XMLHttpRequest');
+
+        if ($wantsJson) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        header("Location: ../pages/login.php");
         exit();
     }
 }
@@ -40,7 +51,18 @@ function is_admin() {
 // 强制要求管理员权限
 function require_admin() {
     if (!is_logged_in()) {
-        header("Location: login.php");
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $xrw = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        $wantsJson = str_contains($accept, 'application/json') || ($xrw === 'XMLHttpRequest');
+
+        if ($wantsJson) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        header("Location: ../pages/login.php");
         exit();
     }
     if (!is_admin()) {

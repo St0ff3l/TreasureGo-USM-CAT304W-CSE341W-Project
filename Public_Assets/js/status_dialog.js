@@ -120,6 +120,10 @@ const StatusDialog = {
             animationClass = 'sd-shake';
             // 错误弹窗通常用深色按钮关闭
             buttonsHtml = `<button id="sd-confirm-btn" class="sd-btn sd-btn-dark">${btnText || 'Close'}</button>`;
+        } else if (type === 'warning') {
+            iconHtml = '!';
+            iconClass = 'warning';
+            buttonsHtml = `<button id="sd-confirm-btn" class="sd-btn sd-btn-primary" style="background:var(--sd-warning); color:white;">${btnText || 'OK'}</button>`;
         } else if (type === 'confirm') {
             iconHtml = '?';
             iconClass = 'warning';
@@ -168,6 +172,10 @@ const StatusDialog = {
 
     fail: function(title, message, btnText, callback) {
         this._render('error', title, message, btnText, callback);
+    },
+
+    warning: function(title, message, btnText, callback) {
+        this._render('warning', title, message, btnText, callback);
     },
 
     /**

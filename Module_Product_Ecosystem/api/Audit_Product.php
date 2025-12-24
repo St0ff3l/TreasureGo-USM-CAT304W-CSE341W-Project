@@ -35,15 +35,18 @@ try {
     $conn->beginTransaction();
 
     $newStatus = '';
+    $newListingStatus = '';
     $reviewResult = ''; // 对应 Product_Admin_Review 表的 Result 字段
     $comment = null;
 
     if ($action === 'approve') {
         $newStatus = 'approved';      // Product 表状态
+        $newListingStatus = 'Active';
         $reviewResult = 'Approved';   // Review 表状态 (符合你的表结构 Enum/Varchar)
         $comment = 'Approved by Admin';
     } elseif ($action === 'reject') {
         $newStatus = 'rejected';
+        $newListingStatus = 'Inactive';
         $reviewResult = 'Rejected';
         $comment = $reason;
     } else {
@@ -53,11 +56,12 @@ try {
     // --- 第一步：更新 Product 主表 ---
     // 更新状态，以便前台知道该商品已处理
     $sqlProduct = "UPDATE Product 
-                   SET Product_Review_Status = ?, 
+                   SET Product_Review_Status = ?,
+                       Product_Status = ?,
                        Product_Review_Comment = ? 
                    WHERE Product_ID = ?";
     $stmtProduct = $conn->prepare($sqlProduct);
-    if (!$stmtProduct->execute([$newStatus, $comment, $productId])) {
+    if (!$stmtProduct->execute([$newStatus, $newListingStatus, $comment, $productId])) {
         throw new Exception("Failed to update Product table");
     }
 

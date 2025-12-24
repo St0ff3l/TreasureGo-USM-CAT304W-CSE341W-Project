@@ -7,6 +7,9 @@ session_start();
 // 引入数据库配置
 require_once __DIR__ . '/config/treasurego_db_config.php';
 
+// 【修改点 1】引入 AI 服务文件
+require_once __DIR__ . '/config/Gemini_Service.php';
+
 header('Content-Type: application/json');
 
 try {
@@ -43,7 +46,7 @@ try {
 
     // 新增：获取交易方式，默认为 both
     $delivery_method = $_POST['delivery_method'] ?? 'both';
-    // 简单的白名单验证，防止恶意输入
+    // 简单的白名单验证
     if (!in_array($delivery_method, ['meetup', 'shipping', 'both'])) {
         $delivery_method = 'both';
     }
@@ -59,11 +62,12 @@ try {
     // 6. 处理图片文件
     // =========================================================
     $image_paths = [];
+    $all_physical_image_paths = []; // 用于传给 AI 的所有本地路径
 
-    // 物理存储路径：从 api 文件夹往上一级找 Public_Product_Images
+    // 物理存储路径
     $upload_base_dir = '../Public_Product_Images/';
 
-    // 数据库路径前缀：相对于网站根目录的完整路径
+    // 数据库路径前缀
     $db_path_prefix = 'Module_Product_Ecosystem/Public_Product_Images/';
 
     if (!is_dir($upload_base_dir)) {
@@ -99,6 +103,9 @@ try {
 
                 if (move_uploaded_file($file_tmp, $destination)) {
                     $image_paths[] = $db_path_prefix . $new_filename;
+
+                    // 记录所有上传成功的图片的物理路径，给 AI 用
+                    $all_physical_image_paths[] = $destination;
                 } else {
                     throw new Exception("上传失败：无法保存图片文件。请联系管理员检查文件夹写入权限。");
                 }
@@ -107,12 +114,52 @@ try {
             }
         }
     }
+
+    // =========================================================
+    // 【修改点 2】 加入 AI 自动审核逻辑
+    // =========================================================
+
+    // 默认状态（如果没有 AI，或者 AI 挂了）
+    $final_product_status = 'Pending';       // 默认待审核
+    $final_review_status = 'Pending';
+    $ai_audit_comment = NULL;
+
+    try {
+        // 调用我们封装好的函数
+        // 注意：传入的是物理路径数组 $all_physical_image_paths
+        $aiResult = analyzeProductWithAI($product_title, $description, $price, $all_physical_image_paths);
+
+        if ($aiResult) {
+            // 策略：风险分 < 50 且 建议 Approve -> 直接上架
+            // (原先是 < 30，现在放宽到 50，避免误伤低风险商品)
+            if ($aiResult['suggestion'] === 'Approve' && $aiResult['risk_score'] < 50) {
+                $final_product_status = 'Active';      // 直接上架
+                $final_review_status = 'approved';     // 审核状态通过
+                $ai_audit_comment = NULL;              // 清空备注
+            } else {
+                // 风险较高 -> 保持 Pending，写入理由
+                $final_product_status = 'Pending';
+                $final_review_status = 'pending';
+                $ai_audit_comment = "[AI Auto-Flagged] Risk Score:" . $aiResult['risk_score'] . "%. Reason: " . $aiResult['reason'];
+            }
+        }
+    } catch (Exception $aiEx) {
+        // 如果 AI 报错，不应该阻止商品发布，而是转为人工审核
+        // error_log("AI Audit Failed: " . $aiEx->getMessage());
+        $final_product_status = 'Pending';
+        $ai_audit_comment = "AI Service Unavailable, flagged for manual review.";
+    }
+
     // =========================================================
 
     // 7. 开启事务
     $pdo->beginTransaction();
 
-    // 8. 插入商品 (已修复问号数量不匹配的问题)
+    // 8. 插入商品
+    // 【修改点 3】 SQL 语句变了：
+    //  - Product_Status 不再写死 'Active'，而是变成 ?
+    //  - Product_Review_Status 不再写死 'Pending'，而是变成 ?
+    //  - 增加了 Product_Review_Comment 字段用来存 AI 的拒绝理由
     $sql_product = "INSERT INTO Product (
         Product_Title,
         Product_Description,
@@ -122,22 +169,25 @@ try {
         Product_Created_Time,
         Product_Location,
         Product_Review_Status,
+        Product_Review_Comment, 
         Delivery_Method,
         User_ID,
         Category_ID
-    ) VALUES (?, ?, ?, ?, 'Active', NOW(), ?, 'Pending', ?, ?, ?)";
-    // 注意上面最后是 ?, ?, ? (一共3个问号，分别对应 Delivery, UserID, CategoryID)
+    ) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)";
 
     $stmt = $pdo->prepare($sql_product);
     $stmt->execute([
-        $product_title,     // 1
-        $description,       // 2
-        $price,             // 3
-        $condition,         // 4
-        $location,          // 5 (Location)
-        $delivery_method,   // 6 (Delivery_Method)
-        $user_id,           // 7 (User_ID)
-        $category_id        // 8 (Category_ID)
+        $product_title,         // 1. 标题
+        $description,           // 2. 描述
+        $price,                 // 3. 价格
+        $condition,             // 4. 成色
+        $final_product_status,  // 5. 【动态】状态 (Active/Pending)
+        $location,              // 6. 地址
+        $final_review_status,   // 7. 【动态】审核状态 (approved/pending)
+        $ai_audit_comment,      // 8. 【新增】AI 审核备注
+        $delivery_method,       // 9. 配送方式
+        $user_id,               // 10. 用户ID
+        $category_id            // 11. 分类ID
     ]);
 
     $product_id = $pdo->lastInsertId();
@@ -164,8 +214,9 @@ try {
     http_response_code(200);
     echo json_encode([
         'success' => true,
-        'message' => '商品发布成功！',
-        'product_id' => $product_id
+        'message' => '商品发布成功！' . ($final_product_status === 'Pending' ? ' (AI检测到风险，已转入人工审核)' : ''),
+        'product_id' => $product_id,
+        'status' => $final_product_status // 新增：返回商品状态 (Active 或 Pending)
     ]);
 
 } catch (Exception $e) {

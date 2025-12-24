@@ -1,7 +1,9 @@
-# Ignore user uploaded chat images
-Module_User_Account_Management/assets/images/*
-!Module_User_Account_Management/assets/images/.gitkeep
-
-# Ignore system files
-.DS_Store
-Thumbs.db
+/Module_Platform_Governance_AI_Services/api/config/treasurego_db_config.php
+/Module_Platform_Governance_AI_Services/api/config/DeepSeekService.php
+/Module_Product_Ecosystem/api/config/treasurego_db_config.php
+/Public_Api/config/treasurego_db_config.php
+/Module_Transaction_Fund/api/config/treasurego_db_config.php
+/Module_User_Account_Management/api/config/secrets.php
+/Module_User_Account_Management/api/config/treasurego_db_config.php
+/.idea/
+/Module_Product_Ecosystem/api/config/Gemini_Service.php
