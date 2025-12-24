@@ -1,16 +1,16 @@
 <?php
 // api/signup_user.php
-// ✅ 防崩溃调试版：能捕捉 Fatal Error 并显示给前端
+// ✅ 修复版：强制验证邮箱成功后再存入数据库
 
-// 1. 设置错误处理，将所有 PHP 报错转化为 JSON 返回
+session_start(); // 开启 Session 以读取验证码
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // 关掉默认输出，防止破坏 JSON
+ini_set('display_errors', 0);
 
 function fatal_handler() {
     $error = error_get_last();
     if ($error !== NULL && $error['type'] === E_ERROR) {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'PHP Fatal Error: ' . $error['message'] . ' on line ' . $error['line']]);
+        echo json_encode(['success' => false, 'message' => 'PHP Fatal Error: ' . $error['message']]);
         exit;
     }
 }
@@ -20,61 +20,66 @@ header('Content-Type: application/json');
 
 require_once '../api/config/treasurego_db_config.php';
 require_once '../includes/utils.php';
-require_once '../includes/sendgrid_mailer.php';
 
 try {
     $input = getJsonInput();
     $username = trim($input['username'] ?? '');
     $email = trim($input['email'] ?? '');
     $password = $input['password'] ?? '';
+    $code = trim($input['code'] ?? '');
 
-    if (empty($username) || empty($email) || empty($password)) {
-        jsonResponse(false, 'All fields are required.');
+    if (empty($username) || empty($email) || empty($password) || empty($code)) {
+        jsonResponse(false, 'All fields (including verification code) are required.');
     }
 
+    // 1. 验证 Session 中的验证码
+    if (!isset($_SESSION['signup_verify'])) {
+        jsonResponse(false, 'Please click "Send Code" first.');
+    }
+
+    $verifyData = $_SESSION['signup_verify'];
+
+    // 检查邮箱是否一致
+    if ($verifyData['email'] !== $email) {
+        jsonResponse(false, 'Email mismatch. Please resend code.');
+    }
+
+    // 检查过期
+    if (time() > $verifyData['expires_at']) {
+        jsonResponse(false, 'Verification code expired. Please resend.');
+    }
+
+    // 检查验证码
+    if (!password_verify($code, $verifyData['code_hash'])) {
+        jsonResponse(false, 'Invalid verification code.');
+    }
+
+    // =================================================
+    // 验证通过，开始存入数据库
+    // =================================================
     $pdo = getDBConnection();
 
-    // 1. 检查邮箱
+    // 2. 再次检查邮箱是否已被注册 (防止并发注册)
     $stmt = $pdo->prepare("SELECT User_ID FROM User WHERE User_Email = ? LIMIT 1");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         jsonResponse(false, 'Email already registered.');
     }
 
-    // 2. 创建用户
+    // 3. 创建用户 (直接设为 active 和 verified)
     $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+    
+    // 注意：这里直接设为 'active' 和 User_Email_Verified = 1
     $sql = "INSERT INTO User (User_Username, User_Email, User_Password_Hash, User_Role, User_Status, User_Email_Verified, User_Created_At)
-            VALUES (?, ?, ?, 'user', 'pending', 0, NOW())";
+            VALUES (?, ?, ?, 'user', 'active', 1, NOW())";
+    
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$username, $email, $passwordHash]);
-    $userId = $pdo->lastInsertId();
+    
+    // 4. 清除 Session
+    unset($_SESSION['signup_verify']);
 
-    // 3. 生成验证码
-    $code = generateVerificationCode();
-    $codeHash = password_hash($code, PASSWORD_BCRYPT);
-    $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-
-    $sqlEV = "INSERT INTO Email_Verification (User_ID, EV_Email, EV_Code, EV_Purpose, EV_Expires_At) VALUES (?, ?, ?, 'signup', ?)";
-    $stmtEV = $pdo->prepare($sqlEV);
-    $stmtEV->execute([$userId, $email, $codeHash, $expiresAt]);
-
-    // 4. 发送邮件
-    // ⚠️ 这里是最容易崩溃的地方
-    if (!function_exists('curl_init')) {
-        throw new Exception("PHP cURL extension is NOT enabled. Please enable it in php.ini");
-    }
-
-    $subject = "Verify Your Email - TreasureGo";
-    $body = "<h2>Welcome to TreasureGo!</h2><p>Your verification code is: <b style='font-size: 24px;'>$code</b></p>";
-
-    $emailSent = sendEmail($email, $subject, $body);
-
-    if ($emailSent) {
-        jsonResponse(true, 'Signup successful!', ['next_url' => "verify_email.php?email=" . urlencode($email) . "&purpose=signup"]);
-    } else {
-        // 如果邮件失败，但没有崩溃，会走这里
-        jsonResponse(true, 'Account created, but email failed. Check logs.', ['next_url' => "verify_email.php?email=" . urlencode($email) . "&purpose=signup"]);
-    }
+    jsonResponse(true, 'Signup successful! You can now login.');
 
 } catch (Exception $e) {
     jsonResponse(false, 'System error: ' . $e->getMessage());

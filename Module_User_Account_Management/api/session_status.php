@@ -21,8 +21,20 @@ if (is_logged_in()) {
     $user_id = get_current_user_id();
 
     try {
-        $pdo = getDBConnection();
-        // 👇 修改这里：增加查询 User_Profile_image
+        $pdo = getDatabaseConnection();
+        if (!$pdo) {
+            // 数据库连接失败时仍然返回会话信息
+            $response['is_logged_in'] = true;
+            $response['user'] = [
+                'user_id' => $user_id,
+                'username' => $_SESSION['user_username'] ?? null,
+                'role' => $_SESSION['user_role'] ?? null,
+                'avatar_url' => null
+            ];
+            echo json_encode($response);
+            exit;
+        }
+
         $stmt = $pdo->prepare("SELECT User_Username, User_Role, User_Profile_image FROM User WHERE User_ID = ? LIMIT 1");
         $stmt->execute([$user_id]);
         $user = $stmt->fetch();
@@ -36,8 +48,27 @@ if (is_logged_in()) {
                 // 👇 修改这里：如果有图就用图，没图就给 null
                 'avatar_url' => $user['User_Profile_image'] ?? null
             ];
+        } else {
+            // 如果用户行未找到，则回退到会话
+            $response['is_logged_in'] = true;
+            $response['user'] = [
+                'user_id' => $user_id,
+                'username' => $_SESSION['user_username'] ?? null,
+                'role' => $_SESSION['user_role'] ?? null,
+                'avatar_url' => null
+            ];
         }
-    } catch (Exception $e) { /*...*/ }
+    } catch (Throwable $e) {
+        // 永远不要中断 JSON 输出
+        $response['is_logged_in'] = true;
+        $response['user'] = [
+            'user_id' => $user_id,
+            'username' => $_SESSION['user_username'] ?? null,
+            'role' => $_SESSION['user_role'] ?? null,
+            'avatar_url' => null
+        ];
+        $response['warning'] = 'session_status_db_error';
+    }
 }
 // ...
 

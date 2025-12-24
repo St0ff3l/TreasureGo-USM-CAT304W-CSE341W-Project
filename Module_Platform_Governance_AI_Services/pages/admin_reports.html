@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TreasureGO - Admin Report Center</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
   <script src="../../Public_Assets/js/admin_guard.js"></script>
+
   <style>
     /* ========================================= */
-    /* 核心样式 & 变量 (Core Styles)        */
+    /* 1. 核心变量 & 基础布局 */
     /* ========================================= */
     :root {
       --bg-color: #F3F6F9;
@@ -23,6 +26,8 @@
       --danger: #EF4444;
       --warning: #F59E0B;
       --neutral: #9CA3AF;
+      --cancelled: #6B7280;
+      --border-color: #E5E7EB;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,8 +47,11 @@
     /* --- 背景浮动动画 --- */
     #floating-container {
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 0;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
       pointer-events: none;
       overflow: hidden;
     }
@@ -54,268 +62,165 @@
       opacity: 0.6;
       filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
       animation: floatUp 15s linear infinite;
+      user-select: none;
     }
 
     @keyframes floatUp {
       0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
       10% { opacity: 0.8; }
-      90% { opacity: 0.8; }
+      90% { opacity: 0.6; }
       100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
     }
 
-    /* ========================================= */
-    /* 顶部导航栏 (Navbar)           */
-    /* ========================================= */
-    .navbar {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      padding: 1rem 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      border-bottom: 1px solid rgba(255,255,255,0.5);
-    }
-
-    .logo {
-      font-weight: 800; font-size: 1.5rem; color: var(--primary);
-      display: flex; align-items: center; gap: 10px; text-decoration: none;
-    }
-    .logo span { color: var(--text-dark); }
-    .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
-
-    .nav-actions { display: flex; align-items: center; gap: 20px; }
-    .nav-btn {
-      border: none; background: transparent; font-weight: 600; color: var(--text-gray);
-      padding: 0.6rem 0.5rem; cursor: pointer; transition: color 0.2s; font-size: 1rem;
-    }
-    .nav-btn:hover { color: var(--text-dark); }
-
-    /* User Menu */
-    .menu-container { position: relative; display: inline-block; }
-    .dots-btn {
-      width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 20px; cursor: pointer; color: var(--text-dark); background: #f3f4f6; transition: 0.2s;
-    }
-    .dots-btn:hover { background: #eee; }
-    .dropdown-content {
-      display: none; position: absolute; right: 0; top: 100%; margin-top: 10px;
-      background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-      border-radius: 16px; z-index: 1001; padding: 8px; animation: fadeIn 0.2s ease;
-    }
-    .menu-container:hover .dropdown-content { display: block; }
-    .dropdown-item {
-      color: var(--text-dark); padding: 12px 16px; text-decoration: none; display: block;
-      font-size: 14px; font-weight: 500; border-radius: 10px;
-    }
-    .dropdown-item:hover { background-color: #f3f4f6; color: var(--primary); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* ========================================= */
-    /* 主内容区域 (Main Content)             */
-    /* ========================================= */
-    .page-header {
-      text-align: center; padding: 60px 20px 40px; position: relative; z-index: 10;
-    }
-    .page-title {
-      font-size: 2.5rem; line-height: 1.1; margin-bottom: 0.5rem;
-      background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
+    /* 页面主要内容区域 */
+    .page-header { text-align: center; padding: 60px 20px 40px; position: relative; z-index: 10; }
+    .page-title { font-size: 2.5rem; line-height: 1.1; margin-bottom: 0.5rem; background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .page-subtitle { color: var(--text-gray); font-size: 1.1rem; }
 
-    /* ========================================= */
-    /* 统计卡片 (Statistics Cards)            */
-    /* ========================================= */
+    /* --- 统计卡片 --- */
     .stats-container { max-width: 1200px; margin: 0 auto 40px; padding: 0 20px; position: relative; z-index: 10; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-    .stat-card {
-      background: white; border-radius: 20px; padding: 25px; text-align: center;
-      box-shadow: var(--card-shadow); transition: all 0.3s ease;
-    }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+
+    .stat-card { background: white; border-radius: 20px; padding: 25px; text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease; border-top: 4px solid transparent; }
     .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
     .stat-icon { font-size: 2.5rem; margin-bottom: 10px; }
     .stat-value { font-size: 2rem; font-weight: 800; color: var(--text-dark); }
     .stat-label { font-size: 0.9rem; color: var(--text-gray); margin-top: 5px; }
 
-    .stat-card.total { border-top: 4px solid var(--primary); }
-    .stat-card.pending { border-top: 4px solid var(--warning); }
-    .stat-card.resolved { border-top: 4px solid var(--success); }
-    .stat-card.dismissed { border-top: 4px solid var(--neutral); }
+    .stat-card.total { border-color: var(--primary); }
+    .stat-card.pending { border-color: var(--warning); }
+    .stat-card.resolved { border-color: var(--success); }
+    .stat-card.dismissed { border-color: var(--neutral); }
+    .stat-card.cancelled { border-color: var(--cancelled); }
 
-    /* ========================================= */
-    /* 请求列表 (Report List)              */
-    /* ========================================= */
+    /* 列表区域 */
     .requests-container { max-width: 1200px; margin: 0 auto 100px; padding: 0 20px; position: relative; z-index: 10; }
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
     .section-title { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-
     .filter-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
-    .filter-tab {
-      padding: 8px 20px; border-radius: 20px; border: none; background: white; color: var(--text-gray);
-      font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    .filter-tab:hover { background: #f3f4f6; }
+    .filter-tab { padding: 8px 20px; border-radius: 20px; border: none; background: white; color: var(--text-gray); font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .filter-tab.active { background: var(--primary); color: white; }
 
-    /* Card Styles */
-    .requests-list { display: flex; flex-direction: column; gap: 15px; }
-    .request-card {
-      background: white; border-radius: 20px; padding: 20px 25px; box-shadow: var(--card-shadow);
-      display: flex; align-items: center; gap: 20px; transition: all 0.3s ease;
-    }
-    .request-card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+    .requests-list { display: flex; flex-direction: column; gap: 20px; }
 
-    .report-icon-box {
+    .request-card { background: white; border-radius: 20px; padding: 20px 25px; box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 20px; transition: all 0.3s ease; border: 1px solid transparent; }
+    .request-card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-color: #E0E7FF; }
+
+    .report-icon-box { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    .type-product { background: #EEF2FF; color: var(--primary); }
+    .type-user { background: #FEF3C7; color: #D97706; }
+    .type-chat { background: #E0E7FF; color: #4338CA; }
+
+    .report-product-img {
       width: 50px; height: 50px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; flex-shrink: 0;
+      object-fit: cover;
+      border: 1px solid var(--border-color); flex-shrink: 0;
     }
-    .type-product { background: #EEF2FF; color: var(--primary); } /* Blue for Product */
-    .type-user { background: #FEF3C7; color: #D97706; } /* Orange for User */
-    .type-chat { background: #E0E7FF; color: #4338CA; } /* Indigo for Chat */
 
     .request-info { flex: 1; min-width: 0; }
     .target-title { font-weight: 700; font-size: 1rem; color: var(--text-dark); margin-bottom: 4px; }
     .target-title span { font-weight: 400; color: #6B7280; font-size: 0.9rem; margin-left: 5px; }
-
     .request-meta { display: flex; gap: 15px; flex-wrap: wrap; color: var(--text-gray); font-size: 0.85rem; }
-    .request-meta span { display: flex; align-items: center; gap: 5px; }
-
-    .reason-badge {
-      display: inline-block; font-size: 0.75rem; font-weight: 700;
-      padding: 4px 10px; border-radius: 6px; background: #F3F4F6; color: #374151; margin-top: 6px;
-    }
+    .reason-badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; background: #F3F4F6; color: #374151; margin-top: 6px; }
 
     .request-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
     .action-buttons { display: flex; gap: 8px; }
-
-    .btn-action-view {
-      padding: 8px 16px; background: #F3F4F6; color: #374151; border-radius: 8px;
-      font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s;
-    }
+    .btn-action-view { padding: 8px 16px; background: #F3F4F6; color: #374151; border-radius: 8px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; transition: 0.2s; }
     .btn-action-view:hover { background: #E5E7EB; }
 
-    .btn-resolve {
-      padding: 8px 16px; border-radius: 8px; border: none; background: var(--success);
-      color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
-    }
-    .btn-resolve:hover { background: #059669; transform: translateY(-2px); }
+    .btn-resolve { padding: 8px 16px; border-radius: 8px; border: none; background: var(--success); color: white; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+    .btn-resolve:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+    .btn-dismiss { padding: 8px 16px; border-radius: 8px; border: none; background: var(--neutral); color: white; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+    .btn-dismiss:hover { transform: translateY(-2px); background: #6B7280; }
 
-    .btn-dismiss {
-      padding: 8px 16px; border-radius: 8px; border: none; background: var(--neutral);
-      color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
-    }
-    .btn-dismiss:hover { background: #6B7280; transform: translateY(-2px); }
-
-    /* Status Badges */
     .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
     .status-Pending { background: #FEF3C7; color: #D97706; }
     .status-Resolved { background: #D1FAE5; color: #059669; }
     .status-Dismissed { background: #F3F4F6; color: #6B7280; }
+    .status-Cancelled { background: #E5E7EB; color: #6B7280; border: none; }
 
-    /* Empty & Loading */
     .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 20px; box-shadow: var(--card-shadow); }
     .empty-icon { font-size: 4rem; margin-bottom: 15px; opacity: 0.5; }
-    .empty-text { color: var(--text-gray); font-size: 1.1rem; }
     .loading { text-align: center; padding: 60px 20px; }
-    .spinner {
-      width: 50px; height: 50px; border: 4px solid #f3f4f6; border-top-color: var(--primary);
-      border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;
-    }
+    .spinner { width: 50px; height: 50px; border: 4px solid #f3f4f6; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ========================================= */
-    /* 弹窗 (Modal)                           */
-    /* ========================================= */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 2000;
-    }
+    /* 弹窗样式 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; transition: opacity 0.3s; }
     .modal-overlay.active { display: flex; }
+    .modal { background: white; border-radius: 24px; padding: 30px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    .modal {
-      background: white; border-radius: 24px; padding: 30px; max-width: 550px; width: 90%;
-      max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease;
-    }
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .modal-title { font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-    .modal-close {
-      width: 36px; height: 36px; border-radius: 50%; border: none; background: #f3f4f6;
-      cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
-    }
-    .modal-close:hover { background: #e5e7eb; }
-
-    .detail-row { margin-bottom: 15px; }
-    .detail-label { font-size: 0.85rem; color: #6B7280; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
-    .detail-value { font-size: 1rem; color: #1F2937; background: #F9FAFB; padding: 12px; border-radius: 12px; line-height: 1.5; }
-
-    .modal-form { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #E5E7EB; padding-top: 20px; }
-    .form-textarea {
-      padding: 12px 15px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 1rem;
-      font-family: inherit; transition: all 0.2s; resize: vertical; min-height: 100px; width: 100%;
-    }
-    .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-    .btn-cancel { padding: 12px 25px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; color: var(--text-gray); font-weight: 600; cursor: pointer; }
-    .btn-confirm { padding: 12px 25px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
-
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+    .modal-title { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .modal-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f3f4f6; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .modal-close:hover { background: #e5e7eb; transform: rotate(90deg); }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+    .btn-cancel { padding: 12px 24px; border-radius: 12px; border: 1px solid var(--border-color); background: white; color: var(--text-gray); font-weight: 600; cursor: pointer; }
+    .btn-confirm { padding: 12px 24px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
     .btn-confirm.resolve { background: var(--success); }
     .btn-confirm.dismiss { background: var(--neutral); }
 
-    /* Toast notification */
-    .toast {
-      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-      background: var(--text-dark); color: white; padding: 15px 25px; border-radius: 12px;
-      font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease; z-index: 3000;
+    .detail-row { margin-bottom: 15px; }
+    .detail-label { font-size: 0.85rem; color: #6B7280; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; }
+    .detail-value { font-size: 1rem; color: #1F2937; background: #F9FAFB; padding: 12px; border-radius: 12px; line-height: 1.5; border: 1px solid var(--border-color); }
+
+    .action-section { background: #F9FAFB; border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 16px; transition: all 0.3s ease; }
+    .action-section:hover { border-color: #D1D5DB; }
+    .action-section.danger-zone { background: #FEF2F2; border-color: #FECACA; }
+    .action-section.danger-zone:hover { border-color: #FCA5A5; }
+    .section-header-row { display: flex; justify-content: space-between; align-items: center; }
+    .toggle-label { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; user-select: none; }
+    .toggle-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--danger); }
+
+    /* --- [关键修复] 网格与布局样式 --- */
+    .duration-options {
+      display: none; /* 默认隐藏，JS控制 */
+      grid-template-columns: repeat(4, 1fr); /* 强制4列 */
+      gap: 10px; /* 间距 */
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease;
     }
+
+    .duration-chip {
+      padding: 8px 4px;
+      border: 1px solid #FECACA;
+      background: white;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-gray);
+      cursor: pointer;
+      transition: all 0.2s;
+      /* Flex 居中 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .duration-chip:hover { border-color: var(--danger); color: var(--danger); }
+    .duration-chip.active { background: var(--danger); color: white; border-color: var(--danger); box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4); }
+
+    .product-zone { background: #EFF6FF; border-color: #BFDBFE; }
+    .product-zone .toggle-checkbox { accent-color: var(--primary); }
+
+    .form-textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 12px; font-family: inherit; resize: vertical; min-height: 80px; font-size: 0.95rem; }
+    .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text-dark); color: white; padding: 15px 25px; border-radius: 12px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease; z-index: 3000; }
     .toast.show { transform: translateX(-50%) translateY(0); }
     .toast.success { background: var(--success); }
     .toast.error { background: var(--danger); }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .navbar { padding: 15px; } .nav-btn { display: none; }
-      .page-title { font-size: 1.8rem; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .stat-card { padding: 15px; }
-      .request-card { flex-direction: column; align-items: flex-start; gap: 15px; }
-      .request-actions { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
-      #floating-container { display: none !important; }
-    }
+    @media (max-width: 768px) { .navbar { padding: 15px; } .nav-btn { display: none; } .request-card { flex-direction: column; align-items: flex-start; } .request-actions { width: 100%; flex-direction: row; justify-content: space-between; } }
   </style>
 </head>
 <body>
 
-
-
 <div id="floating-container"></div>
-
-<nav class="navbar">
-  <a href="../../index.html" class="logo">
-    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
-    Treasure<span>Go</span>
-  </a>
-
-  <div class="nav-actions">
-    <button class="nav-btn" onclick="window.location.href='../../Module_User_Account_Management/pages/admin_dashboard.php'">Admin Dashboard</button>
-    <button class="nav-btn" onclick="window.location.href='../../index.html'">Home</button>
-
-    <div id="nav-user-menu" class="menu-container">
-      <div id="nav-avatar" class="dots-btn">👤</div>
-      <div class="dropdown-content">
-        <a href="../../Module_User_Account_Management/pages/admin_dashboard.php" class="dropdown-item">Admin Dashboard</a>
-        <a href="../../Module_User_Account_Management/api/logout.php" class="dropdown-item" style="color: #ef4444;">Log Out</a>
-      </div>
-    </div>
-  </div>
-</nav>
 
 <section class="page-header">
   <h1 class="page-title">🛡️ Report Center</h1>
@@ -324,47 +229,27 @@
 
 <section class="stats-container">
   <div class="stats-grid">
-    <div class="stat-card total">
-      <div class="stat-icon">📢</div>
-      <div class="stat-value" id="stat-total">--</div>
-      <div class="stat-label">Total Reports</div>
-    </div>
-    <div class="stat-card pending">
-      <div class="stat-icon">⏳</div>
-      <div class="stat-value" id="stat-pending">--</div>
-      <div class="stat-label">Pending Review</div>
-    </div>
-    <div class="stat-card resolved">
-      <div class="stat-icon">✅</div>
-      <div class="stat-value" id="stat-resolved">--</div>
-      <div class="stat-label">Resolved</div>
-    </div>
-    <div class="stat-card dismissed">
-      <div class="stat-icon">🗑️</div>
-      <div class="stat-value" id="stat-dismissed">--</div>
-      <div class="stat-label">Dismissed</div>
-    </div>
+    <div class="stat-card total"><div class="stat-icon">📢</div><div class="stat-value" id="stat-total">--</div><div class="stat-label">Total Reports</div></div>
+    <div class="stat-card pending"><div class="stat-icon">⏳</div><div class="stat-value" id="stat-pending">--</div><div class="stat-label">Pending Review</div></div>
+    <div class="stat-card resolved"><div class="stat-icon">✅</div><div class="stat-value" id="stat-resolved">--</div><div class="stat-label">Resolved</div></div>
+    <div class="stat-card dismissed"><div class="stat-icon">🗑️</div><div class="stat-value" id="stat-dismissed">--</div><div class="stat-label">Dismissed</div></div>
+    <div class="stat-card cancelled"><div class="stat-icon">🚫</div><div class="stat-value" id="stat-cancelled">--</div><div class="stat-label">Cancelled</div></div>
   </div>
 </section>
 
 <section class="requests-container">
   <div class="section-header">
-    <h2 class="section-title">
-      <span>🚩</span> Reports List
-    </h2>
+    <h2 class="section-title"><span>🚩</span> Reports List</h2>
     <div class="filter-tabs">
       <button class="filter-tab active" data-filter="All">All</button>
       <button class="filter-tab" data-filter="Pending">Pending</button>
       <button class="filter-tab" data-filter="Resolved">Resolved</button>
       <button class="filter-tab" data-filter="Dismissed">Dismissed</button>
+      <button class="filter-tab" data-filter="Cancelled">Cancelled</button>
     </div>
   </div>
-
   <div id="requests-list" class="requests-list">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Loading reports...</p>
-    </div>
+    <div class="loading"><div class="spinner"></div><p>Loading reports...</p></div>
   </div>
 </section>
 
@@ -374,11 +259,8 @@
       <h3 class="modal-title">📄 Report Details</h3>
       <button class="modal-close" onclick="closeDetailsModal()">×</button>
     </div>
-    <div id="details-content">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeDetailsModal()">Close</button>
-    </div>
+    <div id="details-content"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeDetailsModal()">Close</button></div>
   </div>
 </div>
 
@@ -388,15 +270,66 @@
       <h3 class="modal-title" id="action-title">Process Report</h3>
       <button class="modal-close" onclick="closeActionModal()">×</button>
     </div>
-    <div style="margin-bottom: 15px; color: #6B7280; font-size: 0.95rem;">
-      You are about to <strong id="action-type-text"></strong> this report. The user will be able to see your reply in their history.
+
+    <div style="margin-bottom: 20px; color: var(--text-gray); font-size: 0.95rem;">
+      You are about to <strong id="action-type-text"></strong> this report.
     </div>
-    <div class="modal-form">
+
+    <div id="ban-section" class="action-section danger-zone" style="display:none;">
+      <div class="section-header-row">
+        <label class="toggle-label" style="color: #991B1B;">
+          <input type="checkbox" id="ban-user-checkbox" class="toggle-checkbox" onchange="toggleBanOptions()">
+          <i class="fa-solid fa-gavel"></i> Ban Reported User
+        </label>
+      </div>
+
+      <div id="ban-duration-container" class="duration-options" style="display:none;">
+        <div class="duration-chip" onclick="selectDuration(this, '1d')">1 Day</div>
+        <div class="duration-chip active" onclick="selectDuration(this, '3d')">3 Days</div>
+        <div class="duration-chip" onclick="selectDuration(this, '7d')">7 Days</div>
+        <div class="duration-chip" onclick="selectDuration(this, '30d')">30 Days</div>
+
+        <div class="duration-chip" onclick="selectDuration(this, '365d')">1 Year</div>
+        <div class="duration-chip" onclick="selectDuration(this, 'forever')">Forever</div>
+
+        <div class="duration-chip" style="grid-column: span 2;" onclick="selectDuration(this, 'custom')">Custom Days</div>
+      </div>
+
+      <div id="custom-ban-row" style="display:none; margin-top: 10px; animation: fadeIn 0.3s;">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <input type="number" id="custom-ban-input" class="form-control"
+                 placeholder="Enter days (e.g. 15)" min="1"
+                 style="padding: 10px; border-radius: 8px; border: 1px solid #E5E7EB; flex:1; outline:none;"
+                 oninput="updateCustomDuration(this.value)">
+          <span style="font-size: 0.9rem; color: #6B7280; font-weight:600;">Days</span>
+        </div>
+      </div>
+
+      <input type="hidden" id="selected-ban-duration" value="3d">
+    </div>
+
+    <div id="product-section" class="action-section product-zone" style="display:none; margin-top: 20px;">
+      <label class="toggle-label" style="color: var(--primary);">
+        <input type="checkbox" id="hide-product-checkbox" class="toggle-checkbox">
+        <i class="fa-solid fa-eye-slash"></i> Force Unlist Product
+      </label>
+      <p style="margin-left: 32px; margin-top: 5px; font-size: 0.8rem; color: #6B7280;">
+        Item will be moved to the user's "Inactive" tab.
+      </p>
+    </div>
+
+    <div class="reply-section" style="margin-top: 20px;">
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label class="detail-label">Reply to Reporter</label>
+        <textarea class="form-textarea" id="reply-to-reporter" rows="2" placeholder="Thank you for your report..."></textarea>
+      </div>
+
       <div class="form-group">
-        <label class="detail-label">Admin Reply / Action Note</label>
-        <textarea class="form-textarea" id="admin-reply" placeholder="e.g., User has been banned. / No violation found."></textarea>
+        <label class="detail-label">Reply to Reported User</label>
+        <textarea class="form-textarea" id="reply-to-reported" rows="2" placeholder="Your content was removed because..."></textarea>
       </div>
     </div>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeActionModal()">Cancel</button>
       <button class="btn-confirm" id="action-confirm-btn">Confirm</button>
@@ -406,27 +339,28 @@
 
 <div id="toast" class="toast"></div>
 
-<script>
-  // --- 全局状态 ---
-  let allReports = []; // 存储从数据库获取的所有报告
-  let currentFilter = 'All';
-  let currentReportId = null;
-  let currentActionType = null;
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script src="../assets/js/admin_report_modal.js"></script>
 
-  // --- 初始化 ---
+<script>
+  // --- A. 初始化导航栏 ---
   document.addEventListener('DOMContentLoaded', () => {
+    TreasureGoHeaderbar.mount({ basePath: '../../' });
     initFloatingItems();
-    fetchReports(); // 页面加载时从数据库获取数据
+    fetchReports();
     initFilterTabs();
   });
 
-  // --- 背景视觉效果 ---
+  // --- B. 数据获取与渲染 ---
+  let allReports = [];
+  let currentFilter = 'All';
+
+  // 背景动画
   function initFloatingItems() {
     const container = document.getElementById('floating-container');
     const items = ['🚩', '🛡️', '⚠️', '🔨', '📢', '🚫', '🔍'];
     for (let i = 0; i < 12; i++) {
-      const el = document.createElement('div');
-      el.classList.add('floating-item');
+      const el = document.createElement('div'); el.classList.add('floating-item');
       el.innerText = items[Math.floor(Math.random() * items.length)];
       el.style.left = Math.random() * 100 + 'vw';
       el.style.fontSize = (Math.random() * 3 + 3) + 'rem';
@@ -436,87 +370,92 @@
     }
   }
 
-  // --- 核心数据获取逻辑 (API 调用) ---
   async function fetchReports() {
-    const listContainer = document.getElementById('requests-list');
-
     try {
-      // 调用你刚刚创建的 PHP 接口
       const response = await fetch('../api/admin_report_get.php');
       const data = await response.json();
-
       if (data.success) {
-        allReports = data.reports;
+        // 数据映射：确保字段名统一，防止 API 返回 Report_ID 前端却用 id
+        allReports = data.reports.map(r => ({
+          ...r,
+          Report_ID: r.Report_ID || r.id,          // 确保 Report_ID 存在
+          Report_Type: r.Report_Type || r.type,    // 确保 Report_Type 存在
+          status: r.Report_Status || r.status      // 确保 status 存在
+        }));
 
-        // 更新统计卡片数字
         document.getElementById('stat-total').textContent = data.stats.total;
         document.getElementById('stat-pending').textContent = data.stats.pending;
         document.getElementById('stat-resolved').textContent = data.stats.resolved;
         document.getElementById('stat-dismissed').textContent = data.stats.dismissed;
 
-        renderReports(); // 渲染列表
-      } else {
-        showToast('Error: ' + data.message, 'error');
+        const cancelledCount = data.stats.cancelled !== undefined
+                ? data.stats.cancelled
+                : allReports.filter(r => r.status === 'Cancelled').length;
+        document.getElementById('stat-cancelled').textContent = cancelledCount;
+
+        renderReports();
       }
-    } catch (error) {
-      console.error('Fetch error:', error);
-      showToast('Failed to load reports from server.', 'error');
-      listContainer.innerHTML = '<div class="empty-state">Failed to load data.</div>';
+    } catch (e) {
+      console.error(e);
+      showToast('Connection Error', 'error');
     }
   }
 
-  // --- 列表渲染逻辑 ---
   function renderReports() {
     const container = document.getElementById('requests-list');
-
-    let filtered = allReports;
-    if(currentFilter !== 'All') {
-      filtered = allReports.filter(r => r.status === currentFilter);
-    }
+    let filtered = currentFilter === 'All' ? allReports : allReports.filter(r => r.status === currentFilter);
 
     if (filtered.length === 0) {
-      container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">📂</div>
-                    <p class="empty-text">No ${currentFilter === 'All' ? '' : currentFilter} reports found.</p>
-                </div>`;
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p class="empty-text">No reports found.</p></div>`;
       return;
     }
 
     container.innerHTML = filtered.map(r => {
-      // 动态图标
-      const icon = r.type === 'product' ? '📦' : (r.type === 'user' ? '👤' : '💬');
-      const typeClass = r.type === 'product' ? 'type-product' : (r.type === 'user' ? 'type-user' : 'type-chat');
+      // 兼容字段名
+      const rId = r.Report_ID || r.id;
+      const rType = r.Report_Type || r.type || 'user';
+      const rStatus = r.status || 'Pending';
+
+      const iconChar = rType === 'product' ? '📦' : (rType === 'user' ? '👤' : '💬');
+      const typeClass = 'type-' + rType;
+
+      let leftContentHtml = '';
+      if (rType === 'product' && r.productImage) {
+        const imgPath = `../../${r.productImage}`;
+        leftContentHtml = `
+            <img src="${imgPath}" class="report-product-img" alt="Product" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            <div class="report-icon-box ${typeClass}" style="display:none">${iconChar}</div>
+          `;
+      } else {
+        leftContentHtml = `<div class="report-icon-box ${typeClass}">${iconChar}</div>`;
+      }
 
       return `
-            <div class="request-card">
-                <div class="report-icon-box ${typeClass}">
-                    ${icon}
-                </div>
-                <div class="request-info">
-                    <div class="target-title">${r.targetName} <span>(${r.type})</span></div>
-                    <div class="request-meta">
-                        <span>🆔 #${r.id}</span>
-                        <span>🗣️ By: ${r.reporter || 'Unknown'}</span>
-                        <span>📅 ${new Date(r.date).toLocaleDateString()}</span>
-                    </div>
-                    <div class="reason-badge">⚠️ ${r.reason}</div>
-                </div>
-                <div class="request-actions">
-                    <span class="status-badge status-${r.status}">${r.status}</span>
-                    <div class="action-buttons">
-                        <button class="btn-action-view" onclick="openDetailsModal(${r.id})">👁️ View</button>
-                        ${r.status === 'Pending' ? `
-                            <button class="btn-resolve" onclick="openActionModal(${r.id}, 'Resolved')">✓ Resolve</button>
-                            <button class="btn-dismiss" onclick="openActionModal(${r.id}, 'Dismissed')">✗ Dismiss</button>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>`;
+        <div class="request-card">
+          ${leftContentHtml}
+          <div class="request-info">
+            <div class="target-title">${r.targetName} <span>(${rType})</span></div>
+            <div class="request-meta">
+              <span>🆔 #${rId}</span>
+              <span>🗣️ By: ${r.reporter || 'Unknown'}</span>
+              <span>📅 ${new Date(r.date || r.Report_Creation_Date).toLocaleDateString()}</span>
+            </div>
+            <div class="reason-badge">⚠️ ${r.reason || r.Report_Reason}</div>
+          </div>
+          <div class="request-actions">
+            <span class="status-badge status-${rStatus}">${rStatus}</span>
+            <div class="action-buttons">
+              <button class="btn-action-view" onclick="openDetailsModal(${rId})">👁️ View</button>
+              ${rStatus === 'Pending' ? `
+                <button class="btn-resolve" onclick="openActionModal(${rId}, 'Resolved')">✓ Resolve</button>
+                <button class="btn-dismiss" onclick="openActionModal(${rId}, 'Dismissed')">✗ Dismiss</button>
+              ` : ''}
+            </div>
+          </div>
+        </div>`;
     }).join('');
   }
 
-  // --- 筛选逻辑 ---
   function initFilterTabs() {
     document.querySelectorAll('.filter-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -528,142 +467,67 @@
     });
   }
 
-  // --- 弹窗逻辑 ---
-
   function openDetailsModal(id) {
-    const r = allReports.find(x => x.id == id);
+    // 查找时使用 Report_ID
+    const r = allReports.find(x => (x.Report_ID || x.id) == id);
     if (!r) return;
 
-    const content = `
-        <div class="detail-row">
-            <div class="detail-label">Report ID</div>
-            <div class="detail-value">#${r.id}</div>
+    // 显示详情，包括 Contact Email
+    document.getElementById('details-content').innerHTML = `
+      <div class="detail-row">
+        <div class="detail-label">Report ID</div>
+        <div class="detail-value">#${r.Report_ID || r.id}</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Reporter</div>
+        <div class="detail-value">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+             <strong>${r.reporter || 'Unknown'}</strong>
+             <span style="color:#9CA3AF; font-size:0.9rem;">(ID: ${r.reporterId || r.Reporting_User_ID})</span>
+          </div>
+
+          ${r.contactEmail || r.Report_Contact_Email ? `
+          <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 12px; background:#EEF2FF; border-radius:8px; margin-bottom:10px; border:1px solid #E0E7FF;">
+             <i class="fa-solid fa-envelope" style="color:var(--primary);"></i>
+             <span style="color:#4B5563; font-size:0.9rem; font-weight:500;">${r.contactEmail || r.Report_Contact_Email}</span>
+          </div>` : ''}
+
+          <div>
+             <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reporterId}'">View Profile</button>
+          </div>
         </div>
+      </div>
 
-        <div class="detail-row">
-            <div class="detail-label">Reporter (Who reported)</div>
-            <div class="detail-value">
-                <strong>${r.reporter || 'Unknown'}</strong> <span style="color:var(--text-gray)">(ID: ${r.reporterId})</span><br>
-                <p style="margin-top:5px; color: var(--primary); font-weight: 600;">
-                    <i class="fa-solid fa-paper-plane"></i> Contact Email: ${r.contactEmail || 'Not Provided'}
-                </p>
-                <small style="color:var(--text-gray)">Account Email: ${r.reporterAccountEmail || 'No Email'}</small><br>
-
-                <button class="btn-action-view" style="margin-top:8px; padding:4px 10px;"
-                    onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reporterId}'">
-                    <i class="fa-solid fa-user"></i> View Profile
-                </button>
-            </div>
+      <div class="detail-row">
+        <div class="detail-label">Target</div>
+        <div class="detail-value">
+          <div style="font-size:1.05rem; font-weight:700; margin-bottom:8px;">${r.targetName}</div>
+          <div style="padding:12px; background:#F9FAFB; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:10px;">
+            <div style="margin-bottom:4px;">👤 User: <strong>${r.reportedUserName}</strong> (ID: ${r.reportedUserId})</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reportedUserId}'">Target Profile</button>
+            ${r.reportedItemId ? `<button class="btn-action-view" style="background:#EEF2FF; color:var(--primary);" onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${r.reportedItemId}'">Product Page</button>` : ''}
+          </div>
         </div>
+      </div>
 
-        <div class="detail-row">
-            <div class="detail-label">Target (Who/What being reported)</div>
-            <div class="detail-value">
-                <strong>${r.targetName}</strong><br>
-
-                <div style="margin: 8px 0; padding: 8px; background: #f9fafb; border-radius: 8px; font-size: 0.9rem;">
-                    <p>👤 User: <strong>${r.reportedUserName}</strong> (ID: ${r.reportedUserId})</p>
-                    <p>📧 Email: ${r.reportedUserEmail || 'No Email'}</p>
-                </div>
-
-                <div style="margin-top:8px; display:flex; gap:10px; flex-wrap: wrap;">
-                    <button class="btn-action-view" style="padding:4px 10px;"
-                        onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reportedUserId}'">
-                        <i class="fa-solid fa-id-badge"></i> View Reported User
-                    </button>
-
-                    ${r.type === 'product' && r.reportedItemId ? `
-                        <button class="btn-action-view" style="padding:4px 10px; background:#EEF2FF; color:var(--primary);"
-                            onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${r.reportedItemId}'">
-                            <i class="fa-solid fa-box-open"></i> Product Details
-                        </button>
-                    ` : ''}
-                </div>
-            </div>
+      <div class="detail-row">
+        <div class="detail-label">Reason</div>
+        <div class="detail-value">
+          <span class="reason-badge">⚠️ ${r.reason || r.Report_Reason}</span>
+          <div style="margin-top:12px; padding:12px; background:#FEF2F2; border-radius:10px; border:1px solid #FECACA; color:#991B1B; font-size:0.95rem; line-height:1.6;">
+            ${r.details || r.Report_Description || 'No description provided.'}
+          </div>
         </div>
-
-        <div class="detail-row">
-            <div class="detail-label">Reason & Description</div>
-            <div class="detail-value">
-                <span class="reason-badge">⚠️ ${r.reason}</span><br>
-                <p style="margin-top:10px;">${r.details || 'No description provided.'}</p>
-            </div>
-        </div>
+      </div>
     `;
-    document.getElementById('details-content').innerHTML = content;
     document.getElementById('details-modal').classList.add('active');
   }
 
-  function closeDetailsModal() {
-    document.getElementById('details-modal').classList.remove('active');
-  }
+  function closeDetailsModal() { document.getElementById('details-modal').classList.remove('active'); }
 
-  function openActionModal(id, actionType) {
-    currentReportId = id;
-    currentActionType = actionType;
-
-    const modal = document.getElementById('action-modal');
-    const title = document.getElementById('action-title');
-    const textSpan = document.getElementById('action-type-text');
-    const btn = document.getElementById('action-confirm-btn');
-    const input = document.getElementById('admin-reply');
-
-    input.value = '';
-
-    if (actionType === 'Resolved') {
-      title.textContent = '✅ Resolve Report';
-      title.style.color = 'var(--success)';
-      textSpan.textContent = 'MARK AS RESOLVED';
-      btn.textContent = 'Confirm Resolution';
-      btn.className = 'btn-confirm resolve';
-    } else {
-      title.textContent = '🗑️ Dismiss Report';
-      title.style.color = 'var(--text-gray)';
-      textSpan.textContent = 'DISMISS (Reject)';
-      btn.textContent = 'Dismiss Report';
-      btn.className = 'btn-confirm dismiss';
-    }
-
-    btn.onclick = submitAction;
-    modal.classList.add('active');
-  }
-
-  function closeActionModal() {
-    document.getElementById('action-modal').classList.remove('active');
-    currentReportId = null;
-  }
-
-  // --- 提交处理结果 (API 调用) ---
-  async function submitAction() {
-    if(!currentReportId) return;
-    const reply = document.getElementById('admin-reply').value;
-
-    try {
-      const response = await fetch('../api/admin_report_update.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: currentReportId,
-          status: currentActionType,
-          reply: reply
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        showToast(`Report #${currentReportId} has been ${currentActionType.toLowerCase()}.`, 'success');
-        closeActionModal();
-        fetchReports(); // 成功后刷新列表和统计
-      } else {
-        showToast('Error: ' + result.message, 'error');
-      }
-    } catch (error) {
-      showToast('Network error. Failed to update.', 'error');
-    }
-  }
-
-  // --- 工具函数 ---
   function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     toast.textContent = message;
@@ -671,15 +535,11 @@
     setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
-  // 点击遮罩层关闭弹窗
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
-      if(e.target === overlay) {
-        overlay.classList.remove('active');
-      }
+      if(e.target === overlay) overlay.classList.remove('active');
     });
   });
-
 </script>
 </body>
 </html>

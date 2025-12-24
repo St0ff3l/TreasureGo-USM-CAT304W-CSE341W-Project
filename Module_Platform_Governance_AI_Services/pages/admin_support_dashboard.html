@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TreasureGO - Messages</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #F3F4F6;
+      --card-bg: #FFFFFF;
+      --primary: #4F46E5;
+      --primary-light: #EEF2FF;
+      --text-dark: #1F2937;
+      --text-gray: #9CA3AF;
+      --border-radius: 24px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-dark);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-container {
+      flex: 1;
+      display: flex;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 40px 40px 40px;
+      gap: 24px;
+      height: calc(100vh - 80px);
+    }
+
+    .sidebar-card {
+      width: 360px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .contacts-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 16px 16px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      margin-bottom: 8px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      background: transparent;
+      position: relative;
+    }
+
+    .contact-item:hover { background-color: #F9FAFB; }
+    .contact-item.active { background-color: var(--primary-light) !important; }
+
+    .contact-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #E5E7EB;
+      margin-right: 16px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; color: #6B7280;
+    }
+
+    .contact-info { flex: 1; min-width: 0; }
+
+    .contact-top-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+
+    .contact-time { font-size: 0.75rem; color: #D1D5DB; }
+
+    .contact-msg {
+      font-size: 0.85rem;
+      color: var(--text-gray);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contact-item.active .contact-name { color: #3730A3; }
+    .contact-item.active .contact-msg { color: #6366F1; }
+
+    .chat-card {
+      flex: 1;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #F3F4F6;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      height: 80px;
+    }
+
+    .chat-header-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; }
+    .chat-header-name { font-weight: 700; font-size: 1.1rem; }
+
+    .messages-container {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: #fff;
+    }
+
+    .message-row { display: flex; align-items: flex-end; gap: 10px; max-width: 70%; }
+
+    .message-row.received { align-self: flex-start; }
+    .message-row.received .msg-bubble {
+      background: #fff;
+      color: var(--text-dark);
+      border-radius: 18px 18px 18px 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid #F3F4F6;
+    }
+
+    .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
+    .message-row.sent .msg-bubble {
+      background: var(--primary);
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .msg-bubble {
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .msg-avatar-small {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #eee;
+      object-fit: cover;
+      margin-bottom: 5px;
+    }
+
+    .msg-time {
+      font-size: 0.7rem;
+      margin-top: 5px;
+      opacity: 0.6;
+      text-align: right;
+    }
+
+    .sent .msg-time { color: white; opacity: 0.8; }
+
+    .input-area {
+      padding: 20px 30px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      background: #F9FAFB;
+      border-radius: 50px;
+      padding: 5px 20px;
+      display: flex;
+      align-items: center;
+      border: 1px solid #E5E7EB;
+      transition: border 0.2s;
+    }
+    .input-wrapper:focus-within { border-color: var(--primary); }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    .action-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #E5E7EB;
+      color: #4B5563;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      transition: 0.2s;
+    }
+    .action-btn:hover { background: #D1D5DB; }
+
+    .send-btn {
+      width: 45px; height: 45px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+      transition: transform 0.2s;
+    }
+
+    .send-btn:hover { transform: scale(1.05); }
+
+    .empty-state {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      z-index: 5;
+      color: var(--text-gray);
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      background: #F3F4F6;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #9CA3AF;
+    }
+
+    .guard {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: var(--text-dark);
+    }
+
+    .guard-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    .guard-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .guard-sub { color: var(--text-gray); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div id="guard" class="guard" style="display:none;">
+  <div class="guard-card">
+    <div class="guard-title" id="guardTitle">Checking permissions…</div>
+    <div class="guard-sub" id="guardSub">Please wait.</div>
+  </div>
+</div>
+
+<div id="app" class="main-container" style="display:none;">
+  <div class="sidebar-card">
+    <div class="sidebar-header">Messages</div>
+    <div class="contacts-list" id="contactsList"></div>
+  </div>
+
+  <div class="chat-card">
+    <div id="emptyState" class="empty-state">
+      <div class="empty-icon">💬</div>
+      <h3 style="font-weight:600; color:#374151;">Select a conversation to start chatting</h3>
+    </div>
+
+    <div id="chatContent" style="display: none; flex-direction: column; height: 100%;">
+      <div class="chat-header">
+        <img src="" id="chatHeaderAvatar" class="chat-header-avatar" alt="User avatar">
+        <div class="chat-header-name" id="chatHeaderName">User Name</div>
+      </div>
+
+      <div class="messages-container" id="messagesContainer"></div>
+
+      <div class="input-area">
+        <button class="action-btn" onclick="document.getElementById('imageInput').click()">+</button>
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="uploadImage(this)">
+
+        <div class="input-wrapper">
+          <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
+        </div>
+
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script>
+  if (window.TreasureGoHeaderbar && typeof window.TreasureGoHeaderbar.mount === 'function') {
+    window.TreasureGoHeaderbar.mount({ basePath: '../../' });
+  }
+
+  const SUPPORT_QUEUE_API = '/Module_Platform_Governance_AI_Services/api/admin_get_support_queue.php';
+  const ADMIN_CHAT_API = '/Module_Platform_Governance_AI_Services/api/admin_chat_api.php';
+  const SESSION_STATUS_API = '/Module_User_Account_Management/api/session_status.php';
+
+  let currentContactId = null;
+  let currentProductId = null;
+  let pollingInterval = null;
+  let myId = null;
+
+  function showGuard(title, sub) {
+    document.getElementById('app').style.display = 'none';
+    const g = document.getElementById('guard');
+    g.style.display = 'flex';
+    document.getElementById('guardTitle').innerText = title;
+    document.getElementById('guardSub').innerText = sub;
+  }
+
+  function showApp() {
+    document.getElementById('guard').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+  }
+
+  async function getSession() {
+    const res = await fetch(SESSION_STATUS_API, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-cache'
+    });
+
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      const txt = await res.text();
+      throw new Error(`session_status did not return JSON (status=${res.status}): ${txt.slice(0, 120)}`);
+    }
+
+    return await res.json();
+  }
+
+  async function loadConversations() {
+    try {
+      const res = await fetch(SUPPORT_QUEUE_API, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-cache'
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const txt = await res.text();
+        console.error('[SupportQueue] Expected JSON but got:', contentType, 'URL=', SUPPORT_QUEUE_API, 'Status=', res.status);
+        console.error('[SupportQueue] Body (first 300 chars):', txt.slice(0, 300));
+        return;
+      }
+
+      const json = await res.json();
+
+      const listEl = document.getElementById('contactsList');
+      if (json.status !== 'success') {
+        console.error('[SupportQueue] API error:', json);
+        return;
+      }
+
+      let html = '';
+      (json.data || []).forEach(contact => {
+        const isActive = (currentContactId == contact.User_ID && currentProductId == contact.Product_ID);
+
+        const avatar = contact.User_Avatar_Url;
+        const avatarHtml = avatar
+          ? `<img src="${avatar}" class="contact-avatar" alt="User avatar">`
+          : `<div class="contact-avatar">${String(contact.User_Username || '').charAt(0).toUpperCase()}</div>`;
+
+        const time = contact.Created_At ? new Date(contact.Created_At).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+        const msgPreview = contact.Message_Type === 'image' ? '[Image]' : (contact.Message_Content || '');
+        const safeUsername = String(contact.User_Username || '').replace(/'/g, "\\'");
+
+        html += `
+          <div class="contact-item ${isActive ? 'active' : ''}"
+               onclick="selectContact(this, ${contact.User_ID}, '${safeUsername}', '${avatar || ''}', null)">
+            ${avatarHtml}
+            <div class="contact-info">
+              <div class="contact-top-row">
+                <span class="contact-name">${contact.User_Username}</span>
+                <span class="contact-time">${time}</span>
+              </div>
+              <div class="contact-msg">${msgPreview}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      listEl.innerHTML = html;
+    } catch (err) {
+      console.error('[SupportQueue] loadConversations failed:', err);
+    }
+  }
+
+  function selectContact(el, userId, username, avatar, productId) {
+    if (currentContactId === userId && currentProductId === productId) return;
+
+    document.querySelectorAll('.contact-item').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('chatContent').style.display = 'flex';
+
+    document.getElementById('chatHeaderName').innerText = username;
+    const headerAvatar = document.getElementById('chatHeaderAvatar');
+    if (avatar && avatar !== 'undefined') {
+      headerAvatar.src = avatar;
+      headerAvatar.style.display = 'block';
+    } else {
+      headerAvatar.style.display = 'none';
+    }
+
+    currentContactId = userId;
+    currentProductId = productId;
+
+    loadMessages();
+
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(loadMessages, 2500);
+  }
+
+  async function loadMessages() {
+    if (!currentContactId) return;
+
+    try {
+      let url = `${ADMIN_CHAT_API}?action=messages&contact_id=${currentContactId}`;
+      if (currentProductId !== null && currentProductId !== undefined) url += `&product_id=${currentProductId}`;
+
+      const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-cache'
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const txt = await res.text();
+        console.error('[AdminChat] Expected JSON but got:', contentType, 'URL=', url, 'Status=', res.status);
+        console.error('[AdminChat] Body (first 300 chars):', txt.slice(0, 300));
+        return;
+      }
+
+      const json = await res.json();
+
+      const container = document.getElementById('messagesContainer');
+      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
+
+      if (json.status !== 'success') {
+        console.error('[AdminChat] API error:', json);
+        return;
+      }
+
+      container.innerHTML = '';
+
+      (json.data || []).forEach(msg => {
+        const isMe = msg.Sender_ID == myId;
+        const avatar = document.getElementById('chatHeaderAvatar').src;
+
+        const contentHtml = msg.Message_Type === 'image'
+          ? `<img src="${msg.Message_Content}" alt="Image message" style="max-width:200px; border-radius:10px; cursor:pointer;" onclick="window.open(this.src)">`
+          : (msg.Message_Content || '');
+
+        const avatarHtml = (!isMe && avatar) ? `<img src="${avatar}" class="msg-avatar-small" alt="User avatar">` : '';
+
+        const div = document.createElement('div');
+        div.className = `message-row ${isMe ? 'sent' : 'received'}`;
+        div.innerHTML = `
+          ${!isMe ? avatarHtml : ''}
+          <div class="msg-bubble">
+            <div>${contentHtml}</div>
+            <div class="msg-time">${formatTime(msg.Created_At)}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      if (isAtBottom) scrollToBottom();
+    } catch (e) {
+      console.error('[AdminChat] loadMessages failed:', e);
+    }
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text || !currentContactId) return;
+
+    input.value = '';
+
+    try {
+      await fetch(`${ADMIN_CHAT_API}?action=send`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          receiver_id: currentContactId,
+          product_id: currentProductId,
+          message: text
+        })
+      });
+      loadMessages();
+      loadConversations();
+      scrollToBottom();
+    } catch (e) {
+      alert('Error sending message');
+    }
+  }
+
+  async function uploadImage(input) {
+    if (!input.files[0] || !currentContactId) return;
+
+    const formData = new FormData();
+    formData.append('image', input.files[0]);
+    formData.append('receiver_id', currentContactId);
+    if (currentProductId !== null && currentProductId !== undefined) formData.append('product_id', currentProductId);
+
+    try {
+      await fetch(`${ADMIN_CHAT_API}?action=upload`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      loadMessages();
+      loadConversations();
+      input.value = '';
+    } catch (e) {
+      alert('Upload failed');
+    }
+  }
+
+  function formatTime(str) {
+    return new Date(str).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function scrollToBottom() {
+    const c = document.getElementById('messagesContainer');
+    c.scrollTop = c.scrollHeight;
+  }
+
+  (async function boot() {
+    try {
+      showGuard('Checking permissions…', 'Please wait.');
+      const session = await getSession();
+
+      if (!session || !session.is_logged_in) {
+        showGuard('Please log in', 'You must log in to access this page.');
+        return;
+      }
+
+      if (!session.user || session.user.role !== 'admin') {
+        showGuard('Access denied', 'Admin privileges required.');
+        return;
+      }
+
+      myId = session.user.user_id;
+      showApp();
+      loadConversations();
+      setInterval(loadConversations, 4000);
+    } catch (e) {
+      console.error(e);
+      showGuard('Error', String(e));
+    }
+  })();
+</script>
+</body>
+</html>

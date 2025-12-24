@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TreasureGO - Human Support Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #F3F4F6;
+      --card-bg: #FFFFFF;
+      --primary: #4F46E5;
+      --primary-light: #EEF2FF;
+      --text-dark: #1F2937;
+      --text-gray: #9CA3AF;
+      --border-radius: 24px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-dark);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-container {
+      flex: 1;
+      display: flex;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 40px 40px 40px;
+      gap: 24px;
+      height: calc(100vh - 80px);
+    }
+
+    .sidebar-card {
+      width: 360px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 18px 24px 8px 24px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    .sidebar-subtitle {
+      padding: 0 24px 16px 24px;
+      font-size: 0.85rem;
+      color: var(--text-gray);
+    }
+
+    .contacts-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 16px 16px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      margin-bottom: 8px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      background: transparent;
+      position: relative;
+    }
+
+    .contact-item:hover { background-color: #F9FAFB; }
+    .contact-item.active { background-color: var(--primary-light) !important; }
+
+    .contact-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #E5E7EB;
+      margin-right: 16px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: #6B7280;
+    }
+
+    .contact-info { flex: 1; min-width: 0; }
+
+    .contact-top-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .contact-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+
+    .contact-time { font-size: 0.75rem; color: #D1D5DB; }
+
+    .contact-msg {
+      font-size: 0.85rem;
+      color: var(--text-gray);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-card {
+      flex: 1;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 14px 24px;
+      border-bottom: 1px solid #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      height: 80px;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .chat-header-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #eee;
+      flex-shrink: 0;
+    }
+
+    .chat-header-title {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .chat-header-name {
+      font-weight: 800;
+      font-size: 1.05rem;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-header-badge {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: #059669;
+      background: #D1FAE5;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      width: fit-content;
+    }
+
+    .chat-header-right a {
+      text-decoration: none;
+      color: #6B7280;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: #F3F4F6;
+    }
+
+    .messages-container {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: #fff;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      max-width: 70%;
+    }
+
+    .message-row.received { align-self: flex-start; }
+    .message-row.received .msg-bubble {
+      background: #fff;
+      color: var(--text-dark);
+      border-radius: 18px 18px 18px 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid #F3F4F6;
+    }
+
+    .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
+    .message-row.sent .msg-bubble {
+      background: var(--primary);
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .msg-bubble {
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .msg-time {
+      font-size: 0.7rem;
+      margin-top: 6px;
+      opacity: 0.7;
+      text-align: right;
+    }
+
+    .sent .msg-time { color: rgba(255,255,255,0.9); }
+
+    .input-area {
+      padding: 18px 24px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      background: #F9FAFB;
+      border-radius: 50px;
+      padding: 5px 20px;
+      display: flex;
+      align-items: center;
+      border: 1px solid #E5E7EB;
+      transition: border 0.2s;
+    }
+    .input-wrapper:focus-within { border-color: var(--primary); }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    .send-btn {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+      transition: transform 0.2s;
+      font-size: 1.1rem;
+    }
+
+    .send-btn:hover { transform: scale(1.05); }
+
+    .empty-state {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      z-index: 5;
+      color: var(--text-gray);
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 18px;
+      background: #F3F4F6;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #9CA3AF;
+    }
+  </style>
+</head>
+<body>
+
+<div class="main-container">
+  <div class="sidebar-card">
+    <div class="sidebar-header">Human Support</div>
+    <div class="sidebar-subtitle">Support chat (not product inquiry)</div>
+    <div class="contacts-list" id="contactsList">
+      <div style="padding:16px;color:#9CA3AF;">Loading…</div>
+    </div>
+  </div>
+
+  <div class="chat-card">
+    <div id="errorBanner" style="display:none;padding:12px 16px;background:#FEF2F2;color:#991B1B;border-bottom:1px solid #FECACA;"></div>
+
+    <div id="emptyState" class="empty-state">
+      <div class="empty-icon">💬</div>
+      <h3 style="font-weight:600; color:#374151;">Opening support chat…</h3>
+      <p style="color:#9CA3AF;margin-top:6px;">If you are not logged in, a login prompt will appear.</p>
+    </div>
+
+    <!-- Show chat UI immediately; JS will load messages and keep it updated. -->
+    <div id="chatContent" style="display: flex; flex-direction: column; height: 100%;">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <img src="" id="chatHeaderAvatar" class="chat-header-avatar" alt="Support avatar">
+          <div class="chat-header-title">
+            <div class="chat-header-name" id="chatHeaderName">Human Support</div>
+            <div class="chat-header-badge">Support</div>
+          </div>
+        </div>
+        <div class="chat-header-right">
+          <a href="support.html">End Chat</a>
+        </div>
+      </div>
+
+      <div class="messages-container" id="messagesContainer"></div>
+
+      <div class="input-area">
+        <div class="input-wrapper">
+          <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." />
+        </div>
+        <button class="send-btn" id="sendBtn">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script src="../../Public_Assets/js/auth_modal.js"></script>
+<script>
+  if (window.TreasureGoHeaderbar && typeof window.TreasureGoHeaderbar.mount === 'function') {
+    window.TreasureGoHeaderbar.mount({ basePath: '../../' });
+  }
+
+  const SESSION_STATUS_API = '/Module_User_Account_Management/api/session_status.php';
+  const SUPPORT_API = '/Module_Platform_Governance_AI_Services/api/support_human_chat_api.php';
+
+  let myId = null;
+  let agentId = null;
+  let pollingInterval = null;
+
+  function setContactsList(avatarUrl, lastMsgText, lastTimeText) {
+    const listEl = document.getElementById('contactsList');
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" class="contact-avatar" alt="Support avatar">`
+      : `<div class="contact-avatar">💬</div>`;
+
+    listEl.innerHTML = `
+      <div class="contact-item active" id="supportContact">
+        ${avatarHtml}
+        <div class="contact-info">
+          <div class="contact-top-row">
+            <span class="contact-name">Human Support</span>
+            <span class="contact-time">${lastTimeText || ''}</span>
+          </div>
+          <div class="contact-msg">${lastMsgText || 'Start a conversation'}</div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('supportContact').onclick = () => {
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('chatContent').style.display = 'flex';
+      document.getElementById('chatHeaderName').innerText = 'Human Support';
+
+      const headerAvatar = document.getElementById('chatHeaderAvatar');
+      if (avatarUrl) {
+        headerAvatar.src = avatarUrl;
+        headerAvatar.style.display = 'block';
+      } else {
+        headerAvatar.style.display = 'none';
+      }
+
+      loadMessages(true);
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = setInterval(loadMessages, 2000);
+    };
+  }
+
+  function formatTime(str) {
+    if (!str) return '';
+    return new Date(str).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function showErrorBanner(msg) {
+    const b = document.getElementById('errorBanner');
+    b.style.display = 'block';
+    b.textContent = msg;
+  }
+
+  async function ensureLoggedIn() {
+    try {
+      const res = await fetch(SESSION_STATUS_API, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-cache'
+      });
+
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        const txt = await res.text();
+        showErrorBanner('session_status did not return JSON. ' + txt.slice(0, 120));
+        throw new Error('session_status did not return JSON');
+      }
+
+      const data = await res.json();
+      if (!data.is_logged_in) {
+        // Not logged in -> show prompt or redirect
+        if (window.AuthModal && typeof window.AuthModal.show === 'function') {
+          window.AuthModal.show();
+        } else {
+          window.location.href = '/Module_User_Account_Management/pages/login.php';
+        }
+        throw new Error('Not logged in');
+      }
+
+      myId = data.user?.user_id ?? null;
+      if (!myId) {
+        showErrorBanner('Logged in but missing user_id from session_status.');
+      }
+      return data;
+    } catch (e) {
+      showErrorBanner('Login/session check failed: ' + String(e));
+      throw e;
+    }
+  }
+
+  async function loadMessages(scrollToBottom = false) {
+    try {
+      const res = await fetch(SUPPORT_API, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-cache'
+      });
+
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        const txt = await res.text();
+        showErrorBanner('Support API did not return JSON (status=' + res.status + '). ' + txt.slice(0, 120));
+        return;
+      }
+
+      const json = await res.json();
+      if (json.status !== 'success') {
+        showErrorBanner('Support API error: ' + (json.message || 'Unknown error'));
+        return;
+      }
+
+      // Hide empty state once we have connectivity
+      document.getElementById('emptyState').style.display = 'none';
+
+      agentId = json.agent_id ?? agentId;
+
+      const container = document.getElementById('messagesContainer');
+      const isAtBottomNow = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
+
+      container.innerHTML = '';
+
+      const msgs = json.data || [];
+      msgs.forEach(msg => {
+        const isMe = (msg.Message_Sender_ID == myId);
+        const div = document.createElement('div');
+        div.className = `message-row ${isMe ? 'sent' : 'received'}`;
+
+        const content = msg.Message_Type === 'image'
+          ? `<img src="${msg.Message_Content}" alt="Image message" style="max-width:200px; border-radius:10px; cursor:pointer;" onclick="window.open(this.src)">`
+          : (msg.Message_Content || '');
+
+        div.innerHTML = `
+          <div class="msg-bubble">
+            <div>${content}</div>
+            <div class="msg-time">${formatTime(msg.Message_Sent_At)}</div>
+          </div>
+        `;
+
+        container.appendChild(div);
+      });
+
+      // Update sidebar preview
+      const last = msgs.length ? msgs[msgs.length - 1] : null;
+      const lastPreview = last ? (last.Message_Type === 'image' ? '[Image]' : last.Message_Content) : '';
+      setContactsList(null, lastPreview, last ? formatTime(last.Message_Sent_At) : '');
+
+      if (scrollToBottom || isAtBottomNow) {
+        container.scrollTop = container.scrollHeight;
+      }
+
+    } catch (e) {
+      showErrorBanner('loadMessages failed: ' + String(e));
+      console.error('[SupportChat] loadMessages failed:', e);
+    }
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = (input.value || '').trim();
+    if (!text) return;
+
+    input.value = '';
+
+    try {
+      const res = await fetch(SUPPORT_API, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        const txt = await res.text();
+        console.error('[SupportChat] POST expected JSON but got:', ct, 'Status=', res.status);
+        console.error('[SupportChat] Body (first 300 chars):', txt.slice(0, 300));
+        return;
+      }
+
+      const json = await res.json();
+      if (json.status !== 'success') {
+        alert('Failed: ' + (json.message || 'Unknown error'));
+        return;
+      }
+
+      loadMessages(true);
+    } catch (e) {
+      alert('Network Error');
+    }
+  }
+
+  // Boot
+  (async function boot() {
+    try {
+      await ensureLoggedIn();
+      setContactsList(null, 'Start a conversation', '');
+
+      document.getElementById('sendBtn').addEventListener('click', sendMessage);
+      document.getElementById('messageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      // Auto-open chat
+      document.getElementById('supportContact').click();
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>
+</body>
+</html>

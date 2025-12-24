@@ -146,7 +146,15 @@
 
         <div class="input-group">
             <label class="input-label">Email</label>
-            <input type="email" id="email" class="form-input" required>
+            <div style="display: flex; gap: 10px;">
+                <input type="email" id="email" class="form-input" required style="flex: 1;">
+                <button type="button" id="sendCodeBtn" class="btn-secondary" style="width: auto; margin-top: 0; padding: 12px 15px; font-size: 0.9rem;">Send Code</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">Verification Code</label>
+            <input type="text" id="verify_code" class="form-input" placeholder="Check your email" required>
         </div>
 
         <div class="input-group">
@@ -186,6 +194,60 @@
     }
 
     // 2. Signup Logic
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    
+    // 发送验证码
+    sendCodeBtn.addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const msg = document.getElementById('msg');
+        
+        if (!email) {
+            msg.textContent = "Please enter your email first.";
+            return;
+        }
+        
+        sendCodeBtn.disabled = true;
+        sendCodeBtn.textContent = "Sending...";
+        msg.textContent = "";
+        
+        try {
+            const res = await fetch('../api/send_verify_code.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, purpose: 'signup' })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                msg.style.color = '#10B981';
+                msg.textContent = "Code sent! Check your inbox.";
+                sendCodeBtn.textContent = "Sent";
+                // 60秒倒计时
+                let countdown = 60;
+                const timer = setInterval(() => {
+                    sendCodeBtn.textContent = `Resend (${countdown})`;
+                    countdown--;
+                    if (countdown < 0) {
+                        clearInterval(timer);
+                        sendCodeBtn.disabled = false;
+                        sendCodeBtn.textContent = "Send Code";
+                    }
+                }, 1000);
+            } else {
+                msg.style.color = '#ef4444';
+                msg.textContent = data.message || "Failed to send code.";
+                sendCodeBtn.disabled = false;
+                sendCodeBtn.textContent = "Send Code";
+            }
+        } catch (err) {
+            console.error(err);
+            msg.style.color = '#ef4444';
+            msg.textContent = "Server error.";
+            sendCodeBtn.disabled = false;
+            sendCodeBtn.textContent = "Send Code";
+        }
+    });
+
     document.getElementById('signupForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -194,9 +256,15 @@
         // 简单的前端校验
         const p1 = document.getElementById('password').value;
         const p2 = document.getElementById('confirm_password').value;
+        const code = document.getElementById('verify_code').value;
 
         if (p1 !== p2) {
             msg.textContent = "Passwords do not match!";
+            return;
+        }
+        
+        if (!code) {
+            msg.textContent = "Please enter the verification code.";
             return;
         }
 
@@ -207,7 +275,8 @@
         const formData = {
             username: document.getElementById('username').value,
             email: document.getElementById('email').value,
-            password: p1
+            password: p1,
+            code: code
         };
 
         try {
@@ -225,17 +294,19 @@
                 btn.style.backgroundColor = '#10B981';
                 btn.style.borderColor = '#10B981';
 
-                // 注册成功跳转到验证页面 (API 会返回 next_url)
+                // 注册成功跳转到登录页面
                 setTimeout(() => {
-                    window.location.href = data.data.next_url;
-                }, 500);
+                    window.location.href = 'login.php';
+                }, 1000);
             } else {
+                msg.style.color = '#ef4444';
                 msg.textContent = data.message || 'Signup failed';
                 btn.textContent = 'Sign Up';
                 btn.disabled = false;
             }
         } catch (err) {
             console.error(err);
+            msg.style.color = '#ef4444';
             msg.textContent = 'Server connection failed.';
             btn.textContent = 'Sign Up';
             btn.disabled = false;

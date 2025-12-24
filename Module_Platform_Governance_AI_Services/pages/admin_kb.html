@@ -176,7 +176,7 @@
           tr.innerHTML = `
             <td>#${item.KB_ID}</td>
             <td style="font-weight:600;">${escapeHtml(item.KB_Question)}</td>
-            <td style="color:#666;">${escapeHtml(item.KB_Answer).substring(0, 60)}...</td>
+            <td style="color:#666;">${escapeHtml(item.KB_Answer)}</td>
             <td><span class="badge">${escapeHtml(item.KB_Category)}</span></td>
             <td>
               <button class="btn-del" onclick="deleteKB(${item.KB_ID})">Delete</button>

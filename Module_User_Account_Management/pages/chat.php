@@ -376,6 +376,20 @@ require_login();
         }
         .send-btn:hover { transform: scale(1.05); background: var(--primary-hover); }
 
+        .add-btn {
+            background: #e5e7eb;
+            color: var(--text-dark);
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .add-btn:hover { background: #d1d5db; }
+
         .empty-state {
             display: flex;
             flex-direction: column;
@@ -475,6 +489,8 @@ require_login();
             </div>
 
             <div class="chat-input-area">
+                <button class="add-btn" onclick="document.getElementById('imageInput').click()">+</button>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="uploadImage(this)">
                 <input type="text" class="chat-input" id="messageInput" placeholder="Type a message...">
                 <button class="send-btn" onclick="sendMessage()">➤</button>
             </div>
@@ -484,6 +500,7 @@ require_login();
 
 <script>
     let currentContactId = null;
+    let currentProductId = null; // 新增：当前聊天的商品ID
     let pollingInterval = null;
 
     // 1. 加载联系人列表
@@ -500,12 +517,7 @@ require_login();
             const targetContactId = urlParams.get('contact_id');
             const targetProductId = urlParams.get('product_id'); // 获取商品ID
             
-            console.log("Target Contact ID:", targetContactId); // Debug
-
-            // 🔥 核心修改：如果 URL 中有商品ID，保存到 localStorage
-            if (targetContactId && targetProductId) {
-                localStorage.setItem('chat_context_' + targetContactId, targetProductId);
-            }
+            console.log("Target Contact ID:", targetContactId, "Product ID:", targetProductId); // Debug
 
             let targetUserFound = false;
 
@@ -513,8 +525,13 @@ require_login();
                 // 渲染现有对话列表
                 if (json.data.length > 0) {
                     json.data.forEach(contact => {
-                        // 注意类型转换，API返回的可能是数字或字符串
-                        if (targetContactId && contact.User_ID == targetContactId) {
+                        // 检查是否匹配目标联系人和商品
+                        // 如果 URL 有 product_id，必须匹配 product_id
+                        // 如果 URL 没有 product_id，匹配 product_id 为 null 的对话 (或者任意? 暂时严格匹配)
+                        const isSameUser = contact.User_ID == targetContactId;
+                        const isSameProduct = targetProductId ? contact.Product_ID == targetProductId : !contact.Product_ID;
+
+                        if (targetContactId && isSameUser && isSameProduct) {
                             targetUserFound = true;
                         }
                         renderContactItem(contact, listEl);
@@ -525,15 +542,17 @@ require_login();
 
                 // 如果 URL 指定了联系人，且不在现有列表中，则手动添加
                 if (targetContactId && !targetUserFound) {
-                    console.log("Target user not in list, loading info..."); // Debug
-                    await loadTargetUser(targetContactId, listEl);
+                    console.log("Target user/product not in list, loading info..."); // Debug
+                    await loadTargetUser(targetContactId, targetProductId, listEl);
                 } else if (targetContactId && targetUserFound) {
                     // 如果在列表中，直接打开
-                    console.log("Target user found in list, opening chat..."); // Debug
+                    console.log("Target found in list, opening chat..."); // Debug
                     // 找到对应的用户数据
-                    let targetUser = json.data.find(u => u.User_ID == targetContactId);
+                    let targetUser = json.data.find(u => u.User_ID == targetContactId && (targetProductId ? u.Product_ID == targetProductId : !u.Product_ID));
                     if (targetUser) {
-                        openChat(targetUser.User_ID, targetUser.User_Username, targetUser.User_Avatar_Url);
+                        // 优先使用商品图片作为头像
+                        const avatar = targetUser.Product_Image_Url || targetUser.User_Avatar_Url;
+                        openChat(targetUser.User_ID, targetUser.User_Username, avatar, targetUser.Product_ID);
                     }
                 }
             } else {
@@ -549,12 +568,26 @@ require_login();
     // ... renderContactItem 保持不变 ...
 
     // 加载目标用户信息（当不在现有对话列表中时）
-    async function loadTargetUser(userId, container) {
+    async function loadTargetUser(userId, productId, container) {
         try {
             console.log("Fetching user info for:", userId); // Debug
             const res = await fetch(`../api/get_user_public_info.php?user_id=${userId}`);
             const json = await res.json();
             console.log("User info response:", json); // Debug
+
+            let productImageUrl = null;
+            if (productId) {
+                try {
+                    const resProd = await fetch(`../../Module_Product_Ecosystem/api/Get_Products.php?product_id=${productId}`);
+                    const jsonProd = await resProd.json();
+                    if (jsonProd.success && jsonProd.data.length > 0) {
+                        const p = jsonProd.data[0];
+                        if (p.Main_Image) productImageUrl = '../../' + p.Main_Image;
+                    }
+                } catch (e) {
+                    console.error("Failed to load product image for avatar", e);
+                }
+            }
 
             if (json.status === 'success') {
                 const user = json.data;
@@ -563,6 +596,8 @@ require_login();
                     User_ID: user.User_ID,
                     User_Username: user.User_Username,
                     User_Avatar_Url: user.User_Avatar_Url,
+                    Product_ID: productId,
+                    Product_Image_Url: productImageUrl,
                     Message_Content: '', // 空消息
                     Created_At: null,
                     Is_Read: 1,
@@ -576,7 +611,8 @@ require_login();
 
                 renderContactItem(contact, container);
                 // 自动打开
-                openChat(contact.User_ID, contact.User_Username, contact.User_Avatar_Url);
+                const avatar = contact.Product_Image_Url || contact.User_Avatar_Url;
+                openChat(contact.User_ID, contact.User_Username, avatar, contact.Product_ID);
             } else {
                 console.error("Failed to load user info:", json.message);
                 alert("Could not load seller information.");
@@ -590,14 +626,22 @@ require_login();
     // 渲染单个联系人项
     function renderContactItem(contact, container) {
         const div = document.createElement('div');
-        div.className = `contact-item ${currentContactId == contact.User_ID ? 'active' : ''}`;
+        // 只有当 UserID 和 ProductID 都匹配时才激活
+        const isActive = currentContactId == contact.User_ID && currentProductId == contact.Product_ID;
+        div.className = `contact-item ${isActive ? 'active' : ''}`;
         div.dataset.userId = contact.User_ID; // 方便查找
-        div.onclick = () => openChat(contact.User_ID, contact.User_Username, contact.User_Avatar_Url);
+        div.dataset.productId = contact.Product_ID || ''; // 新增
         
-        // 头像处理
+        div.onclick = () => {
+            const avatar = contact.Product_Image_Url || contact.User_Avatar_Url;
+            openChat(contact.User_ID, contact.User_Username, avatar, contact.Product_ID);
+        };
+        
+        // 头像处理：优先显示商品图片
+        let avatarUrl = contact.Product_Image_Url || contact.User_Avatar_Url;
         let avatarHtml = '';
-        if (contact.User_Avatar_Url) {
-            avatarHtml = `<img src="${contact.User_Avatar_Url}" class="contact-avatar">`;
+        if (avatarUrl) {
+            avatarHtml = `<img src="${avatarUrl}" class="contact-avatar">`;
         } else {
             avatarHtml = `<div class="contact-avatar">${contact.User_Username.charAt(0).toUpperCase()}</div>`;
         }
@@ -614,7 +658,7 @@ require_login();
                     <div class="contact-time">${contact.Created_At ? formatTime(contact.Created_At) : ''}</div>
                 </div>
                 <div style="display:flex; justify-content:space-between;">
-                    <div class="contact-last-msg">${contact.Message_Content || 'Start a conversation'}</div>
+                    <div class="contact-last-msg">${contact.Message_Type === 'image' ? '[Image]' : (contact.Message_Content || 'Start a conversation')}</div>
                     ${unreadHtml}
                 </div>
             </div>
@@ -627,31 +671,7 @@ require_login();
         }
     }
 
-    // 加载目标用户信息（当不在现有对话列表中时）
-    async function loadTargetUser(userId, container) {
-        try {
-            const res = await fetch(`../api/get_user_public_info.php?user_id=${userId}`);
-            const json = await res.json();
-            if (json.status === 'success') {
-                const user = json.data;
-                // 构造一个伪 contact 对象
-                const contact = {
-                    User_ID: user.User_ID,
-                    User_Username: user.User_Username,
-                    User_Avatar_Url: user.User_Avatar_Url,
-                    Message_Content: '', // 空消息
-                    Created_At: null,
-                    Is_Read: 1,
-                    Sender_ID: 0
-                };
-                renderContactItem(contact, container);
-                // 自动打开
-                openChat(contact.User_ID, contact.User_Username, contact.User_Avatar_Url);
-            }
-        } catch (err) {
-            console.error("Failed to load target user info", err);
-        }
-    }
+
 
     // 移除商品上下文
     function removeProductContext(e) {
@@ -702,11 +722,12 @@ require_login();
     }
 
     // 2. 打开聊天窗口
-    function openChat(userId, username, avatarUrl) {
+    function openChat(userId, username, avatarUrl, productId = null) {
         // 如果已经是当前聊天，就不重复加载（防止循环）
-        if (currentContactId == userId) return;
+        if (currentContactId == userId && currentProductId == productId) return;
 
         currentContactId = userId;
+        currentProductId = productId;
         
         // UI 切换
         document.getElementById('emptyState').style.display = 'none';
@@ -722,10 +743,9 @@ require_login();
             avatarEl.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e5e7eb"/><text x="50" y="50" font-family="Arial" font-size="40" fill="%236b7280" text-anchor="middle" dy=".3em">' + username.charAt(0).toUpperCase() + '</text></svg>';
         }
 
-        // 🔥 核心修改：检查 localStorage 中是否有该用户的商品上下文
-        const storedProductId = localStorage.getItem('chat_context_' + userId);
-        if (storedProductId) {
-            loadProductContext(storedProductId);
+        // 加载商品上下文
+        if (currentProductId) {
+            loadProductContext(currentProductId);
         } else {
             document.getElementById('productContextCard').style.display = 'none';
         }
@@ -737,14 +757,12 @@ require_login();
         if (pollingInterval) clearInterval(pollingInterval);
         pollingInterval = setInterval(loadMessages, 3000);
 
-        // 注意：这里不要调用 loadConversations()，否则会导致新对话（尚未保存到DB）时的无限循环
-        // 我们只需要在发送消息成功后刷新列表即可
-        
         // 手动更新列表项的选中状态
         document.querySelectorAll('.contact-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.userId == userId);
+            const isMatch = item.dataset.userId == userId && item.dataset.productId == (productId || '');
+            item.classList.toggle('active', isMatch);
             // 如果是当前选中的，清除未读红点（视觉上）
-            if (item.dataset.userId == userId) {
+            if (isMatch) {
                 const badge = item.querySelector('.unread-badge');
                 if (badge) badge.remove();
             }
@@ -755,8 +773,20 @@ require_login();
     async function loadMessages() {
         if (!currentContactId) return;
 
+        // Product chat requires product_id; don't fall back to support (Product_ID IS NULL).
+        if (!currentProductId) {
+            console.warn('Missing currentProductId; refusing to load messages without product_id to avoid mixing with support chat.');
+            const container = document.getElementById('messagesContainer');
+            if (container) {
+                container.innerHTML = '<div style="padding:16px;color:#9CA3AF;">This conversation is missing a Product_ID, so messages can\'t be loaded here.</div>';
+            }
+            return;
+        }
+
         try {
-            const res = await fetch(`../api/chat/get_messages.php?contact_id=${currentContactId}`);
+            let url = `../api/chat/get_messages.php?contact_id=${currentContactId}&product_id=${currentProductId}`;
+
+            const res = await fetch(url);
             const json = await res.json();
             
             const container = document.getElementById('messagesContainer');
@@ -772,8 +802,21 @@ require_login();
                 json.data.forEach(msg => {
                     const div = document.createElement('div');
                     div.className = `message ${msg.Sender_ID == myId ? 'sent' : 'received'}`;
+                    
+                    let contentHtml = '';
+                    if (msg.Message_Type === 'image') {
+                        // 处理图片路径
+                        // 数据库存的是 ../../Public_Assets/chat_images/xxx.jpg (相对于 api/chat/upload_image.php)
+                        // chat.php 在 pages/ 下，所以路径应该是 ../../Public_Assets/chat_images/xxx.jpg
+                        // 如果存的是绝对路径或者其他格式，需要调整
+                        // 假设存的是 ../../Public_Assets/chat_images/filename.ext
+                        contentHtml = `<img src="${msg.Message_Content}" style="max-width: 200px; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src)">`;
+                    } else {
+                        contentHtml = msg.Message_Content;
+                    }
+
                     div.innerHTML = `
-                        ${msg.Message_Content}
+                        ${contentHtml}
                         <div class="message-time">${formatTime(msg.Created_At)}</div>
                     `;
                     container.appendChild(div);
@@ -801,6 +844,7 @@ require_login();
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     receiver_id: currentContactId,
+                    product_id: currentProductId,
                     message: content
                 })
             });
@@ -814,6 +858,46 @@ require_login();
             }
         } catch (err) {
             alert('Failed to send message');
+        }
+    }
+
+    // 6. 上传图片
+    async function uploadImage(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (!currentContactId) {
+                alert("Please select a chat first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('receiver_id', currentContactId);
+            if (currentProductId) {
+                formData.append('product_id', currentProductId);
+            }
+
+            try {
+                const res = await fetch('../api/chat/upload_image.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const json = await res.json();
+
+                if (json.status === 'success') {
+                    loadMessages();
+                    loadConversations();
+                    scrollToBottom();
+                } else {
+                    alert('Upload failed: ' + json.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Upload error');
+            }
+            
+            // 清空 input，允许重复上传同一张图
+            input.value = '';
         }
     }
 
