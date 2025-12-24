@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details - TreasureGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================
+       1. Global Variables & Reset
+       ========================================= */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --danger: #EF4444;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      min-height: 100vh;
+      background-image: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+    }
+
+    /* =========================================
+       2. Navbar & Layout
+       ========================================= */
+    .navbar { background: var(--glass-bg); backdrop-filter: blur(12px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.5); }
+    .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .logo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+    .nav-actions button { border: none; background: transparent; font-weight: 600; color: var(--text-gray); padding: 0.6rem 1.2rem; cursor: pointer; border-radius: 8px; }
+
+    .main-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      text-decoration: none; color: var(--text-gray); font-weight: 600;
+      margin-bottom: 20px; transition: 0.2s;
+    }
+    .back-btn:hover { color: var(--primary); transform: translateX(-5px); }
+
+    .detail-card {
+      background: white; border-radius: 24px; padding: 40px;
+      box-shadow: var(--card-shadow); border: 1px solid rgba(0,0,0,0.04);
+      animation: slideUp 0.4s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* =========================================
+       3. Header & Grid
+       ========================================= */
+    .detail-header { border-bottom: 2px solid #F3F4F6; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .detail-title h1 { font-size: 1.8rem; margin-bottom: 5px; color: var(--text-dark); }
+    .detail-title span { color: var(--text-gray); font-size: 0.9rem; }
+
+    .grid-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 50px; }
+    @media (max-width: 850px) { .grid-layout { grid-template-columns: 1fr; } }
+
+    /* =========================================
+       4. Gallery Styles (Arrows & Thumbs)
+       ========================================= */
+    .gallery-container { display: flex; flex-direction: column; gap: 15px; }
+
+    /* Main Image Box */
+    .main-image-box {
+      width: 100%; aspect-ratio: 1/1;
+      background: #F9FAFB; border: 1px solid #E5E7EB;
+      border-radius: 20px;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .main-image-box img {
+      width: 100%; height: 100%; object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+
+    /* Navigation Arrows */
+    .nav-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%; border: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; color: var(--text-dark); z-index: 10;
+      transition: all 0.2s ease;
+      opacity: 0; /* Hidden by default */
+    }
+    .main-image-box:hover .nav-arrow { opacity: 1; }
+    .nav-arrow:hover { background: var(--primary); color: white; transform: translateY(-50%) scale(1.1); }
+    .prev-btn { left: 15px; }
+    .next-btn { right: 15px; }
+
+    /* Animation */
+    .fade-anim { animation: fadeScale 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+    @keyframes fadeScale {
+      from { opacity: 0.6; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Thumbnails */
+    .thumbnails {
+      display: flex; gap: 12px; overflow-x: auto;
+      padding: 10px 5px; scrollbar-width: thin;
+    }
+    .thumbnails::-webkit-scrollbar { height: 4px; }
+    .thumbnails::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+    .thumb {
+      width: 70px; height: 70px; flex-shrink: 0;
+      background: white; border-radius: 12px;
+      cursor: pointer; overflow: hidden;
+      opacity: 0.6; transform: scale(0.95);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border: 1px solid transparent;
+    }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb:hover { opacity: 0.8; }
+    .thumb.active {
+      opacity: 1; transform: scale(1.05);
+      border-color: transparent;
+      box-shadow: 0 0 0 3px var(--primary), 0 5px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    /* =========================================
+       5. Info & Tracking Styles
+       ========================================= */
+    .info-section { margin-bottom: 25px; }
+    .section-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #9CA3AF; font-weight: 700; margin-bottom: 10px; }
+
+    .product-title-large { font-size: 1.6rem; font-weight: 800; line-height: 1.3; margin-bottom: 15px; color: var(--text-dark); }
+    .price-tag { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 20px; display: block; }
+
+    .specs-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+      background: #F9FAFB; padding: 20px; border-radius: 16px; margin-bottom: 20px;
+    }
+    .spec-item { display: flex; flex-direction: column; }
+    .spec-key { font-size: 0.85rem; color: var(--text-gray); margin-bottom: 4px; }
+    .spec-value { font-weight: 600; color: var(--text-dark); }
+
+    /* Tracking Specific */
+    .tracking-group { display: flex; gap: 5px; margin-top: 5px; }
+    .tracking-input { width: 100%; padding: 6px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 0.85rem; }
+    .btn-small-upload { background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
+    .btn-small-upload:hover { background: var(--primary-hover); }
+    .tracking-display { font-family: monospace; background: #F3F4F6; padding: 4px 8px; border-radius: 4px; color: #374151; font-weight: 700; letter-spacing: 1px; }
+
+    .description-box { line-height: 1.7; color: #4B5563; white-space: pre-wrap; }
+
+    /* Status Badge */
+    .status-badge { padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: inline-block; }
+    .status-paid { background: #FFEFD5; color: #8B4513; }
+    .status-processing { background: #DBEAFE; color: #1E40AF; }
+    .status-completed { background: #D1FAE5; color: #065F46; }
+    .status-cancelled { background: #F3F4F6; color: #6B7280; }
+
+    /* Buttons */
+    .actions-box { background: white; border-top: 2px solid #F3F4F6; padding-top: 20px; margin-top: 10px; }
+    .btn-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+    .btn { padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+    .btn-confirm { background: #10B981; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-confirm:hover { background: #059669; transform: translateY(-2px); }
+    .btn-refund { background: #FEE2E2; color: #991B1B; }
+    .btn-refund:hover { background: #FECaca; }
+    .btn-contact { background: #E0E7FF; color: #3730A3; width: 100%; justify-content: center; }
+    .btn-contact:hover { background: #C7D2FE; }
+
+    /* Modal (General) */
+    .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+    .modal.active { display: flex; animation: fadeIn 0.2s; }
+    .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center; position: relative; }
+    .auto-confirm-text { margin-top: 15px; padding: 10px; background: #FFFBEB; color: #D97706; border-radius: 8px; font-size: 0.9rem; border: 1px dashed #FCD34D; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* --- Refund Modal Specific Styles --- */
+    .refund-modal-header { text-align: left; margin-bottom: 20px; }
+    .refund-modal-header h2 { margin: 0; font-size: 1.5rem; color: var(--text-dark); }
+
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 8px; color: #4B5563; font-weight: 600; font-size: 0.9rem; }
+
+    .modal-select {
+      width: 100%; padding: 12px; border: 2px solid #E5E7EB;
+      border-radius: 12px; font-size: 1rem; font-family: inherit;
+      background: #F9FAFB; transition: 0.2s;
+    }
+    .modal-select:focus {
+      border-color: var(--danger); outline: none; background: white;
+    }
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+    .btn-modal-cancel {
+      background: white; border: 1px solid #D1D5DB; color: #374151;
+      padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600;
+    }
+    .btn-modal-submit {
+      background: var(--danger); color: white; border: none;
+      padding: 10px 24px; border-radius: 12px; cursor: pointer; font-weight: 600;
+    }
+    .btn-modal-submit:hover { background: #DC2626; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="../../index.html" class="logo">
+    <img src="../../Public_Assets/images/TreasureGo_Logo.png" alt="Logo" class="logo-img">
+    Treasure<span>Go</span>
+  </a>
+  <div class="nav-actions">
+    <button onclick="window.location.href='Orders_Management.html'">Back to Orders</button>
+  </div>
+</nav>
+
+<div class="main-container">
+  <a href="Orders_Management.html" class="back-btn">← Back to Orders List</a>
+
+  <div class="detail-card" id="detailContent">
+    <div style="text-align: center; padding: 50px;">
+      <div style="font-size: 40px; margin-bottom: 10px;">📦</div>
+      <p>Loading order details...</p>
+    </div>
+  </div>
+</div>
+
+<div id="secondaryConfirmModal" class="modal">
+  <div class="modal-content">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+    <h3 style="margin-bottom: 10px;">Confirm Receipt?</h3>
+    <p style="color: #6B7280; margin-bottom: 20px;">
+      By confirming, funds will be released to the seller immediately.<br>
+      <strong>This action cannot be undone.</strong>
+    </p>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button class="btn" style="background: #F3F4F6; color: #374151;" onclick="closeSecondaryModal()">Cancel</button>
+      <button class="btn btn-confirm" id="btnRealConfirm">Yes, Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="refundReasonModal" class="modal">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="refund-modal-header">
+      <h2>Request Refund</h2>
+      <p style="color:#6B7280; font-size:0.9rem; margin-top:5px;">Please tell us why you want to return this item.</p>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="refundReasonSelect">Reason for Refund</label>
+        <select id="refundReasonSelect" class="modal-select">
+          <option value="" disabled selected>Select a reason...</option>
+          <option value="damaged">Item Damaged / Defective</option>
+          <option value="wrong_item">Received Wrong Item</option>
+          <option value="not_described">Item Not As Described</option>
+          <option value="missing_parts">Missing Parts / Accessories</option>
+          <option value="fake">Counterfeit / Fake Item</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeRefundModal()">Cancel</button>
+      <button class="btn-modal-submit" id="submitRefundBtn">Next Step ➜</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const ORDER_ID = urlParams.get('id');
+  const API_URL = '../api/Get_User_Orders.php';
+  let CURRENT_USER_ID = null;
+
+  // --- 全局变量用于图片画廊 ---
+  let globalOrderImages = [];
+  let currentOrderImageIndex = 0;
+
+  async function init() {
+    if (!ORDER_ID) {
+      document.getElementById('detailContent').innerHTML = '<h2 style="text-align:center; color:red;">No Order ID provided.</h2>';
+      return;
+    }
+
+    try {
+      const sessionRes = await fetch('../../Module_User_Account_Management/api/session_status.php');
+      const sessionData = await sessionRes.json();
+
+      if (!sessionData.is_logged_in) {
+        window.location.href = '../../Module_User_Account_Management/pages/login.php';
+        return;
+      }
+      CURRENT_USER_ID = sessionData.user.user_id;
+
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.msg);
+
+      const allOrders = [...(data.buying || []).map(o => ({...o, type: 'buy'})), ...(data.selling || []).map(o => ({...o, type: 'sell'}))];
+      const targetOrder = allOrders.find(o => o.Orders_Order_ID == ORDER_ID);
+
+      if (targetOrder) {
+        console.log("Full Order Data:", targetOrder);
+        renderOrder(targetOrder);
+      } else {
+        document.getElementById('detailContent').innerHTML = '<h2 style="text-align:center;">Order not found.</h2>';
+      }
+
+    } catch (error) {
+      console.error(error);
+      document.getElementById('detailContent').innerHTML = '<h2 style="text-align:center; color:red;">Error loading details.</h2>';
+    }
+  }
+
+  function parseOrderImages(order) {
+    let images = [];
+    if (order.Main_Image) {
+      images.push(`../../${order.Main_Image}`);
+    }
+    const possibleFields = ['Images', 'images', 'Product_Images', 'gallery', 'all_images', 'All_Images'];
+    for (const field of possibleFields) {
+      if (order[field]) {
+        let raw = order[field];
+        if (typeof raw === 'string' && (raw.startsWith('[') || raw.startsWith('{'))) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(img => {
+                const fullPath = img.startsWith('http') || img.startsWith('../') ? img : `../../${img}`;
+                if (!images.includes(fullPath) && !images.includes(img)) {
+                  images.push(fullPath);
+                }
+              });
+            }
+          } catch (e) { console.log('JSON Parse error for images'); }
+        }
+        else if (typeof raw === 'string' && raw.includes(',')) {
+          raw.split(',').forEach(img => {
+            const trimmed = img.trim();
+            if (trimmed) {
+              const fullPath = trimmed.startsWith('http') || trimmed.startsWith('../') ? trimmed : `../../${trimmed}`;
+              images.push(fullPath);
+            }
+          });
+        }
+      }
+    }
+    if (images.length === 0) images.push('../../Public_Assets/images/placeholder.png');
+    return [...new Set(images)];
+  }
+
+  function renderOrder(order) {
+    const isBuyer = order.type === 'buy';
+    const statusClass = getStatusClass(order.Orders_Status);
+
+    // 1. 初始化图片数据
+    globalOrderImages = parseOrderImages(order);
+    currentOrderImageIndex = 0;
+
+    // 2. 自动收货提示
+    let autoConfirmHtml = '';
+    // 只有在订单进行中才计算
+    if (['processing', 'shipped'].includes(order.Orders_Status.toLowerCase())) {
+
+      let startTime = null;
+      let showCountdown = false;
+      let msgPrefix = "";
+
+      // 判断是否已发货 (有 Shipped_At 字段)
+      if (order.Orders_Shipped_At) {
+        startTime = new Date(order.Orders_Shipped_At);
+        showCountdown = true;
+        msgPrefix = "🚚 Shipped! Auto-confirm in";
+      }
+      // 没发货，但配送方式是纯面交
+      else if (order.Delivery_Method === 'meetup') {
+        startTime = new Date(order.Orders_Created_AT);
+        showCountdown = true;
+        msgPrefix = "🤝 Meet-up Order. Auto-confirm in";
+      }
+      // 快递待发货
+      else {
+        if (isBuyer) {
+          autoConfirmHtml = `<div class="auto-confirm-text" style="background:#EEF2FF; color:#4F46E5; border-color:#C7D2FE;">📦 Waiting for seller to ship. 7-day timer starts after shipment.</div>`;
+        }
+      }
+
+      // 计算剩余天数
+      if (showCountdown && startTime) {
+        const autoConfirmDate = new Date(startTime.getTime() + (7 * 24 * 60 * 60 * 1000));
+        const now = new Date();
+        const daysLeft = Math.ceil((autoConfirmDate - now) / (1000 * 3600 * 24));
+
+        if (daysLeft > 0) {
+          autoConfirmHtml = `<div class="auto-confirm-text">⏳ ${msgPrefix} <strong>${daysLeft} days</strong> (${autoConfirmDate.toLocaleDateString()}).</div>`;
+        } else {
+          autoConfirmHtml = `<div class="auto-confirm-text" style="color: #EF4444; border-color: #EF4444; background: #FEF2F2;">⏳ Time's up. Please confirm receipt.</div>`;
+        }
+      }
+    }
+
+    // 3. Action 按钮
+    let actionButtons = '';
+    if (isBuyer && order.Orders_Status !== 'completed' && order.Orders_Status !== 'cancelled') {
+      actionButtons = `
+                <div class="actions-box">
+                    <div style="font-weight:700; margin-bottom:10px;">⚡ Actions</div>
+                    <div class="btn-group">
+                        <button class="btn btn-confirm" onclick="openConfirmDialog(${order.Orders_Order_ID})">✅ Confirm Receipt</button>
+                        <button class="btn btn-refund" onclick="openRefundModal(${order.Orders_Order_ID})">↩️ Request Refund</button>
+                    </div>
+                    ${autoConfirmHtml}
+                </div>
+            `;
+    }
+
+    // 4. Tracking Number 逻辑
+    const trackingNum = order.Tracking_Number || '';
+    let deliveryHtml = '';
+    if (trackingNum) {
+      deliveryHtml = `<div class="tracking-display">${trackingNum}</div>`;
+    } else {
+      if (isBuyer) {
+        deliveryHtml = `<span style="color:#F59E0B; font-size:0.9rem;">⏳ Awaiting Shipment</span>`;
+      } else {
+        if (order.Orders_Status !== 'cancelled' && order.Orders_Status !== 'completed') {
+          deliveryHtml = `
+                    <div class="tracking-group">
+                        <input type="text" id="trackingInput_${order.Orders_Order_ID}" class="tracking-input" placeholder="Enter No.">
+                        <button class="btn-small-upload" onclick="submitTracking(${order.Orders_Order_ID})">Ship</button>
+                    </div>
+                `;
+        } else {
+          deliveryHtml = `<span style="color:#9CA3AF;">-</span>`;
+        }
+      }
+    }
+
+    const condition = order.Product_Condition || order.Condition || order.condition || '-';
+    const category = order.Category_Name || order.Category || '-';
+
+    // 5. 用户名显示逻辑
+    const otherPartyLabel = isBuyer ? 'Seller' : 'Buyer';
+    const otherPartyName = isBuyer
+            ? (order.Seller_Username || `ID: ${order.Orders_Seller_ID}`)
+            : (order.Buyer_Username || `ID: ${order.Orders_Buyer_ID}`);
+
+    const html = `
+            <div class="detail-header">
+                <div class="detail-title">
+                    <h1>Order #${order.Orders_Order_ID}</h1>
+                    <span>Created: ${new Date(order.Orders_Created_AT).toLocaleString()}</span>
+                </div>
+                <span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span>
+            </div>
+
+            <div class="grid-layout">
+                <div class="gallery-container">
+                    <div class="main-image-box" id="mainImageContainer">
+                        </div>
+                    <div class="thumbnails" id="thumbnailContainer">
+                        </div>
+
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-contact" onclick="alert('Chat system connecting...')">
+                            💬 Contact ${isBuyer ? 'Seller' : 'Buyer'}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="order-info">
+                    <div class="section-label">Product Details</div>
+                    <h2 class="product-title-large">${order.Product_Title}</h2>
+                    <span class="price-tag">$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</span>
+
+                    <div class="specs-grid">
+                        <div class="spec-item"><span class="spec-key">Role</span><span class="spec-value">${isBuyer ? '🛒 Buying' : '🏷️ Selling'}</span></div>
+
+                        <div class="spec-item">
+                            <span class="spec-key">${otherPartyLabel}</span>
+                            <span class="spec-value">${otherPartyName}</span>
+                        </div>
+
+                        <div class="spec-item"><span class="spec-key">Condition</span><span class="spec-value">${capitalizeFirst(condition)}</span></div>
+                        <div class="spec-item"><span class="spec-key">Category</span><span class="spec-value">${category}</span></div>
+
+                        <div class="spec-item">
+                            <span class="spec-key">Tracking No.</span>
+                            <span class="spec-value">${deliveryHtml}</span>
+                        </div>
+
+                        <div class="spec-item"><span class="spec-key">Product ID</span><span class="spec-value">#${order.Product_ID}</span></div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="section-label">Description</div>
+                        <div class="description-box">${order.Product_Description || 'No description provided.'}</div>
+                    </div>
+
+                    ${actionButtons}
+                </div>
+            </div>
+        `;
+
+    document.getElementById('detailContent').innerHTML = html;
+    updateGalleryDisplay();
+  }
+
+  // --- 画廊更新逻辑 ---
+  function updateGalleryDisplay() {
+    const mainBox = document.getElementById('mainImageContainer');
+    const thumbBox = document.getElementById('thumbnailContainer');
+    if (!mainBox || !thumbBox) return;
+
+    // 1. 渲染大图
+    mainBox.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = globalOrderImages[currentOrderImageIndex];
+    img.className = 'fade-anim';
+    mainBox.appendChild(img);
+
+    // 2. 渲染箭头 (多于1张时)
+    if (globalOrderImages.length > 1) {
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'nav-arrow prev-btn';
+      prevBtn.innerHTML = '❮';
+      prevBtn.onclick = () => changeGalleryImage(-1);
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'nav-arrow next-btn';
+      nextBtn.innerHTML = '❯';
+      nextBtn.onclick = () => changeGalleryImage(1);
+
+      mainBox.appendChild(prevBtn);
+      mainBox.appendChild(nextBtn);
+    }
+
+    // 3. 渲染缩略图
+    thumbBox.innerHTML = '';
+    if (globalOrderImages.length > 1) {
+      globalOrderImages.forEach((src, index) => {
+        const thumb = document.createElement('div');
+        thumb.className = index === currentOrderImageIndex ? 'thumb active' : 'thumb';
+        thumb.innerHTML = `<img src="${src}">`;
+        thumb.onclick = () => setGalleryImage(index);
+        thumbBox.appendChild(thumb);
+      });
+    }
+  }
+
+  function changeGalleryImage(direction) {
+    currentOrderImageIndex += direction;
+    if (currentOrderImageIndex < 0) currentOrderImageIndex = globalOrderImages.length - 1;
+    else if (currentOrderImageIndex >= globalOrderImages.length) currentOrderImageIndex = 0;
+    updateGalleryDisplay();
+  }
+
+  function setGalleryImage(index) {
+    currentOrderImageIndex = index;
+    updateGalleryDisplay();
+  }
+
+  // --- 提交快递单号逻辑 ---
+  async function submitTracking(orderId) {
+    const input = document.getElementById(`trackingInput_${orderId}`);
+    const trackingNum = input.value.trim();
+    if (!trackingNum) {
+      alert("Please enter a tracking number!");
+      return;
+    }
+    if(confirm(`Confirm ship with Tracking No: ${trackingNum}?`)) {
+      try {
+        const response = await fetch('../api/Update_Tracking.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id: orderId, tracking: trackingNum })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert("✅ Tracking number updated! (Status: Shipped)");
+          location.reload();
+        } else {
+          alert("❌ Failed to update: " + result.message);
+        }
+      } catch(e) {
+        alert("Error updating tracking: " + e);
+      }
+    }
+  }
+
+  // --- 通用函数 ---
+  function getStatusClass(status) {
+    const map = { 'paid': 'status-paid', 'completed': 'status-completed', 'processing': 'status-processing', 'cancelled': 'status-cancelled' };
+    return map[status ? status.toLowerCase() : ''] || 'status-processing';
+  }
+  function capitalizeFirst(str) { return str ? String(str).charAt(0).toUpperCase() + String(str).slice(1) : ''; }
+
+  // ---------------------------------------------
+  // 🔥🔥🔥 收货确认弹窗逻辑 🔥🔥🔥
+  // ---------------------------------------------
+  function openConfirmDialog(orderId) {
+    document.getElementById('secondaryConfirmModal').classList.add('active');
+    document.getElementById('btnRealConfirm').onclick = () => processConfirmReceipt(orderId);
+  }
+
+  function closeSecondaryModal() {
+    document.getElementById('secondaryConfirmModal').classList.remove('active');
+  }
+
+  async function processConfirmReceipt(orderId) {
+    closeSecondaryModal();
+    try {
+      const response = await fetch('../api/Orders_Management.php?action=confirm_receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId, buyer_id: CURRENT_USER_ID })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert(`✅ Order #${orderId} Completed!`);
+        location.reload();
+      } else {
+        alert(`❌ Failed: ${result.message}`);
+      }
+    } catch (error) {
+      alert('❌ Network error.');
+    }
+  }
+
+  // ---------------------------------------------
+  // 🔥🔥🔥 退款原因选择弹窗逻辑 (已更新路径) 🔥🔥🔥
+  // ---------------------------------------------
+  let currentRefundOrderId = null;
+
+  function openRefundModal(orderId) {
+    currentRefundOrderId = orderId;
+    document.getElementById('refundReasonModal').classList.add('active');
+
+    // 绑定提交事件
+    document.getElementById('submitRefundBtn').onclick = () => processRefundSelection();
+  }
+
+  function closeRefundModal() {
+    document.getElementById('refundReasonModal').classList.remove('active');
+    // 清空输入
+    document.getElementById('refundReasonSelect').selectedIndex = 0;
+  }
+
+  function processRefundSelection() {
+    const reason = document.getElementById('refundReasonSelect').value;
+
+    if (!reason) {
+      alert('Please select a refund reason.');
+      return;
+    }
+
+    // 🔥 修改跳转路径为新的 Module 地址
+    const targetUrl = `../../Module_After_Sales_Dispute/pages/Refund_Request.html?order_id=${currentRefundOrderId}&reason=${encodeURIComponent(reason)}`;
+
+    console.log('Redirecting to refund page:', targetUrl);
+    window.location.href = targetUrl;
+  }
+
+  init();
+</script>
+
+</body>
+</html>

@@ -119,6 +119,7 @@ function getOrders($conn, $request) {
 
 /**
  * Get order by ID
+ * 🔥🔥 MODIFIED: Joined Product & Product_Images tables to fetch details 🔥🔥
  */
 function getOrderById($conn, $request) {
     try {
@@ -128,14 +129,25 @@ function getOrderById($conn, $request) {
             sendResponse(false, 'Missing required field: order_id', null, 400);
         }
 
-        $sql = "SELECT Orders_Order_ID, Orders_Buyer_ID, Orders_Seller_ID,
-                       Orders_Total_Amount, Orders_Platform_Fee, Orders_Status, Orders_Created_AT
-                FROM Orders
-                WHERE Orders_Order_ID = :order_id";
+        // Updated SQL query to fetch Product Title and Image URL
+        // We use a subquery for the image to ensure we only get one (prioritizing primary)
+        $sql = "SELECT 
+                    o.Orders_Order_ID, 
+                    o.Orders_Buyer_ID, 
+                    o.Orders_Seller_ID,
+                    o.Orders_Total_Amount, 
+                    o.Orders_Platform_Fee, 
+                    o.Orders_Status, 
+                    o.Orders_Created_AT,
+                    p.Product_Title,
+                    (SELECT Image_URL FROM Product_Images pi WHERE pi.Product_ID = p.Product_ID ORDER BY Image_is_primary DESC LIMIT 1) AS Main_Image
+                FROM Orders o
+                JOIN Product p ON o.Product_ID = p.Product_ID
+                WHERE o.Orders_Order_ID = :order_id";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([':order_id' => $orderId]);
-        $order = $stmt->fetch();
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($order) {
             sendResponse(true, 'Order retrieved successfully', $order);
@@ -225,6 +237,7 @@ function updateOrderStatus($conn, $request) {
 
 /**
  * Confirm order receipt (buyer confirms receiving order)
+ * REPLACED: Added wallet settlement logic
  */
 function confirmOrderReceipt($conn, $request) {
     try {
@@ -235,37 +248,56 @@ function confirmOrderReceipt($conn, $request) {
             sendResponse(false, 'Missing required fields: order_id, buyer_id', null, 400);
         }
 
-        // Verify buyer and get order details
-        $sql = "SELECT Orders_Seller_ID, Orders_Total_Amount, Orders_Platform_Fee
+        // 1. Start Transaction
+        $conn->beginTransaction();
+
+        // 2. Verify buyer and get order details (Locking row)
+        $sql = "SELECT Orders_Seller_ID, Orders_Total_Amount, Orders_Platform_Fee, Orders_Status
                 FROM Orders
-                WHERE Orders_Order_ID = :order_id AND Orders_Buyer_ID = :buyer_id";
+                WHERE Orders_Order_ID = :order_id AND Orders_Buyer_ID = :buyer_id
+                FOR UPDATE";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':order_id' => $orderId, ':buyer_id' => $buyerId]);
         $order = $stmt->fetch();
 
         if (!$order) {
+            $conn->rollBack();
             sendResponse(false, 'Order not found or unauthorized', null, 404);
         }
 
-        // Update order status to completed
+        // Check if already completed to avoid double payment
+        if ($order['Orders_Status'] === 'completed') {
+            $conn->rollBack();
+            sendResponse(false, 'Order is already completed', null, 400);
+        }
+
+        // 3. Update order status to completed
         $sql = "UPDATE Orders SET Orders_Status = 'completed' WHERE Orders_Order_ID = :order_id";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':order_id' => $orderId]);
 
-        // Create wallet log for seller (release funds)
+        // 4. Settle funds to seller (Create Wallet Log)
+        // Calculate net amount
         $sellerAmount = $order['Orders_Total_Amount'] - $order['Orders_Platform_Fee'];
+
         createWalletLog($conn, [
             'user_id' => $order['Orders_Seller_ID'],
             'amount' => $sellerAmount,
-            'type' => 'sale',
+            'type' => 'sale', // Type used to generate description
             'reference_id' => $orderId,
             'reference_type' => 'order'
         ]);
 
-        sendResponse(true, 'Order receipt confirmed successfully', ['status' => 'completed']);
+        // 5. Commit Transaction
+        $conn->commit();
 
-    } catch (PDOException $e) {
-        sendResponse(false, 'Database error: ' . $e->getMessage(), null, 500);
+        sendResponse(true, 'Order receipt confirmed and funds released', ['status' => 'completed']);
+
+    } catch (Exception $e) {
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        sendResponse(false, 'Error: ' . $e->getMessage(), null, 500);
     }
 }
 
@@ -273,6 +305,7 @@ function confirmOrderReceipt($conn, $request) {
 
 /**
  * Create wallet log entry
+ * REPLACED: Adapted for Wallet_Logs schema without separate Wallets table
  */
 function createWalletLog($conn, $data) {
     $userId = $data['user_id'];
@@ -281,28 +314,30 @@ function createWalletLog($conn, $data) {
     $referenceId = $data['reference_id'] ?? null;
     $referenceType = $data['reference_type'] ?? '';
 
-    // Get current balance
-    $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1";
+    // 1. Get current balance (Locking latest row)
+    // Order by Created_AT DESC to get the latest entry. If null, balance is 0.
+    $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1 FOR UPDATE";
     $stmt = $conn->prepare($sql);
     $stmt->execute([':user_id' => $userId]);
     $result = $stmt->fetch();
     $currentBalance = $result ? $result['Balance_After'] : 0.00;
 
-    // Calculate new balance
+    // 2. Calculate new balance
+    // Logic: Withdrawals/Purchases subtract from balance, Sales/Refunds add to balance
     $changeAmount = ($type === 'withdrawal' || $type === 'purchase') ? -abs($amount) : abs($amount);
     $newBalance = $currentBalance + $changeAmount;
 
-    // Description
-    $description = ucfirst($type) . ' of $' . abs($amount);
+    // 3. Build Description
+    $description = ucfirst($type) . ' of $' . number_format(abs($amount), 2);
 
-    // Insert log
+    // 4. Insert new log
     $sql = "INSERT INTO Wallet_Logs (User_id, Amount, Balance_After, Description, Reference_Type, Reference_ID, Created_AT)
-            VALUES (:user_id, :amount, :balance_after, :description, :reference_type, :reference_id, NOW())";
+            VALUES (:user_id, :amount, :balance_after, :description, :reference_type, :reference_id, NOW(6))";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':user_id' => $userId,
-        ':amount' => $changeAmount,
+        ':amount' => $changeAmount, // This records the signed amount (+ or -)
         ':balance_after' => $newBalance,
         ':description' => $description,
         ':reference_type' => $referenceType,
@@ -411,4 +446,3 @@ function getStatistics($conn, $request) {
 }
 
 ?>
-

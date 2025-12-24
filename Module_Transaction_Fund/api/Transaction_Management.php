@@ -22,6 +22,10 @@ require_once(__DIR__ . '/config/treasurego_db_config.php');
 
 // Error handling
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    // 忽略一些不严重的警告，避免破坏 JSON 格式
+    if (!(error_reporting() & $errno)) {
+        return;
+    }
     throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
 });
 
@@ -98,24 +102,24 @@ function getWalletLogs($conn, $request) {
             sendResponse(false, 'Missing required field: user_id', null, 400);
         }
 
-        // Get total count
-        $sql = "SELECT COUNT(*) as total FROM Wallet_Logs WHERE User_id = :user_id";
+        // Get total count (Matches schema: User_ID)
+        $sql = "SELECT COUNT(*) as total FROM Wallet_Logs WHERE User_ID = :user_id";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
         $totalCount = $stmt->fetch()['total'];
 
-        // Get paginated logs
+        // Get paginated logs (Matches schema: User_ID, Created_AT)
         $sql = "SELECT * FROM Wallet_Logs 
-                WHERE User_id = :user_id 
+                WHERE User_ID = :user_id 
                 ORDER BY Created_AT DESC 
                 LIMIT :limit OFFSET :offset";
 
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         $stmt->execute();
-        $logs = $stmt->fetchAll();
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         sendResponse(true, 'Wallet logs retrieved successfully', [
             'logs' => $logs,
@@ -140,10 +144,11 @@ function getWalletBalance($conn, $request) {
             sendResponse(false, 'Missing required field: user_id', null, 400);
         }
 
-        $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1";
+        // Fetch the latest Balance_After
+        $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_ID = :user_id ORDER BY Created_AT DESC LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
-        $result = $stmt->fetch();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $balance = $result ? $result['Balance_After'] : 0.00;
 
         sendResponse(true, 'Wallet balance retrieved successfully', ['balance' => $balance]);
@@ -154,7 +159,7 @@ function getWalletBalance($conn, $request) {
 }
 
 /**
- * Create wallet log entry (internal use)
+ * Create wallet log entry (internal helper function)
  */
 function createWalletLog($conn, $data) {
     $userId = $data['user_id'];
@@ -164,22 +169,24 @@ function createWalletLog($conn, $data) {
     $referenceType = $data['reference_type'] ?? '';
 
     // Get current balance
-    $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1";
+    $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_ID = :user_id ORDER BY Created_AT DESC LIMIT 1 FOR UPDATE";
     $stmt = $conn->prepare($sql);
     $stmt->execute([':user_id' => $userId]);
-    $result = $stmt->fetch();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $currentBalance = $result ? $result['Balance_After'] : 0.00;
 
     // Calculate new balance
+    // Ensure logical handling of amount sign
     $changeAmount = ($type === 'withdrawal' || $type === 'purchase') ? -abs($amount) : abs($amount);
     $newBalance = $currentBalance + $changeAmount;
 
-    // Description
-    $description = ucfirst($type) . ' of $' . abs($amount);
+    // Build Description
+    $description = ucfirst($type) . ' of $' . number_format(abs($amount), 2);
 
     // Insert log
-    $sql = "INSERT INTO Wallet_Logs (User_id, Amount, Balance_After, Description, Reference_Type, Reference_ID, Created_AT)
-            VALUES (:user_id, :amount, :balance_after, :description, :reference_type, :reference_id, NOW())";
+    // Matches schema: Log_ID (Auto), User_ID, Amount, Balance_After, Description, Reference_Type, Reference_ID, Created_AT
+    $sql = "INSERT INTO Wallet_Logs (User_ID, Amount, Balance_After, Description, Reference_Type, Reference_ID, Created_AT)
+            VALUES (:user_id, :amount, :balance_after, :description, :reference_type, :reference_id, NOW(6))";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
@@ -214,6 +221,8 @@ function createWalletLogAction($conn, $request) {
             sendResponse(false, 'Amount must be greater than 0', null, 400);
         }
 
+        $conn->beginTransaction();
+
         $newBalance = createWalletLog($conn, [
             'user_id' => $userId,
             'amount' => $amount,
@@ -222,11 +231,16 @@ function createWalletLogAction($conn, $request) {
             'reference_type' => $referenceType
         ]);
 
+        $conn->commit();
+
         sendResponse(true, 'Wallet log created successfully', [
             'new_balance' => $newBalance
         ]);
 
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
         sendResponse(false, 'Database error: ' . $e->getMessage(), null, 500);
     }
 }
@@ -245,35 +259,35 @@ function getStatistics($conn, $request) {
         }
 
         // Get current balance
-        $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1";
+        $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_ID = :user_id ORDER BY Created_AT DESC LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
-        $result = $stmt->fetch();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $balance = $result ? $result['Balance_After'] : 0.00;
 
-        // Get total transactions
-        $sql = "SELECT COUNT(*) as total FROM Wallet_Logs WHERE User_id = :user_id";
+        // Get total transactions count
+        $sql = "SELECT COUNT(*) as total FROM Wallet_Logs WHERE User_ID = :user_id";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
         $totalTransactions = $stmt->fetch()['total'];
 
-        // Get total deposits
-        $sql = "SELECT COALESCE(SUM(Amount), 0) as total FROM Wallet_Logs WHERE User_id = :user_id AND Amount > 0";
+        // Get total deposits (Income)
+        $sql = "SELECT COALESCE(SUM(Amount), 0) as total FROM Wallet_Logs WHERE User_ID = :user_id AND Amount > 0";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
         $totalDeposits = $stmt->fetch()['total'];
 
-        // Get total withdrawals
-        $sql = "SELECT COALESCE(ABS(SUM(Amount)), 0) as total FROM Wallet_Logs WHERE User_id = :user_id AND Amount < 0";
+        // Get total withdrawals (Expense)
+        $sql = "SELECT COALESCE(ABS(SUM(Amount)), 0) as total FROM Wallet_Logs WHERE User_ID = :user_id AND Amount < 0";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
         $totalWithdrawals = $stmt->fetch()['total'];
 
-        // Get transaction count by type
-        $sql = "SELECT Description, COUNT(*) as count FROM Wallet_Logs WHERE User_id = :user_id GROUP BY Description ORDER BY count DESC";
+        // Get transaction count by description type
+        $sql = "SELECT Description, COUNT(*) as count FROM Wallet_Logs WHERE User_ID = :user_id GROUP BY Description ORDER BY count DESC";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
-        $transactionByType = $stmt->fetchAll();
+        $transactionByType = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         sendResponse(true, 'Statistics retrieved successfully', [
             'balance' => $balance,
@@ -307,22 +321,22 @@ function getTransactionSummary($conn, $request) {
                     SUM(CASE WHEN Amount > 0 THEN Amount ELSE 0 END) as daily_deposits,
                     SUM(CASE WHEN Amount < 0 THEN ABS(Amount) ELSE 0 END) as daily_withdrawals
                 FROM Wallet_Logs
-                WHERE User_id = :user_id 
+                WHERE User_ID = :user_id 
                 AND Created_AT >= DATE_SUB(NOW(), INTERVAL :days DAY)
                 GROUP BY DATE(Created_AT)
                 ORDER BY date DESC";
 
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
+        $stmt->bindValue(':days', (int)$days, PDO::PARAM_INT);
         $stmt->execute();
-        $summary = $stmt->fetchAll();
+        $summary = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Get current balance
-        $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1";
+        $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_ID = :user_id ORDER BY Created_AT DESC LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':user_id' => $userId]);
-        $result = $stmt->fetch();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $currentBalance = $result ? $result['Balance_After'] : 0.00;
 
         sendResponse(true, 'Transaction summary retrieved successfully', [
@@ -337,4 +351,3 @@ function getTransactionSummary($conn, $request) {
 }
 
 ?>
-
