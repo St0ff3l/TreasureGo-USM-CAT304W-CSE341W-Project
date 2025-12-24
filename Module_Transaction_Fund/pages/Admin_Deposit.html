@@ -985,7 +985,7 @@
                         <span>🆔 #${request.REQUEST_ID}</span>
                         <span>👤 User ID: ${request.User_ID}</span>
                     </div>
-                    <div class="request-amount">+ $${parseFloat(request.Amount).toFixed(2)}</div>
+                    <div class="request-amount">+ RM${parseFloat(request.Amount).toFixed(2)}</div>
                 </div>
                 <div class="request-actions">
                     <span class="request-status ${getStatusClass(request.Status)}">
@@ -1060,7 +1060,7 @@
         const confirmBtn = document.getElementById('action-confirm-btn');
 
         document.getElementById('action-user').value = username;
-        document.getElementById('action-amount').value = '$' + parseFloat(amount).toFixed(2);
+        document.getElementById('action-amount').value = 'RM' + parseFloat(amount).toFixed(2);
         document.getElementById('action-remark').value = '';
 
         if (action === 'approve') {
@@ -1236,7 +1236,7 @@
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Amount:</strong>
-                <span style="font-size: 1.3rem; font-weight: 800; color: var(--success);">+ $${parseFloat(request.Amount).toFixed(2)}</span>
+                <span style="font-size: 1.3rem; font-weight: 800; color: var(--success);">+ RM${parseFloat(request.Amount).toFixed(2)}</span>
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Status:</strong>

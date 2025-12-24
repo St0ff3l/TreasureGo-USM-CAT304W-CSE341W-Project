@@ -598,7 +598,7 @@
         <div class="stat-card" style="position: relative;">
             <div class="stat-icon">💰</div>
             <div class="stat-label">Available Balance</div>
-            <div class="stat-value" id="availableBalance">$2,458.50</div>
+            <div class="stat-value" id="availableBalance">RM2,458.50</div>
             <div style="position: absolute; bottom: 20px; right: 20px; display: flex; gap: 10px;">
                 <button class="btn-small btn-view" onclick="window.location.href='Deposit.html'">Deposit</button>
                 <button class="btn-small btn-view" onclick="window.location.href='Withdrawal.html'">Withdrawal</button>
@@ -838,7 +838,7 @@
             const stats = result.data;
 
             // Update statistics cards
-            document.getElementById('availableBalance').textContent = '$' + parseFloat(stats.balance).toFixed(2);
+            document.getElementById('availableBalance').textContent = 'RM' + parseFloat(stats.balance).toFixed(2);
             document.getElementById('pendingRequests').textContent = stats.pending_requests;
         } catch (error) {
             console.error('Failed to load statistics:', error);
@@ -929,7 +929,7 @@
                     <span style="color: ${typeColor}; font-weight: 600;">${typeLabel}</span>
                 </div>
             </td>
-            <td><strong>$${parseFloat(request.Amount).toFixed(2)}</strong></td>
+            <td><strong>RM${parseFloat(request.Amount).toFixed(2)}</strong></td>
             <td><span class="status-badge ${statusClass}">${capitalizeFirst(request.Status)}</span></td>
             <td>${formatDateTime(request.Created_AT)}</td>
             <td>${processedAt === '-' ? '-' : formatDateTime(processedAt)}</td>
@@ -1041,7 +1041,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Amount:</span>
-                    <span class="detail-value">$${parseFloat(request.Amount).toFixed(2)}</span>
+                    <span class="detail-value">RM${parseFloat(request.Amount).toFixed(2)}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Status:</span>
@@ -1106,7 +1106,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Amount:</span>
-                <span class="detail-value">$150.00</span>
+                <span class="detail-value">RM150.00</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Status:</span>
@@ -1192,4 +1192,6 @@
 
 </body>
 </html>
+
+
 

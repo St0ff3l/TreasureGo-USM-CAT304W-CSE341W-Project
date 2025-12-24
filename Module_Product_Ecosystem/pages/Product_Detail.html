@@ -222,7 +222,7 @@
         </div>
 
         <h1 class="product-title">Loading Product...</h1>
-        <div class="product-price">$0.00</div>
+        <div class="product-price">RM0.00</div>
 
         <div class="delivery-badges">
             Loading Options...
@@ -309,7 +309,7 @@
     function renderProduct(item) {
         // A. 基础文本
         document.querySelector('.product-title').innerText = item.Product_Title;
-        document.querySelector('.product-price').innerHTML = `$${parseFloat(item.Product_Price).toFixed(2)}`;
+        document.querySelector('.product-price').innerHTML = `RM${parseFloat(item.Product_Price).toFixed(2)}`;
         document.querySelector('.description-text').innerText = item.Product_Description || "No description available.";
         document.querySelector('.seller-details h4').innerText = item.User_Username;
         const rating = item.User_Average_Rating ? `★ ${item.User_Average_Rating}` : 'New Seller';
@@ -592,3 +592,4 @@
 
 </body>
 </html>
+

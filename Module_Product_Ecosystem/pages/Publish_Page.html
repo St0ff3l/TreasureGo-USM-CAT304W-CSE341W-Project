@@ -399,10 +399,10 @@
 
         <div id="priceCalculator" class="price-calc-box">
           <div class="calc-row calc-fee">
-            Platform Fee (2%): <span id="feeAmount">-$0.00</span>
+            Platform Fee (2%): <span id="feeAmount">-RM0.00</span>
           </div>
           <div class="calc-row calc-income">
-            Est. Income: <span id="incomeAmount">$0.00</span>
+            Est. Income: <span id="incomeAmount">RM0.00</span>
           </div>
         </div>
       </div>
@@ -491,8 +491,8 @@
     if (!isNaN(price) && price > 0) {
       const fee = price * 0.02;
       const income = price - fee;
-      feeAmount.textContent = `-$${fee.toFixed(2)}`;
-      incomeAmount.textContent = `$${income.toFixed(2)}`;
+      feeAmount.textContent = `-RM${fee.toFixed(2)}`;
+      incomeAmount.textContent = `RM${income.toFixed(2)}`;
       priceCalculator.style.display = 'block';
     } else {
       priceCalculator.style.display = 'none';
@@ -706,3 +706,4 @@
 
 </body>
 </html>
+

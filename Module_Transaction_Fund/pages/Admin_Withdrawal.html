@@ -1038,7 +1038,7 @@
                         <span>🆔 #FR${request.REQUEST_ID}</span>
                         <span>👤 ID: ${request.User_ID}</span>
                     </div>
-                    <div class="request-amount">- $${parseFloat(request.Amount).toFixed(2)}</div>
+                    <div class="request-amount">- RM${parseFloat(request.Amount).toFixed(2)}</div>
                 </div>
                 <div class="request-actions">
                     <span class="request-status ${statusClass}">${formatStatus(request.Status)}</span>
@@ -1104,7 +1104,7 @@
         const confirmBtn = document.getElementById('action-confirm-btn');
 
         document.getElementById('action-user').value = username;
-        document.getElementById('action-amount').value = '$' + parseFloat(amount).toFixed(2);
+        document.getElementById('action-amount').value = 'RM' + parseFloat(amount).toFixed(2);
         document.getElementById('action-remark').value = '';
 
         if (action === 'approve') {
@@ -1160,10 +1160,10 @@
 
                 if (balance < reqAmount) {
                     // Insufficient balance - Auto Reject
-                    showToast(`⚠️ Insufficient Balance ($${balance.toFixed(2)}). Auto-rejecting...`, 'error');
+                    showToast(`⚠️ Insufficient Balance (RM${balance.toFixed(2)}). Auto-rejecting...`, 'error');
 
                     // Perform rejection immediately
-                    await performStatusUpdate(requestId, 'rejected', `System Auto-Reject: Insufficient Balance ($${balance.toFixed(2)} < $${reqAmount.toFixed(2)})`);
+                    await performStatusUpdate(requestId, 'rejected', `System Auto-Reject: Insufficient Balance (RM${balance.toFixed(2)} < RM${reqAmount.toFixed(2)})`);
                 } else {
                     // Sufficient balance - Ask for confirmation
                     openActionModal(requestId, 'approve', username, amount);
@@ -1318,7 +1318,7 @@
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Amount:</strong>
-                <span class="amount-text" style="font-size: 1.3rem;">$${parseFloat(request.Amount).toFixed(2)}</span>
+                <span class="amount-text" style="font-size: 1.3rem;">RM${parseFloat(request.Amount).toFixed(2)}</span>
             </div>
             <div style="margin-bottom: 20px;">
                 <strong style="font-size: 1.1rem;">Status:</strong>
@@ -1340,11 +1340,11 @@
         <div style="display: flex; gap: 10px; margin-bottom: 12px;">
             <div style="flex: 1; background: white; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;">
                 <div style="color: #94a3b8; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Fee (3%)</div>
-                <div style="color: #ef4444; font-weight: 700; font-size: 1rem;">$${(request.Amount * 0.03).toFixed(2)}</div>
+                <div style="color: #ef4444; font-weight: 700; font-size: 1rem;">RM${(request.Amount * 0.03).toFixed(2)}</div>
             </div>
             <div style="flex: 1; background: white; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;">
                 <div style="color: #94a3b8; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Net Pay</div>
-                <div style="color: #10b981; font-weight: 700; font-size: 1rem;">$${(request.Amount * 0.97).toFixed(2)}</div>
+                <div style="color: #10b981; font-weight: 700; font-size: 1rem;">RM${(request.Amount * 0.97).toFixed(2)}</div>
             </div>
         </div>
 
@@ -1374,7 +1374,7 @@
             if (balanceEl) {
                 if (data.success) {
                     const balance = parseFloat(data.data.balance);
-                    balanceEl.textContent = '$' + balance.toFixed(2);
+                    balanceEl.textContent = 'RM' + balance.toFixed(2);
                     // Highlight if insufficient funds for pending request
                     if (request.Status === 'pending' && balance < parseFloat(request.Amount)) {
                         balanceEl.style.color = '#EF4444';

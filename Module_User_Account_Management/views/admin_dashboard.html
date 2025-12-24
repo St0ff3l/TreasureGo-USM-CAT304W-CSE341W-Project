@@ -159,6 +159,13 @@
         .settings-card canvas { max-width: 100%; height: auto; }
 
         /* --- 响应式调整 --- */
+        .layout-container.wide-view {
+            grid-template-columns: 240px 1fr;
+        }
+        .layout-container.wide-view .action-card {
+            display: none;
+        }
+
         @media (max-width: 1200px) {
             .stats-grid { grid-template-columns: repeat(3, 1fr); }
             div[style*="grid-template-columns: 2fr 1fr"] { grid-template-columns: 1fr !important; }
@@ -166,18 +173,213 @@
             .action-card { display: none; }
         }
         @media (max-width: 900px) {
-            .layout-container { grid-template-columns: 1fr; }
-            .sidebar-card { display: none; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            /* 强制覆盖 wide-view 的样式，确保移动端始终是单栏布局 */
+            .layout-container, .layout-container.wide-view { 
+                grid-template-columns: 1fr; 
+                gap: 15px; 
+                margin: 15px auto; 
+                padding: 0 15px; 
+            }
+            .sidebar-card { 
+                position: static; 
+                width: 100%; 
+                max-height: none; 
+                margin-bottom: 15px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 15px;
+            }
+            .sidebar-card .menu-title { width: 100%; margin-top: 0; margin-bottom: 5px; }
+            .sidebar-card .menu-item { width: auto; flex: 1; justify-content: center; margin-bottom: 0; font-size: 0.85rem; padding: 10px; }
+            .sidebar-card div[style*="border-top"] { display: none; } /* 隐藏分隔线 */
+            
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .stat-card { padding: 15px; }
+            .stat-icon { font-size: 2rem; }
+            .stat-value { font-size: 1.5rem; }
+            
+            .settings-card { padding: 20px; }
+            .settings-header h2 { font-size: 1.2rem; }
+            
+            /* 移动端表格适配 */
+            .table-container { padding: 0; border-radius: 12px; overflow: hidden; box-shadow: none; border: 1px solid #E5E7EB; }
+            table { display: block; width: 100%; }
+            thead { display: none; } /* 隐藏表头 */
+            tbody { display: block; width: 100%; }
+            tr { 
+                display: block; 
+                background: white; 
+                border-bottom: 1px solid #E5E7EB; 
+                padding: 15px; 
+                position: relative;
+            }
+            tr:last-child { border-bottom: none; }
+            td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                padding: 5px 0; 
+                border: none; 
+                text-align: right;
+            }
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #6B7280;
+                font-size: 0.85rem;
+                text-align: left;
+                margin-right: 15px;
+            }
+            /* 特殊处理 ID 和 Actions */
+            td:first-child { font-weight: bold; color: var(--primary); padding-bottom: 10px; border-bottom: 1px dashed #F3F4F6; margin-bottom: 10px; }
+            td:last-child { 
+                justify-content: flex-end; 
+                padding-top: 15px; 
+                margin-top: 10px; 
+                border-top: 1px dashed #F3F4F6; 
+                gap: 10px;
+            }
+            td:last-child::before { display: none; }
         }
         @media (max-width: 600px) {
             .stats-grid { grid-template-columns: 1fr; }
             .search-box { flex-direction: column; }
             .search-box .form-input { width: 100%; }
+            
+            /* 弹窗适配 */
+            .modal-card { width: 90% !important; max-width: 400px; }
+            .ban-options { grid-template-columns: repeat(2, 1fr); }
         }
+        /* --- Ban Dialog --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-card {
+            background: white; border-radius: 20px; padding: 30px; width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 15px; color: #1F2937; }
+        .modal-desc { color: #6B7280; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; }
+        .ban-options { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+            margin-bottom: 0; /* 移除底部间距，由父容器 padding 控制 */
+        }
+        .ban-option {
+            border: 1px solid #E5E7EB; 
+            border-radius: 10px; 
+            padding: 12px 5px; /* 减少左右内边距，防止文字换行 */
+            text-align: center; 
+            cursor: pointer; 
+            transition: 0.2s;
+            font-size: 0.9rem; /* 稍微减小字体 */
+            white-space: nowrap; /* 防止文字换行 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ban-option:hover { border-color: #EF4444; background: #FEF2F2; color: #EF4444; }
+        .ban-option.selected { border-color: #EF4444; background: #EF4444; color: white; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
 </head>
 <body>
+
+<!-- Ban Modal -->
+<div id="banModal" class="modal-overlay">
+    <div class="modal-card" style="width: 420px; padding: 0; overflow: hidden;">
+        <div style="padding: 20px 25px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="modal-title" style="margin: 0; font-size: 1.1rem;">Ban User</h3>
+            <button onclick="closeBanModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9CA3AF; line-height: 1;">&times;</button>
+        </div>
+        
+        <div style="padding: 25px;">
+            <div class="modal-desc" style="margin-bottom: 20px;">Select the duration for the account suspension.</div>
+            
+            <div class="ban-options" style="grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                <div class="ban-option" onclick="selectBanDuration(1, this)">1 Day</div>
+                <div class="ban-option" onclick="selectBanDuration(3, this)">3 Days</div>
+                <div class="ban-option" onclick="selectBanDuration(7, this)">7 Days</div>
+                <div class="ban-option" onclick="selectBanDuration(30, this)">30 Days</div>
+                <div class="ban-option selected" onclick="selectBanDuration(-1, this)">Permanent</div>
+                <div class="ban-option" onclick="selectBanDuration('custom', this)">Custom</div>
+            </div>
+
+            <div id="custom-ban-input" style="display: none; margin-top: 15px; animation: fadeIn 0.2s;">
+                <label style="display: block; font-size: 0.85rem; color: #374151; margin-bottom: 8px; font-weight: 500;">Enter number of days</label>
+                <div style="position: relative;">
+                    <input type="number" id="customDays" class="form-input" placeholder="e.g. 15" min="1" style="padding-right: 40px; width: 100%;" oninput="document.getElementById('ban-error-msg').style.display='none'">
+                    <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #9CA3AF; font-size: 0.9rem;">Days</span>
+                </div>
+                <div id="ban-error-msg" style="color: #EF4444; font-size: 0.85rem; margin-top: 5px; display: none;">Please enter a valid number of days.</div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="padding: 20px 25px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
+            <button class="btn-outline" onclick="closeBanModal()" style="border: 1px solid #D1D5DB; color: #374151;">Cancel</button>
+            <button class="btn-outline btn-danger" onclick="confirmBan(this)" style="background: #DC2626; color: white; border: none; box-shadow: 0 2px 5px rgba(220, 38, 38, 0.2); transition: all 0.3s ease;">Confirm Ban</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div id="editRoleModal" class="modal-overlay">
+    <div class="modal-card" style="width: 420px; padding: 0; overflow: hidden;">
+        <div style="padding: 20px 25px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="modal-title" style="margin: 0; font-size: 1.1rem;">Edit User Role</h3>
+            <button onclick="closeEditRoleModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9CA3AF; line-height: 1;">&times;</button>
+        </div>
+        
+        <div style="padding: 25px;">
+            <div class="modal-desc" style="margin-bottom: 20px;">Select the new role for this user.</div>
+            
+            <div class="ban-options" style="grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div class="ban-option" onclick="selectEditRole('user', this)" id="opt-user">
+                    <i class="ri-user-line" style="display:block; font-size:1.5rem; margin-bottom:5px; color:#6B7280;"></i>
+                    User
+                </div>
+                <div class="ban-option" onclick="selectEditRole('admin', this)" id="opt-admin">
+                    <i class="ri-shield-user-line" style="display:block; font-size:1.5rem; margin-bottom:5px; color:#4F46E5;"></i>
+                    Admin
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="padding: 20px 25px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
+            <button class="btn-outline" onclick="closeEditRoleModal()" style="border: 1px solid #D1D5DB; color: #374151;">Cancel</button>
+            <button class="btn-outline" onclick="confirmEditRole(this)" style="background: #4F46E5; color: white; border: none; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.2); transition: all 0.3s ease;">Confirm Update</button>
+        </div>
+    </div>
+</div>
+
+<!-- Unban Modal -->
+<div id="unbanModal" class="modal-overlay">
+    <div class="modal-card" style="width: 420px; padding: 0; overflow: hidden;">
+        <div style="padding: 20px 25px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="modal-title" style="margin: 0; font-size: 1.1rem;">Unban User</h3>
+            <button onclick="closeUnbanModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9CA3AF; line-height: 1;">&times;</button>
+        </div>
+        
+        <div style="padding: 25px; text-align: center;">
+            <div style="width: 60px; height: 60px; background: #ECFDF5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="ri-user-follow-line" style="font-size: 2rem; color: #10B981;"></i>
+            </div>
+            <div class="modal-desc" style="margin-bottom: 10px; color: #374151; font-weight: 600; font-size: 1.1rem;">Reactivate User Account?</div>
+            <div class="modal-desc" style="margin-bottom: 0;">This user will regain access to their account immediately.</div>
+        </div>
+
+        <div class="modal-actions" style="padding: 20px 25px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
+            <button class="btn-outline" onclick="closeUnbanModal()" style="border: 1px solid #D1D5DB; color: #374151;">Cancel</button>
+            <button class="btn-outline" onclick="confirmUnban(this)" style="background: #10B981; color: white; border: none; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.2); transition: all 0.3s ease;">Confirm Reactivation</button>
+        </div>
+    </div>
+</div>
 
 <div class="layout-container">
 
@@ -630,14 +832,14 @@
 
             return `
         <tr>
-          <td>#${user.User_ID}</td>
-          <td><strong>${escapeHtml(user.User_Username)}</strong></td>
-          <td>${escapeHtml(user.User_Email)}</td>
-          <td><span class="badge ${roleClass}">${user.User_Role}</span></td>
-          <td><span class="badge ${statusClass}">${user.User_Status}</span></td>
-          <td>${createdDate}</td>
-          <td>
-            <button class="btn-outline" onclick="editUserStatus(${user.User_ID}, '${user.User_Status}')" style="margin-right:5px;">Edit</button>
+          <td data-label="ID">#${user.User_ID}</td>
+          <td data-label="Username"><strong>${escapeHtml(user.User_Username)}</strong></td>
+          <td data-label="Email">${escapeHtml(user.User_Email)}</td>
+          <td data-label="Role"><span class="badge ${roleClass}">${user.User_Role}</span></td>
+          <td data-label="Status"><span class="badge ${statusClass}">${user.User_Status}</span></td>
+          <td data-label="Created At">${createdDate}</td>
+          <td data-label="Actions">
+            <button class="btn-outline" onclick="editUserRole(${user.User_ID}, '${user.User_Role}')" style="margin-right:5px;">Edit</button>
             ${user.User_Status !== 'banned' ?
                 `<button class="btn-outline btn-danger" onclick="banUser(${user.User_ID})">Ban</button>` :
                 `<button class="btn-outline" onclick="unbanUser(${user.User_ID})">Unban</button>`
@@ -659,39 +861,254 @@
         renderUsers(filtered);
     }
 
-    function editUserStatus(userId, currentStatus) {
-        const newStatus = prompt(`Current status: ${currentStatus}\n\nEnter new status (active/pending/banned):`, currentStatus);
-        if (newStatus && ['active', 'pending', 'banned'].includes(newStatus.toLowerCase())) {
-            updateUserStatus(userId, newStatus.toLowerCase());
+    let currentEditUserId = null;
+    let currentEditRole = '';
+
+    function editUserRole(userId, currentRole) {
+        currentEditUserId = userId;
+        currentEditRole = currentRole;
+        
+        // Reset selection
+        document.querySelectorAll('#editRoleModal .ban-option').forEach(opt => opt.classList.remove('selected'));
+        
+        // Pre-select current role
+        if (currentRole === 'user') {
+            document.getElementById('opt-user').classList.add('selected');
+        } else if (currentRole === 'admin') {
+            document.getElementById('opt-admin').classList.add('selected');
+        }
+        
+        document.getElementById('editRoleModal').style.display = 'flex';
+    }
+
+    function closeEditRoleModal() {
+        document.getElementById('editRoleModal').style.display = 'none';
+        currentEditUserId = null;
+    }
+
+    function selectEditRole(role, el) {
+        currentEditRole = role;
+        document.querySelectorAll('#editRoleModal .ban-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    async function confirmEditRole(btn) {
+        if (!currentEditUserId || !currentEditRole) return;
+
+        // UI Loading state
+        const originalContent = btn.innerHTML;
+        const originalBg = btn.style.backgroundColor;
+        const originalColor = btn.style.color;
+
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing';
+        btn.style.opacity = '0.7';
+        btn.disabled = true;
+
+        // Call API with silent=true
+        const success = await updateUser(currentEditUserId, { role: currentEditRole }, true);
+
+        if (success) {
+            btn.innerHTML = '<i class="ri-check-line"></i> Successful';
+            btn.style.backgroundColor = '#10B981'; // Green
+            btn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+
+            setTimeout(() => {
+                closeEditRoleModal();
+                // Reset button style for next time
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.style.backgroundColor = originalBg;
+                    btn.style.color = originalColor;
+                    btn.style.boxShadow = '0 2px 5px rgba(79, 70, 229, 0.2)';
+                    btn.disabled = false;
+                }, 300);
+            }, 1000);
+        } else {
+            btn.innerHTML = '<i class="ri-close-circle-line"></i> Failed';
+            btn.style.backgroundColor = '#EF4444';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.style.backgroundColor = originalBg;
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }, 2000);
         }
     }
 
-    async function updateUserStatus(userId, newStatus) {
+    async function updateUser(userId, data, silent = false) {
         try {
+            const body = { user_id: userId, ...data };
+
             const res = await fetch('../api/admin_update_user.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId, status: newStatus })
+                body: JSON.stringify(body)
             });
             const json = await res.json();
             if (json.success) {
-                alert('User status updated successfully!');
+                if (!silent) alert('User updated successfully!');
                 await loadUsers();
                 await loadAdminData();
+                return true;
             } else {
-                alert('Failed to update: ' + json.message);
+                if (!silent) alert('Failed to update: ' + json.message);
+                return false;
             }
         } catch (err) {
-            alert('Error updating user status');
+            if (!silent) alert('Error updating user');
+            return false;
+        }
+    }
+
+    let currentBanUserId = null;
+    let currentBanDuration = -1; // Default: Permanent
+
+    function openBanModal(userId) {
+        currentBanUserId = userId;
+        document.getElementById('banModal').style.display = 'flex';
+    }
+
+    function closeBanModal() {
+        document.getElementById('banModal').style.display = 'none';
+        currentBanUserId = null;
+    }
+
+    function selectBanDuration(days, el) {
+        document.querySelectorAll('.ban-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+
+        const customInput = document.getElementById('custom-ban-input');
+        document.getElementById('ban-error-msg').style.display = 'none'; // Clear error
+        
+        if (days === 'custom') {
+            customInput.style.display = 'block';
+            document.getElementById('customDays').focus();
+            currentBanDuration = 'custom';
+        } else {
+            customInput.style.display = 'none';
+            currentBanDuration = days;
+        }
+    }
+
+    async function confirmBan(btn) {
+        if (!currentBanUserId) return;
+        
+        let duration = currentBanDuration;
+        if (duration === 'custom') {
+            const days = document.getElementById('customDays').value;
+            if (!days || days <= 0) {
+                document.getElementById('ban-error-msg').style.display = 'block';
+                return;
+            }
+            duration = parseInt(days);
+        }
+        
+        // UI Loading state
+        const originalContent = btn.innerHTML;
+        const originalBg = btn.style.backgroundColor;
+        const originalBorder = btn.style.border;
+        const originalColor = btn.style.color;
+
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing';
+        btn.style.opacity = '0.7';
+        btn.disabled = true;
+
+        // Call API with silent=true
+        const success = await updateUser(currentBanUserId, { status: 'banned', duration: duration }, true);
+
+        if (success) {
+            btn.innerHTML = '<i class="ri-check-line"></i> Successful';
+            btn.style.backgroundColor = '#10B981'; // Green
+            btn.style.border = 'none';
+            btn.style.color = 'white';
+            btn.style.opacity = '1';
+            btn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+
+            setTimeout(() => {
+                closeBanModal();
+                // Reset button style for next time
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.style.backgroundColor = originalBg;
+                    btn.style.border = originalBorder;
+                    btn.style.color = originalColor;
+                    btn.style.boxShadow = '0 2px 5px rgba(220, 38, 38, 0.2)';
+                    btn.disabled = false;
+                }, 300);
+            }, 1000);
+        } else {
+            btn.innerHTML = '<i class="ri-close-circle-line"></i> Failed';
+            btn.style.backgroundColor = '#EF4444';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.style.backgroundColor = originalBg;
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }, 2000);
         }
     }
 
     async function banUser(userId) {
-        if (confirm('Are you sure you want to ban this user?')) { await updateUserStatus(userId, 'banned'); }
+        openBanModal(userId);
+    }
+
+    let currentUnbanUserId = null;
+
+    function openUnbanModal(userId) {
+        currentUnbanUserId = userId;
+        document.getElementById('unbanModal').style.display = 'flex';
+    }
+
+    function closeUnbanModal() {
+        document.getElementById('unbanModal').style.display = 'none';
+        currentUnbanUserId = null;
+    }
+
+    async function confirmUnban(btn) {
+        if (!currentUnbanUserId) return;
+
+        // UI Loading state
+        const originalContent = btn.innerHTML;
+        const originalBg = btn.style.backgroundColor;
+        const originalColor = btn.style.color;
+
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing';
+        btn.style.opacity = '0.7';
+        btn.disabled = true;
+
+        // Call API with silent=true
+        const success = await updateUser(currentUnbanUserId, { status: 'active' }, true);
+
+        if (success) {
+            btn.innerHTML = '<i class="ri-check-line"></i> Successful';
+            btn.style.backgroundColor = '#10B981'; // Green
+            btn.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+
+            setTimeout(() => {
+                closeUnbanModal();
+                // Reset button style for next time
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.style.backgroundColor = originalBg;
+                    btn.style.color = originalColor;
+                    btn.style.boxShadow = '0 2px 5px rgba(16, 185, 129, 0.2)';
+                    btn.disabled = false;
+                }, 300);
+            }, 1000);
+        } else {
+            btn.innerHTML = '<i class="ri-close-circle-line"></i> Failed';
+            btn.style.backgroundColor = '#EF4444';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.style.backgroundColor = originalBg;
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }, 2000);
+        }
     }
 
     async function unbanUser(userId) {
-        if (confirm('Are you sure you want to unban this user?')) { await updateUserStatus(userId, 'active'); }
+        openUnbanModal(userId);
     }
 
     function switchView(viewName, btnElement) {
@@ -700,6 +1117,15 @@
         const allBtns = document.querySelectorAll('.sidebar-card button[onclick^="switchView"]');
         allBtns.forEach(btn => btn.classList.remove('active-view'));
         if (btnElement) { btnElement.classList.add('active-view'); }
+
+        // 动态调整布局：User Management 需要更多空间，隐藏右侧栏
+        const layoutContainer = document.querySelector('.layout-container');
+        
+        if (viewName === 'users') {
+            layoutContainer.classList.add('wide-view');
+        } else {
+            layoutContainer.classList.remove('wide-view');
+        }
     }
 
     function escapeHtml(text) {

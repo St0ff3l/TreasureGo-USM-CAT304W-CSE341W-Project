@@ -257,7 +257,7 @@
                 <div>
                     <h4 id="order-title" style="margin:0 0 5px 0;">Loading Product...</h4>
                     <p id="order-condition" style="margin:0; color:#666; font-size:0.9rem;">Condition: ...</p>
-                    <p id="order-price" style="margin:5px 0 0 0; font-weight:700; color:var(--primary);">$0.00</p>
+                    <p id="order-price" style="margin:5px 0 0 0; font-weight:700; color:var(--primary);">RM0.00</p>
                 </div>
             </div>
         </div>
@@ -301,9 +301,9 @@
                 <span id="user-balance-display" class="balance-amount">Loading...</span>
             </div>
 
-            <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">$0.00</span></div>
-            <div class="summary-row"><span>Delivery Fee</span><span id="shipping-fee-display">$0.00</span></div>
-            <div class="total-row"><span>Total</span><span id="total-price-display" style="color:var(--primary);">$0.00</span></div>
+            <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">RM0.00</span></div>
+            <div class="summary-row"><span>Delivery Fee</span><span id="shipping-fee-display">RM0.00</span></div>
+            <div class="total-row"><span>Total</span><span id="total-price-display" style="color:var(--primary);">RM0.00</span></div>
 
             <button class="btn-pay" onclick="handlePayClick()">Pay Now</button>
 
@@ -316,7 +316,7 @@
     </div>
 </div>
 
-<script>
+<script type="text/javascript">
     // ==============================================
     // 1. 全局变量 (完全复用旧代码的初始逻辑)
     // ==============================================
@@ -359,9 +359,9 @@
             const result = await response.json();
             if (result.success) {
                 userCurrentBalance = parseFloat(result.balance);
-                document.getElementById('user-balance-display').innerText = `$${userCurrentBalance.toFixed(2)}`;
+                document.getElementById('user-balance-display').innerText = `RM${userCurrentBalance.toFixed(2)}`;
             } else {
-                document.getElementById('user-balance-display').innerText = "$0.00";
+                document.getElementById('user-balance-display').innerText = "RM0.00";
             }
         } catch (error) {
             console.error("Error fetching balance:", error);
@@ -376,7 +376,7 @@
         document.getElementById('order-condition').innerText = `Condition: ${item.Product_Condition}`;
         document.getElementById('seller-location').innerText = item.Product_Location || 'Unknown';
         currentProductPrice = parseFloat(item.Product_Price);
-        document.getElementById('order-price').innerText = `$${currentProductPrice.toFixed(2)}`;
+        document.getElementById('order-price').innerText = `RM${currentProductPrice.toFixed(2)}`;
 
         const imgBox = document.getElementById('order-img');
         if (item.Main_Image) {
@@ -411,7 +411,7 @@
     }
 
     // ==============================================
-    // 3. 配送切换逻辑 (复用旧版 0 vs 15 的逻辑)
+    // 3. 配送切换逻辑 (复用旧版 0 vs 7 的逻辑)
     // ==============================================
     function selectDelivery(type) {
         const meetOpt = document.getElementById('opt-meet');
@@ -426,7 +426,7 @@
         if (type === 'meet') {
             meetOpt.classList.add('selected'); shipOpt.classList.remove('selected');
             meetInfo.style.display = 'block'; shipForm.style.display = 'none';
-            currentShippingCost = 0; // 旧版逻辑：面交0元
+            currentShippingCost = 0;
         } else {
             shipOpt.classList.add('selected'); meetOpt.classList.remove('selected');
             meetInfo.style.display = 'none'; shipForm.style.display = 'block';
@@ -437,16 +437,15 @@
 
     function calculateTotals() {
         const total = currentProductPrice + currentShippingCost;
-        document.getElementById('summary-subtotal').innerText = `$${currentProductPrice.toFixed(2)}`;
-        document.getElementById('shipping-fee-display').innerText = `$${currentShippingCost.toFixed(2)}`;
-        document.getElementById('total-price-display').innerText = `$${total.toFixed(2)}`;
+        document.getElementById('summary-subtotal').innerText = `RM${currentProductPrice.toFixed(2)}`;
+        document.getElementById('shipping-fee-display').innerText = `RM${currentShippingCost.toFixed(2)}`;
+        document.getElementById('total-price-display').innerText = `RM${total.toFixed(2)}`;
     }
 
     // ==============================================
     // 4. 支付触发器：仅保留二次确认 UI
     // ==============================================
     function handlePayClick() {
-        // 1. 基础验证
         if (currentShippingCost > 0) {
             const addressInputs = document.querySelectorAll('#shipping-form .input-field');
             for (let input of addressInputs) {
@@ -457,15 +456,13 @@
             }
         }
 
-        const totalAmount = parseFloat(document.getElementById('total-price-display').innerText.replace('$', ''));
+        const totalAmount = parseFloat(document.getElementById('total-price-display').innerText.replace('RM', ''));
 
-        // 2. 仅弹出确认框 (保留新版UI的交互)
         StatusDialog.confirm(
             'Confirm Payment?',
-            `You are about to pay $${totalAmount.toFixed(2)} from your wallet.`,
+            `You are about to pay RM${totalAmount.toFixed(2)} from your wallet.`,
             'Yes, Pay Now',
             function() {
-                // 点击 Yes 后，进入真正的处理逻辑
                 processPayment(totalAmount);
             }
         );
@@ -477,13 +474,10 @@
     async function processPayment(totalAmount) {
         const payBtn = document.querySelector('.btn-pay');
 
-        // --- 旧代码核心逻辑：余额判断 ---
-        // 如果余额不足，直接跳转 Payment_Failure.html，而不是弹窗提示充值
         if (totalAmount > userCurrentBalance) {
             window.location.href = "Payment_Failure.html";
             return;
         }
-        // -----------------------------
 
         const shippingType = currentShippingCost > 0 ? 'shipping' : 'meetup';
 
@@ -506,15 +500,14 @@
             const result = await response.json();
 
             if (result.success) {
-                // 成功 -> 跳转 Payment_Success.html (旧版不带参数，为了兼容UI建议带参数，但逻辑上已是旧版)
-                window.location.href = "Payment_Success.html";
+                // 兼容当前 Payment_Success.html 的逻辑：带 type=order
+                window.location.href = "Payment_Success.html?type=order";
             } else {
                 console.warn("Payment failed:", result.msg);
-                if (result.msg.includes('Insufficient balance')) {
+                if (result.msg && result.msg.includes('Insufficient balance')) {
                     window.location.href = "Payment_Failure.html";
                 } else {
-                    // 其他API错误提示
-                    StatusDialog.fail('Payment Error', result.msg);
+                    StatusDialog.fail('Payment Error', result.msg || 'Payment failed');
                     payBtn.disabled = false;
                     payBtn.innerText = "Pay Now";
                 }
@@ -529,3 +522,4 @@
 </script>
 </body>
 </html>
+

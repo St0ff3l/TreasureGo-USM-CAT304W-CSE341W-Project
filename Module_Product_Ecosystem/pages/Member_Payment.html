@@ -101,7 +101,7 @@
           <div class="wallet-icon">💰</div>
           <div class="wallet-text">
             <h4>My Wallet</h4>
-            <p>Balance: $...</p>
+            <p>Balance: RM...</p>
           </div>
         </div>
       </div>
@@ -132,13 +132,13 @@
         </div>
       </div>
 
-      <div class="summary-row"><span>Plan Price</span><span id="subtotal">$0.00</span></div>
-      <div class="summary-row"><span>Discount</span><span id="discount" style="color:green;">-$0.00</span></div>
-      <div class="summary-row"><span>Tax (0%)</span><span>$0.00</span></div>
+      <div class="summary-row"><span>Plan Price</span><span id="subtotal">RM0.00</span></div>
+      <div class="summary-row"><span>Discount</span><span id="discount" style="color:green;">-RM0.00</span></div>
+      <div class="summary-row"><span>Tax (0%)</span><span>RM0.00</span></div>
 
       <div class="total-row">
         <span>Total Due</span>
-        <span id="total-price" style="color:var(--primary);">$0.00</span>
+        <span id="total-price" style="color:var(--primary);">RM0.00</span>
       </div>
 
       <button class="btn-pay" id="pay-btn" onclick="processPayment()">Pay</button>
@@ -178,7 +178,7 @@
         // 更新页面显示
         const balanceDisplay = document.querySelector('.wallet-text p');
         if (balanceDisplay) {
-          balanceDisplay.innerText = `Balance: $${realUserBalance.toFixed(2)}`;
+          balanceDisplay.innerText = `Balance: RM${realUserBalance.toFixed(2)}`;
         }
       } else {
         console.error("Fetch balance failed:", data.msg);
@@ -192,8 +192,8 @@
   function renderPlanDetails() {
     const cycleText = cycle.charAt(0).toUpperCase() + cycle.slice(1);
     document.getElementById('cycle-display').innerText = `${cycleText} Billing`;
-    document.getElementById('subtotal').innerText = `$${priceValue.toFixed(2)}`;
-    document.getElementById('total-price').innerText = `$${priceValue.toFixed(2)}`;
+    document.getElementById('subtotal').innerText = `RM${priceValue.toFixed(2)}`;
+    document.getElementById('total-price').innerText = `RM${priceValue.toFixed(2)}`;
 
     // 更新 VIP / SVIP 主题样式
     const summaryCard = document.getElementById('summary-card');

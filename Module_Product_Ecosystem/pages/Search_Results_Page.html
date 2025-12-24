@@ -212,8 +212,9 @@
 <script>
   // 1. 🔥 定义全局 AuthModal (适配当前页面的路径)
   // 必须定义在 window 上，headerbar.js 才能找到它
-  window.AuthModal = {
-    htmlContent: `
+  if (!window.AuthModal) {
+    window.AuthModal = {
+      htmlContent: `
             <dialog id="globalLoginDialog" class="tg-auth-modal">
                 <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
                 <h3 style="margin-bottom:10px; color: #1F2937; font-size: 1.2rem; font-family: 'Poppins', sans-serif;">Login Required</h3>
@@ -232,10 +233,10 @@
                 </div>
             </dialog>
         `,
-    init: function() {
-      if (document.getElementById('globalLoginDialog')) return;
-      const style = document.createElement('style');
-      style.innerHTML = `
+      init: function() {
+        if (document.getElementById('globalLoginDialog')) return;
+        const style = document.createElement('style');
+        style.innerHTML = `
                 .tg-auth-modal::backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
                 .tg-auth-modal {
                     position: fixed; top: 30%; bottom: auto; left: 0; right: 0; margin: 0 auto;
@@ -246,19 +247,20 @@
                 }
                 @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             `;
-      document.head.appendChild(style);
-      document.body.insertAdjacentHTML('beforeend', this.htmlContent);
-    },
-    show: function() {
-      this.init();
-      const dialog = document.getElementById('globalLoginDialog');
-      if (dialog) dialog.showModal();
-    },
-    close: function() {
-      const dialog = document.getElementById('globalLoginDialog');
-      if (dialog) dialog.close();
-    }
-  };
+        document.head.appendChild(style);
+        document.body.insertAdjacentHTML('beforeend', this.htmlContent);
+      },
+      show: function() {
+        this.init();
+        const dialog = document.getElementById('globalLoginDialog');
+        if (dialog) dialog.showModal();
+      },
+      close: function() {
+        const dialog = document.getElementById('globalLoginDialog');
+        if (dialog) dialog.close();
+      }
+    };
+  }
 
   // 2. 🔥 挂载 Headerbar (必须在定义 AuthModal 之后)
   TreasureGoHeaderbar.mount({ basePath: '../../' });
@@ -567,7 +569,7 @@
                     </h4>
 
                     <div class="card-footer" style="margin-bottom: 12px;">
-                        <span>$${parseFloat(item.Product_Price).toFixed(2)}</span>
+                        <span>RM${parseFloat(item.Product_Price).toFixed(2)}</span>
                         <small style="color:${condColor};background:#f3f4f6;padding:2px 8px;border-radius:10px;">
                             ${item.Product_Condition}
                         </small>

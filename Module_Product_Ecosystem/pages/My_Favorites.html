@@ -221,9 +221,9 @@
         const diff = currentPrice - savePrice;
 
         if (diff > 0) {
-            trendBadge = `<div class="trend-badge trend-up">▲ Up $${diff.toFixed(2)}</div>`;
+            trendBadge = `<div class="trend-badge trend-up">▲ Up RM${diff.toFixed(2)}</div>`;
         } else if (diff < 0) {
-            trendBadge = `<div class="trend-badge trend-down">▼ Drop $${Math.abs(diff).toFixed(2)}</div>`;
+            trendBadge = `<div class="trend-badge trend-down">▼ Drop RM${Math.abs(diff).toFixed(2)}</div>`;
         }
 
         // 🔥 注意：这里增加了 data-product-id="${item.Product_ID}" 以便批量删除时读取
@@ -238,7 +238,7 @@
                     ${trendBadge}
                     <h4 class="card-title">${item.Product_Title}</h4>
                     <div class="price-row">
-                        <span class="current-price">$${currentPrice.toFixed(2)}</span>
+                        <span class="current-price">RM${currentPrice.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -394,3 +394,4 @@
 
 </body>
 </html>
+

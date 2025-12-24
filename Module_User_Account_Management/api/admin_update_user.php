@@ -15,22 +15,34 @@ if (!is_admin()) {
 $input = getJsonInput();
 $userId = $input['user_id'] ?? null;
 $status = $input['status'] ?? null;
+$role = $input['role'] ?? null;
 
-if (!$userId || !$status) {
-    jsonResponse(false, 'Missing user_id or status');
-}
-
-$validStatuses = ['active', 'pending', 'banned'];
-if (!in_array($status, $validStatuses)) {
-    jsonResponse(false, 'Invalid status. Must be: active, pending, or banned');
+if (!$userId) {
+    jsonResponse(false, 'Missing user_id');
 }
 
 try {
     $pdo = getDBConnection();
-    $stmt = $pdo->prepare("UPDATE User SET User_Status = ? WHERE User_ID = ?");
-    $stmt->execute([$status, $userId]);
+    
+    if ($status) {
+        $validStatuses = ['active', 'pending', 'banned'];
+        if (!in_array($status, $validStatuses)) {
+            jsonResponse(false, 'Invalid status');
+        }
+        $stmt = $pdo->prepare("UPDATE User SET User_Status = ? WHERE User_ID = ?");
+        $stmt->execute([$status, $userId]);
+    }
 
-    jsonResponse(true, 'User status updated successfully');
+    if ($role) {
+        $validRoles = ['user', 'admin'];
+        if (!in_array($role, $validRoles)) {
+            jsonResponse(false, 'Invalid role');
+        }
+        $stmt = $pdo->prepare("UPDATE User SET User_Role = ? WHERE User_ID = ?");
+        $stmt->execute([$role, $userId]);
+    }
+
+    jsonResponse(true, 'User updated successfully');
 } catch (Exception $e) {
     jsonResponse(false, 'Database error: ' . $e->getMessage());
 }

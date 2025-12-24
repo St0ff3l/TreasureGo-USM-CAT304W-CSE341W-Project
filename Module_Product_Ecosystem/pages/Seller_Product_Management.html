@@ -190,7 +190,7 @@
     <h1 class="product-title" id="product-title">Loading...</h1>
 
     <div class="price-container">
-      <span class="product-price" id="displayPrice">$0.00</span>
+      <span class="product-price" id="displayPrice">RM0.00</span>
       <input type="number" id="inputPrice" class="price-input" value="0.00">
     </div>
 
@@ -259,7 +259,7 @@
     document.querySelector('.product-title').innerText = item.Product_Title;
     document.querySelector('.description-box').innerText = item.Product_Description || "No description.";
     const price = parseFloat(item.Product_Price).toFixed(2);
-    document.getElementById('displayPrice').innerText = '$' + price;
+    document.getElementById('displayPrice').innerText = 'RM' + price;
     document.getElementById('inputPrice').value = price;
 
     const statusBadge = document.getElementById('statusBadge');
@@ -449,7 +449,7 @@
       });
       const result = await response.json();
       if (result.success) {
-        document.getElementById('displayPrice').innerText = '$' + parseFloat(newPrice).toFixed(2);
+        document.getElementById('displayPrice').innerText = 'RM' + parseFloat(newPrice).toFixed(2);
         document.getElementById('displayPrice').style.display = 'block';
         document.getElementById('inputPrice').style.display = 'none';
         document.getElementById('btnEdit').style.display = 'flex';
