@@ -6,6 +6,7 @@
   <title>My Profile - TreasureGo</title>
 
   <script src="../../Public_Assets/js/headerbar.js"></script>
+  <script src="../../Public_Assets/js/status_dialog.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -37,10 +38,6 @@
               radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
     }
 
-    /* 注意：原有的 .navbar, .logo, .nav-actions 等样式已删除
-       因为 headerbar.js 会注入它自己的样式
-    */
-
     /* --- 2. 布局系统 --- */
     .layout-container {
       max-width: 1200px;
@@ -56,12 +53,8 @@
     .sidebar-card {
       background: white; border-radius: var(--card-radius);
       padding: 20px; box-shadow: var(--card-shadow);
-      /* 统一为 admin dashboard 的固定/滑动样式 */
-      position: sticky;
-      top: 110px;
-      z-index: 5;
-      max-height: calc(100vh - 140px); /* 预留顶部 header + 底部空间 */
-      overflow-y: auto;
+      position: sticky; top: 110px; z-index: 5;
+      max-height: calc(100vh - 140px); overflow-y: auto;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       will-change: transform;
     }
@@ -69,7 +62,6 @@
     .menu-title { font-size: 0.85rem; color: var(--text-gray); font-weight: 700; margin-bottom: 10px; margin-top: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
     .menu-title:first-child { margin-top: 0; }
 
-    /* 通用菜单项样式 */
     .menu-item {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 15px; margin-bottom: 5px;
@@ -80,19 +72,15 @@
     }
     .menu-item:hover { background: #EEF2FF; color: var(--primary); }
     .menu-item i { font-size: 1.2rem; }
-
-    /* 内部视图激活状态 */
     .menu-item.active-view { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
 
-    /* --- 中间内容区容器 --- */
+    /* --- 中间内容区 --- */
     .main-content { display: flex; flex-direction: column; gap: 25px; }
-
-    /* 视图切换控制 */
     .view-section { display: none; animation: fadeIn 0.3s ease; }
     .view-section.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* --- View 1: Overview --- */
+    /* --- View Styles --- */
     .profile-header-card {
       background: white; border-radius: var(--card-radius);
       padding: 40px; text-align: center; box-shadow: var(--card-shadow);
@@ -120,7 +108,6 @@
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
     .mock-content { text-align: center; padding: 40px; color: #9CA3AF; }
 
-    /* --- View 2 & 3: Settings --- */
     .settings-card { background: white; border-radius: var(--card-radius); padding: 30px; box-shadow: var(--card-shadow); }
     .settings-header { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #F3F4F6; }
     .settings-header h2 { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
@@ -134,14 +121,9 @@
       background: var(--input-bg); font-family: inherit; font-size: 0.95rem; outline: none; transition: 0.2s;
     }
     .form-input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-
-    .btn-save {
-      background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 12px;
-      font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1rem;
-    }
+    .btn-save { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1rem; }
     .btn-save:hover { background: var(--primary-hover); }
 
-    /* Security Specific */
     .security-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #F3F4F6; }
     .security-info h4 { font-size: 1rem; margin-bottom: 5px; }
     .security-info p { font-size: 0.85rem; color: var(--text-gray); }
@@ -152,25 +134,117 @@
     .action-card {
       background: white; border-radius: var(--card-radius); padding: 20px; box-shadow: var(--card-shadow);
       display: flex; flex-direction: column; gap: 10px;
-      /* 与左侧一致：固定位置 + 内部滑动 */
-      position: sticky;
-      top: 110px;
-      z-index: 5;
-      max-height: calc(100vh - 140px);
-      overflow-y: auto;
+      position: sticky; top: 110px; z-index: 5;
+      max-height: calc(100vh - 140px); overflow-y: auto;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       will-change: transform;
     }
     .action-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(79,70,229,0.08); }
-    .action-btn {
-      display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; text-decoration: none;
-      color: var(--text-dark); font-weight: 500; transition: 0.2s;
-    }
+    .action-btn { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; text-decoration: none; color: var(--text-dark); font-weight: 500; transition: 0.2s; }
     .action-btn:hover { background: #F3F4F6; color: var(--primary); }
     .btn-primary-action { background: var(--text-dark); color: white; justify-content: center; font-weight: 600; margin-bottom: 10px; }
     .btn-primary-action:hover { background: black; color: white; transform: translateY(-2px); }
 
+    /* =========================================
+       🔥 NEW: ADDRESS MODULE STYLES (JD/Taobao Style)
+       ========================================= */
+    .address-list {
+      display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;
+    }
+
+    /* 地址卡片条目 */
+    .address-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 16px;
+      padding: 20px; transition: all 0.2s;
+    }
+    .address-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+    /* 内容区 */
+    .addr-content { flex: 1; padding-right: 20px; }
+
+    /* 1. 地址详情 (主视觉，大黑字) */
+    .addr-main-text {
+      font-size: 1.1rem; font-weight: 700; color: #111827;
+      line-height: 1.4; margin-bottom: 8px;
+    }
+
+    /* 2. 底部元数据 (名字 + 电话) */
+    .addr-meta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .addr-name-bold { font-weight: 700; font-size: 0.95rem; color: #374151; }
+    .addr-phone-text { color: #6B7280; font-size: 0.9rem; font-family: monospace; letter-spacing: 0.5px; }
+
+    /* 标签样式 (Home/Default) */
+    .addr-tag {
+      font-size: 0.7rem; background: #FEF2F2; color: #EF4444;
+      padding: 2px 8px; border-radius: 6px; font-weight: 600; border: 1px solid #FEE2E2;
+    }
+
+    /* 右侧操作按钮 */
+    .addr-actions-right {
+      display: flex; align-items: center; gap: 10px; padding-left: 15px; border-left: 1px dashed #E5E7EB;
+    }
+    .icon-btn {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: none; cursor: pointer; font-size: 1.1rem; transition: 0.2s;
+      background: transparent; color: #9CA3AF;
+    }
+    .icon-btn:hover { background: #F3F4F6; color: var(--primary); }
+    .icon-btn.delete:hover { background: #FEF2F2; color: #EF4444; }
+
+    /* 添加新地址按钮 (虚线框) */
+    .add-addr-row {
+      border: 2px dashed #E5E7EB; border-radius: 16px; padding: 15px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      cursor: pointer; color: var(--text-gray); font-weight: 600; transition: 0.2s; background: #F9FAFB;
+    }
+    .add-addr-row:hover { border-color: var(--primary); color: var(--primary); background: #EEF2FF; }
+
+    /* 弹窗样式 */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000;
+      display: none; justify-content: center; align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
+    .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; }
+
     @media (max-width: 900px) { .layout-container { grid-template-columns: 1fr; } .sidebar-card, .action-card { display: none; } }
+
+
+    /* 确保列表项中的文字和图标对齐 */
+    .addr-main-text, .addr-name-bold, .addr-phone-text {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* 地址主文字图标稍微加亮 */
+    .addr-main-text i {
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin-right: 8px;
+    }
+
+    /* 底部名字和电话的小图标 */
+    .addr-meta-row i {
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      margin-right: 4px;
+    }
+
+    /* 默认标签样式 */
+    .addr-tag {
+      font-size: 0.7rem;
+      background: #FEF2F2;
+      color: #EF4444;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      border: 1px solid #FEE2E2;
+      margin-left: 8px;
+    }
+
   </style>
 </head>
 <body>
@@ -207,6 +281,10 @@
 
     <button class="menu-item" onclick="switchView('personal', this)">
       <i class="ri-user-settings-line"></i> Personal
+    </button>
+
+    <button class="menu-item" onclick="switchView('address', this)">
+      <i class="ri-map-pin-line"></i> Address
     </button>
 
     <button class="menu-item" onclick="switchView('security', this)">
@@ -254,7 +332,7 @@
         <div class="settings-header">
           <h2><i class="ri-user-settings-line"></i> Personal Information</h2>
         </div>
-        <form onsubmit="event.preventDefault(); alert('Save feature not implemented yet.');">
+        <form onsubmit="event.preventDefault(); StatusDialog.warning('Info','Feature not ready','OK');">
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Username</label>
@@ -279,6 +357,21 @@
           </div>
           <button class="btn-save">Save Changes</button>
         </form>
+      </div>
+    </div>
+
+    <div id="view-address" class="view-section">
+      <div class="settings-card">
+        <div class="settings-header">
+          <h2><i class="ri-map-pin-line"></i> My Addresses</h2>
+        </div>
+
+        <div class="address-list" id="address-list-container">
+        </div>
+
+        <div class="add-addr-row" onclick="openAddressModal()">
+          <i class="ri-add-line" style="font-size:1.2rem;"></i> Add New Address
+        </div>
       </div>
     </div>
 
@@ -330,11 +423,43 @@
 
 </div>
 
+<div class="modal-overlay" id="address-modal">
+  <div class="modal-content">
+    <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
+      <h2 id="modal-title">Address</h2>
+      <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeAddressModal()"></i>
+    </div>
+
+    <form onsubmit="handleAddressSubmit(event)">
+      <input type="hidden" id="modal_addr_id">
+      <div class="form-group" style="margin-bottom:15px;">
+        <label class="form-label">Receiver Name</label>
+        <input type="text" class="form-input" id="modal_addr_name" placeholder="Full Name" required>
+      </div>
+
+      <!-- ✅ Missing in original: phone number input (was referenced by JS, causing edit click to crash) -->
+      <div class="form-group" style="margin-bottom:15px;">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="modal_addr_phone" placeholder="Phone Number" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <input type="checkbox" id="modal_addr_default" style="width: 18px; height: 18px; cursor: pointer;">
+        <label for="modal_addr_default" style="font-size: 0.95rem; cursor: pointer; font-weight: 600;">Set as Default Address</label>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">Address Details</label>
+        <textarea class="form-input" id="modal_addr_detail" rows="3" placeholder="Unit, Building, Street..." required></textarea>
+      </div>
+      <button type="submit" class="btn-save" style="width:100%;">Save Address</button>
+    </form>
+  </div>
+</div>
+
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     // 1. 挂载 Headerbar 组件
     if (typeof TreasureGoHeaderbar !== 'undefined') {
-      // basePath 指向根目录，因为当前文件在 Module/views/ 下，所以需回退两层
       TreasureGoHeaderbar.mount({ basePath: '../../' });
     } else {
       console.error("TreasureGoHeaderbar script not loaded.");
@@ -342,25 +467,24 @@
 
     // 2. 获取个人资料数据
     await fetchProfileData();
+    // 3. 获取地址数据
+    await fetchAddressList();
   });
 
+  // --- Profile Logic (Old) ---
   async function fetchProfileData() {
     try {
       const res = await fetch('../api/get_profile.php');
       const json = await res.json();
-
       if (json.status !== 'success') {
         window.location.href = 'login.php';
         return;
       }
       renderProfile(json.data);
-    } catch (err) {
-      console.error("API Error:", err);
-    }
+    } catch (err) { console.error("API Error:", err); }
   }
 
   function renderProfile(user) {
-    // 渲染中间的大卡片信息
     setText('u_name', user.User_Username);
     setText('u_email', user.User_Email);
     setText('u_role', user.User_Role);
@@ -368,25 +492,229 @@
     setText('s_sold', user.sold_count || 0);
     setText('s_membership', user.Memberships_tier || 'Free');
 
-    // 渲染表单中的信息
     const inputUser = document.getElementById('input_username');
     const inputEmail = document.getElementById('input_email');
     if(inputUser) inputUser.value = user.User_Username;
     if(inputEmail) inputEmail.value = user.User_Email;
 
-    // 渲染中间的大头像
     const avatarEl = document.getElementById('u_avatar');
     if (user.User_Profile_image) {
-      const imgTag = `<img src="${user.User_Profile_image}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-      avatarEl.innerHTML = imgTag;
+      avatarEl.innerHTML = `<img src="${user.User_Profile_image}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
     } else if (user.User_Username) {
-      const initial = user.User_Username.charAt(0).toUpperCase();
-      avatarEl.innerText = initial;
+      avatarEl.innerText = user.User_Username.charAt(0).toUpperCase();
     }
-
-    // 注意：不再需要渲染 header 上的小头像，headerbar.js 会自动处理
   }
 
+  // --- 🔥 Address Logic (New) ---
+  async function fetchAddressList() {
+    try {
+      const res = await fetch('../api/get_addresses.php');
+      const json = await res.json();
+      if(json.status === 'success') {
+        renderAddressList(json.data);
+      }
+    } catch (err) { console.error("Fetch Address Error:", err); }
+  }
+
+  function renderAddressList(list) {
+    const container = document.getElementById('address-list-container');
+    if (!container) return;
+
+    // ✅ Fix: container does NOT include the add button. It's outside.
+    // Just clear and render items.
+    container.innerHTML = '';
+
+    list.forEach((addr) => {
+      const div = document.createElement('div');
+      div.className = 'address-item';
+
+      const isDefault = (addr.Address_Is_Default == 1);
+      const tagHtml = isDefault ? `<span class="addr-tag">Default</span>` : '';
+
+      div.innerHTML = `
+      <div class="addr-content">
+        <div class="addr-main-text">
+          <i class="ri-map-pin-2-line"></i>${escapeHtml(addr.Address_Detail)}
+        </div>
+
+        <div class="addr-meta-row">
+           <span class="addr-name-bold">
+             <i class="ri-user-line"></i>${escapeHtml(addr.Address_Receiver_Name)}
+           </span>
+           <span class="addr-phone-text">
+             <i class="ri-phone-line"></i>${escapeHtml(addr.Address_Phone_Number)}
+           </span>
+           ${tagHtml}
+        </div>
+      </div>
+
+      <div class="addr-actions-right">
+        ${isDefault ? '' : `
+          <button class="icon-btn" title="Set as Default" data-action="set-default" data-id="${addr.Address_ID}">
+            <i class="ri-star-line"></i>
+          </button>
+        `}
+        <button class="icon-btn" title="Edit" data-action="edit" data-id="${addr.Address_ID}">
+          <i class="ri-edit-2-line"></i>
+        </button>
+        <button class="icon-btn delete" title="Delete" data-action="delete" data-id="${addr.Address_ID}">
+          <i class="ri-delete-bin-line"></i>
+        </button>
+      </div>
+    `;
+
+      // store full object safely for edit
+      div.dataset.addr = JSON.stringify(addr);
+      container.appendChild(div);
+    });
+  }
+
+  // ✅ Event delegation for address actions (avoids inline JSON issues & ensures edit works)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const item = btn.closest('.address-item');
+    const addrJson = item?.dataset?.addr;
+
+    if (action === 'edit') {
+      try {
+        const addr = JSON.parse(addrJson);
+        openAddressModal(addr);
+      } catch (err) {
+        console.error('Parse address failed:', err);
+        StatusDialog.fail('Error', 'Failed to open address editor.');
+      }
+      return;
+    }
+
+    if (action === 'delete') {
+      const id = Number(btn.dataset.id);
+      if (Number.isFinite(id)) deleteAddress(id);
+      return;
+    }
+
+    if (action === 'set-default') {
+      const id = Number(btn.dataset.id);
+      if (Number.isFinite(id)) setDefaultAddress(id);
+    }
+  });
+
+  async function setDefaultAddress(addressId) {
+    // Load current list from DOM dataset for minimal payload
+    const item = document.querySelector(`.address-item .addr-actions-right button[data-id="${addressId}"]`)?.closest('.address-item');
+    if (!item?.dataset?.addr) return;
+
+    let addr;
+    try { addr = JSON.parse(item.dataset.addr); } catch { return; }
+
+    // Reuse save_address.php logic: when Address_Is_Default=1 it resets others
+    const payload = {
+      Address_ID: addr.Address_ID,
+      Address_Receiver_Name: addr.Address_Receiver_Name,
+      Address_Phone_Number: addr.Address_Phone_Number,
+      Address_Detail: addr.Address_Detail,
+      Address_Is_Default: 1
+    };
+
+    try {
+      const res = await fetch('../api/save_address.php', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.status === 'success') {
+        StatusDialog.success('Updated', 'Default address updated.', 'OK', fetchAddressList);
+      } else {
+        StatusDialog.fail('Error', json.message || 'Failed to set default address.');
+      }
+    } catch (err) {
+      console.error(err);
+      StatusDialog.fail('Network Error', 'Check your connection.');
+    }
+  }
+
+  // --- Modal & Form Logic ---
+  const modal = document.getElementById('address-modal');
+  function openAddressModal(data = null) {
+    const title = document.getElementById('modal-title');
+    const idIn = document.getElementById('modal_addr_id');
+    const nameIn = document.getElementById('modal_addr_name');
+    const phoneIn = document.getElementById('modal_addr_phone');
+    const detailIn = document.getElementById('modal_addr_detail');
+    const defaultCheck = document.getElementById('modal_addr_default');
+
+    if(data) {
+      title.innerText = "Edit Address";
+      idIn.value = data.Address_ID;
+      nameIn.value = data.Address_Receiver_Name;
+      phoneIn.value = data.Address_Phone_Number;
+      detailIn.value = data.Address_Detail;
+      defaultCheck.checked = (data.Address_Is_Default == 1);
+    } else {
+      title.innerText = "Add New Address";
+      idIn.value = ""; nameIn.value = ""; phoneIn.value = ""; detailIn.value = "";
+      defaultCheck.checked = false;
+    }
+    modal.classList.add('open');
+  }
+  function closeAddressModal() { modal.classList.remove('open'); }
+
+  // basic HTML escaping for user-data rendering
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  async function handleAddressSubmit(e) {
+    e.preventDefault();
+    const payload = {
+      Address_ID: document.getElementById('modal_addr_id').value || null,
+      Address_Receiver_Name: document.getElementById('modal_addr_name').value,
+      Address_Phone_Number: document.getElementById('modal_addr_phone').value,
+      Address_Detail: document.getElementById('modal_addr_detail').value,
+      // 将 checkbox 的状态转为 1 或 0 发送给后端
+      Address_Is_Default: document.getElementById('modal_addr_default').checked ? 1 : 0
+    };
+    closeAddressModal();
+
+    try {
+      const res = await fetch('../api/save_address.php', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if(json.status === 'success') {
+        StatusDialog.success('Saved', 'Address updated successfully.', 'OK', fetchAddressList);
+      } else {
+        StatusDialog.fail('Error', json.message);
+      }
+    } catch(err) {
+      StatusDialog.fail('Network Error', 'Check your connection.');
+    }
+  }
+  function deleteAddress(id) {
+    StatusDialog.confirm('Delete Address?', 'This cannot be undone.', 'Delete', 'Cancel', async () => {
+      try {
+        const res = await fetch('../api/delete_address.php', {
+          method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({Address_ID:id})
+        });
+        const json = await res.json();
+        if(json.status === 'success') {
+          StatusDialog.success('Deleted', 'Address removed.', 'OK', fetchAddressList);
+        } else {
+          StatusDialog.fail('Error', json.message);
+        }
+      } catch(err) { StatusDialog.fail('Error', 'Network error.'); }
+    }, true);
+  }
+
+  // --- View Switching Logic ---
   function switchView(viewName, btnElement) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
@@ -405,9 +733,9 @@
   }
 
   async function handleLogout() {
-    if(confirm("Are you sure you want to log out?")) {
+    StatusDialog.confirm("Log Out", "Are you sure you want to sign out?", "Log Out", "Cancel", () => {
       window.location.href = '../api/logout.php';
-    }
+    }, true);
   }
 </script>
 </body>
