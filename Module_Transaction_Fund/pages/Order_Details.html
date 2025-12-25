@@ -877,30 +877,99 @@
       }
     }
 
-    // --- 🔵 状态 2: 退货中 (Awaiting Return) ---
-    else if (status === 'awaiting_return') {
-      // ... (保持你之前的逻辑，只是外层套上 class="refund-status-card status-return")
-      // 简单示例：
-      html = `
-            <div class="refund-status-card status-return">
-                <div class="refund-status-header">
-                    <span class="refund-status-label"><i class="ri-truck-line"></i> Return in Progress</span>
-                </div>
-                <div class="refund-status-body">
-                    <div class="refund-info-text">
-                        <h4>Return Request Accepted</h4>
-                        <p>${isBuyer ? 'Please return the item.' : 'Waiting for buyer to return.'}</p>
+    // --- 🔵 状态 2: 卖家已同意 (退货进行中) ---
+    else if (status === 'awaiting_return' || status === 'awaiting_confirm') {
+
+      // 🔥🔥 核心逻辑修改：面交场景 (Meet-up) 🔥🔥
+      if (deliveryMethod === 'meetup') {
+        if (isBuyer) {
+          // 买家视角：提示去面交
+          html = `
+                    <div class="refund-status-card status-return">
+                        <div class="refund-status-header">
+                            <span class="refund-status-label"><i class="ri-map-pin-user-line"></i> Return Accepted (Meet-up)</span>
+                        </div>
+                        <div class="refund-status-body">
+                            <div class="refund-info-text">
+                                <h4>Please Return Item to Seller</h4>
+                                <p>Seller has accepted the return. Please arrange a meet-up via chat to return the item.</p>
+                                <div style="margin-top:8px; padding:10px; background:#F3F4F6; border-radius:8px;">
+                                    <strong>📍 Meet-up Location:</strong> ${order.Product_Location || 'Negotiate in Chat'}
+                                </div>
+                            </div>
+                            <button class="btn btn-contact" onclick="alert('Open Chat Window')">💬 Contact Seller</button>
+                        </div>
                     </div>
-                    ${isBuyer && deliveryMethod === 'shipping' ?
-              `<div class="tracking-group" style="margin-top:10px; width:100%;">
-                          <input type="text" id="returnTrackingInput" class="tracking-input" placeholder="Tracking No.">
-                          <button class="btn-small-upload" onclick="submitReturnTracking(${order.Orders_Order_ID})">Submit</button>
-                       </div>` : ''
+                `;
+        } else {
+          // 🔥 卖家视角：显示“确认收到退货”按钮 🔥
+          html = `
+                    <div class="refund-status-card status-return">
+                        <div class="refund-status-header" style="background:#ECFDF5;">
+                            <span class="refund-status-label" style="color:#047857;"><i class="ri-hand-coin-line"></i> Meet-up Return in Progress</span>
+                        </div>
+                        <div class="refund-status-body">
+                            <div style="width:100%">
+                                <div class="refund-info-text">
+                                    <h4>Waiting for Return</h4>
+                                    <p>You agreed to a return. Please meet the buyer to get the item back.</p>
+                                </div>
+                                <div class="seller-actions-row">
+                                    <div style="flex:1;">
+                                        <p style="font-size:0.85rem; color:#6B7280; margin-bottom:5px;">Once you have received the item back:</p>
+                                        <button class="btn" style="background:#10B981; color:white; width:100%; justify-content:center;"
+                                            onclick="sellerConfirmReturnReceived(${order.Orders_Order_ID})">
+                                            📦 Confirm Return Received & Refund
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
       }
-                    <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details" style="margin-left:auto;">Details</a>
-                </div>
-            </div>
-        `;
+
+      // 🔥🔥 场景 B: 快递 (Shipping) 🔥🔥
+      else {
+        if (isBuyer) {
+          // A: Shipping (Return via Courier)
+          html = `
+                    <div class="refund-status-card status-return">
+                        <div class="refund-status-header">
+                            <span class="refund-status-label"><i class="ri-truck-line"></i> Return in Progress</span>
+                        </div>
+                        <div class="refund-status-body">
+                            <div class="refund-info-text">
+                                <h4>Return Request Accepted</h4>
+                                <p>Please ship the item back to the seller.</p>
+                            </div>
+                            <div class="tracking-group" style="margin-top:10px; width:100%;">
+                                <input type="text" id="returnTrackingInput" class="tracking-input" placeholder="Tracking No.">
+                                <button class="btn-small-upload" onclick="submitReturnTracking(${order.Orders_Order_ID})">Submit</button>
+                            </div>
+                            <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details" style="margin-left:auto;">Details</a>
+                        </div>
+                    </div>
+                `;
+        } else {
+          // 卖家视角：等待买家发货
+          html = `
+                    <div class="refund-status-card status-return">
+                        <div class="refund-status-header">
+                            <span class="refund-status-label"><i class="ri-truck-line"></i> Return Accepted</span>
+                        </div>
+                        <div class="refund-status-body">
+                            <div class="refund-info-text">
+                                <h4>Waiting for Buyer to Ship</h4>
+                                <p>Waiting for buyer to ship the item.</p>
+                            </div>
+                            <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">Details</a>
+                        </div>
+                    </div>
+                `;
+        }
+      }
     }
 
     // --- ✅ 状态 3: 完成 ---
@@ -933,7 +1002,23 @@
         `;
     }
 
-    // ... 其他状态同理
+    // 🔴 5. Refund Rejected
+    else if (status === 'rejected' || status === 'goods_rejected') {
+      html = `
+            <div class="refund-status-card status-closed">
+                <div class="refund-status-header">
+                    <span class="refund-status-label"><i class="ri-close-circle-fill"></i> Refund Rejected</span>
+                </div>
+                <div class="refund-status-body">
+                    <div class="refund-info-text">
+                        <h4>Request Rejected</h4>
+                        <p>Seller rejected your request.</p>
+                    </div>
+                    <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">Check Reason</a>
+                </div>
+            </div>
+        `;
+    }
 
     return html;
   }
@@ -1050,7 +1135,7 @@
       if (type === 'refund_only') {
         confirmMsg = "⚠️ Approve Refund Only?\nMoney will be refunded to buyer immediately.";
       } else {
-        confirmMsg = "⚠️ Accept Return?\nBuyer will be notified to return the item to your default address.";
+        confirmMsg = "⚠️ Accept Return?\nBuyer will be notified to return the item.";
       }
     } else {
       confirmMsg = "❌ Reject this refund request?";
@@ -1081,6 +1166,32 @@
     } catch (error) {
       console.error(error);
       alert("Network error processing refund.");
+    }
+  }
+
+  // 🔥🔥🔥 新增：卖家确认收到退货 (面交/快递通用) 🔥🔥🔥
+  async function sellerConfirmReturnReceived(orderId) {
+    if(!confirm("⚠️ Confirm that you have received the item back?\n\nThis will release the refund to the buyer immediately.")) return;
+
+    try {
+      const response = await fetch('../api/Refund_Actions.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          action: 'seller_confirm_return_received',
+          order_id: orderId
+        })
+      });
+
+      const res = await response.json();
+      if(res.success) {
+        alert("✅ Refund Processed Successfully!");
+        location.reload();
+      } else {
+        alert("❌ Error: " + res.message);
+      }
+    } catch(e) {
+      alert("Network Error");
     }
   }
 

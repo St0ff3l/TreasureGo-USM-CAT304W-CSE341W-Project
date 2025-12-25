@@ -26,6 +26,9 @@ if (!$orderId) {
 $conn = getDatabaseConnection();
 
 try {
+    // =================================================================
+    // 🟢 场景 1: 卖家处理申请 (Approve / Reject)
+    // =================================================================
     if ($action === 'seller_decision') {
         $decision = $input['decision'];
         $refundType = $input['refund_type'];
@@ -63,24 +66,11 @@ try {
                 $conn->beginTransaction();
 
                 try {
-                    // ======================================================
-                    // 🔥 修改点开始：不查 User 表，改查 Wallet_Logs 获取最新余额
-                    // ======================================================
-
                     // 1. 查找该用户最后一条流水记录，获取当前余额
-                    // 使用 FOR UPDATE 锁住记录，防止并发问题
-                    $balanceStmt = $conn->prepare("
-                        SELECT Balance_After 
-                        FROM Wallet_Logs 
-                        WHERE User_ID = ? 
-                        ORDER BY Log_ID DESC 
-                        LIMIT 1 
-                        FOR UPDATE
-                    ");
+                    $balanceStmt = $conn->prepare("SELECT Balance_After FROM Wallet_Logs WHERE User_ID = ? ORDER BY Log_ID DESC LIMIT 1 FOR UPDATE");
                     $balanceStmt->execute([$buyerId]);
                     $lastLog = $balanceStmt->fetch(PDO::FETCH_ASSOC);
 
-                    // 如果没查到记录，说明是新用户或没钱，余额默认为 0
                     $currentBalance = $lastLog ? $lastLog['Balance_After'] : 0;
 
                     // 2. 计算新余额
@@ -96,17 +86,13 @@ try {
                     $conn->prepare($logSql)->execute([
                         $buyerId,
                         $amount,
-                        $newBalance,    // 刚刚计算出的新余额
+                        $newBalance,
                         $desc,
                         'Order',
                         $orderId
                     ]);
 
-                    // ======================================================
-                    // 🔥 修改点结束
-                    // ======================================================
-
-                    // 4. 更新退款和订单状态
+                    // 4. 更新状态
                     $conn->prepare("UPDATE Refund_Requests SET Refund_Status = 'completed', Refund_Completed_At = NOW() WHERE Order_ID = ?")->execute([$orderId]);
                     $conn->prepare("UPDATE Orders SET Orders_Status = 'cancelled' WHERE Orders_Order_ID = ?")->execute([$orderId]);
 
@@ -120,18 +106,87 @@ try {
             }
             // 情况 B2: 退货退款 -> 只改状态
             else {
+                // 状态变为 awaiting_return (前端会根据 delivery_method 显示“确认面交收货”或“填写运单号”)
                 $conn->prepare("UPDATE Refund_Requests SET Refund_Status = 'awaiting_return', Refund_Updated_At = NOW() WHERE Order_ID = ?")
                     ->execute([$orderId]);
             }
         }
         echo json_encode(['success' => true]);
     }
-    // 其他 Action 保持不变...
+
+    // =================================================================
+    // 🟢 场景 2: 卖家确认收到退货 (用于面交退货完成时打钱) 🔥🔥 新增部分 🔥🔥
+    // =================================================================
+    else if ($action === 'seller_confirm_return_received') {
+
+        // 1. 验证卖家身份
+        $stmt = $conn->prepare("SELECT Orders_Seller_ID FROM Orders WHERE Orders_Order_ID = ?");
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$order || $order['Orders_Seller_ID'] != $userId) {
+            throw new Exception("You are not the seller of this order.");
+        }
+
+        // 2. 获取退款金额
+        $stmt = $conn->prepare("SELECT Refund_Amount, Buyer_ID FROM Refund_Requests WHERE Order_ID = ?");
+        $stmt->execute([$orderId]);
+        $refundData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$refundData) throw new Exception("Refund request not found.");
+
+        $amount = $refundData['Refund_Amount'];
+        $buyerId = $refundData['Buyer_ID'];
+
+        // 🔥 开启事务 (执行打钱逻辑)
+        $conn->beginTransaction();
+
+        try {
+            // (1) 查最新余额
+            $balanceStmt = $conn->prepare("SELECT Balance_After FROM Wallet_Logs WHERE User_ID = ? ORDER BY Log_ID DESC LIMIT 1 FOR UPDATE");
+            $balanceStmt->execute([$buyerId]);
+            $lastLog = $balanceStmt->fetch(PDO::FETCH_ASSOC);
+            $currentBalance = $lastLog ? $lastLog['Balance_After'] : 0;
+
+            // (2) 计算新余额
+            $newBalance = $currentBalance + $amount;
+
+            // (3) 写日志
+            $logSql = "INSERT INTO Wallet_Logs (User_ID, Amount, Balance_After, Description, Reference_Type, Reference_ID, Created_AT) VALUES (?, ?, ?, ?, 'Order', ?, NOW())";
+            $conn->prepare($logSql)->execute([
+                $buyerId,
+                $amount,
+                $newBalance,
+                "Refund for Order #$orderId (Return Received)",
+                $orderId
+            ]);
+
+            // (4) 更新状态
+            $conn->prepare("UPDATE Refund_Requests SET Refund_Status = 'completed', Refund_Completed_At = NOW() WHERE Order_ID = ?")->execute([$orderId]);
+            $conn->prepare("UPDATE Orders SET Orders_Status = 'cancelled' WHERE Orders_Order_ID = ?")->execute([$orderId]);
+
+            $conn->commit();
+            echo json_encode(['success' => true]);
+
+        } catch (Exception $e) {
+            $conn->rollBack();
+            throw $e;
+        }
+    }
+
+    // =================================================================
+    // 🟢 场景 3: 买家提交快递单号
+    // =================================================================
     else if ($action === 'submit_return_tracking') {
         $input['tracking'] ? null : throw new Exception("Tracking required");
+        // 这里可以加一行 update 把单号写进数据库
         $conn->prepare("UPDATE Refund_Requests SET Refund_Status = 'awaiting_confirm' WHERE Order_ID = ?")->execute([$orderId]);
         echo json_encode(['success' => true]);
     }
+
+    // =================================================================
+    // 🟢 场景 4: 买家确认面交退货 (备用)
+    // =================================================================
     else if ($action === 'confirm_return_handover') {
         $conn->prepare("UPDATE Refund_Requests SET Refund_Status = 'awaiting_confirm' WHERE Order_ID = ?")->execute([$orderId]);
         echo json_encode(['success' => true]);
