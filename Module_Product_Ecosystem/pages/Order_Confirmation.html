@@ -430,9 +430,24 @@
         document.getElementById('order-price').innerText = `RM${currentProductPrice.toFixed(2)}`;
 
         const imgBox = document.getElementById('order-img');
+
         if (item.Main_Image) {
-            const cleanPath = String(item.Main_Image).replace(/^.*?Public_Products\//, 'Public_Products/');
-            imgBox.innerHTML = `<img src="../${cleanPath}" alt="Product Image">`;
+            // 1. 统一将所有反斜杠 (\) 替换为正斜杠 (/)
+            let cleanPath = String(item.Main_Image).replace(/\\/g, '/');
+
+            // 2. 截取文件名 (找到 Public_Product_Images 之后的部分)
+            // 只要路径里包含 'Public_Product_Images'，我们就提取它后面的内容
+            if (cleanPath.includes('Public_Product_Images')) {
+                // 提取出 "Public_Product_Images/xxx.jpg" 这一段
+                cleanPath = cleanPath.substring(cleanPath.indexOf('Public_Product_Images'));
+
+                // 3. 拼接完整的相对路径
+                // ../../ 返回根目录 -> Module_Product_Ecosystem 文件夹 -> 图片路径
+                imgBox.innerHTML = `<img src="../../Module_Product_Ecosystem/${cleanPath}" alt="Product Image">`;
+            } else {
+                // 如果数据库存的路径很奇怪，尝试直接显示，或显示占位符
+                imgBox.innerHTML = `<img src="../../${cleanPath}" alt="Product Image" onerror="this.style.display='none'">`;
+            }
         } else {
             imgBox.innerText = '📷';
         }
