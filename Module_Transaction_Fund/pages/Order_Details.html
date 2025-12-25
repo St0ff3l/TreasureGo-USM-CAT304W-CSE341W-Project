@@ -394,6 +394,42 @@
       margin: 0;
     }
 
+    /* 🔥🔥 NEW: Inline Address Selection Styles 🔥🔥 */
+    .inline-addr-box {
+      margin-top: 15px;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 15px;
+      animation: slideUp 0.2s ease-out;
+    }
+    .inline-addr-header {
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+    .addr-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .addr-option:hover { border-color: var(--primary); }
+    .addr-option.selected { border-color: var(--primary); background: #EEF2FF; }
+    .addr-option input { margin-top: 4px; }
+    .addr-content-inline div { font-size: 0.9rem; color: #4B5563; }
+    .addr-content-inline strong { color: #1F2937; }
+
+    /* New Input Style for Adding Address */
+    .new-addr-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 0.9rem; }
+
   </style>
 </head>
 <body>
@@ -419,14 +455,38 @@
   </div>
 </div>
 
+<div id="addNewAddressModal" class="modal">
+  <div class="modal-content" style="max-width: 450px;">
+    <div class="refund-modal-header">
+      <h2>Add New Address</h2>
+      <p style="color:#6B7280; font-size:0.9rem; margin-top:5px;">Enter details for return shipment</p>
+    </div>
+    <div class="modal-body" style="text-align:left;">
+      <div class="form-group">
+        <label>Receiver Name</label>
+        <input type="text" id="newAddrName" class="new-addr-input" placeholder="e.g. John Doe">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="text" id="newAddrPhone" class="new-addr-input" placeholder="e.g. 012-3456789">
+      </div>
+      <div class="form-group">
+        <label>Full Address</label>
+        <textarea id="newAddrDetail" class="new-addr-input" rows="3" placeholder="Street, City, Postcode..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="document.getElementById('addNewAddressModal').classList.remove('active')">Cancel</button>
+      <button class="btn-modal-submit" onclick="saveNewAddressLocal()">Add & Select</button>
+    </div>
+  </div>
+</div>
+
 <div id="secondaryConfirmModal" class="modal">
   <div class="modal-content">
     <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-    <h3 style="margin-bottom: 10px;">Confirm Receipt?</h3>
-    <p style="color: #6B7280; margin-bottom: 20px;">
-      By confirming, funds will be released to the seller immediately.<br>
-      <strong>This action cannot be undone.</strong>
-    </p>
+    <h3>Confirm Receipt?</h3>
+    <p style="color: #6B7280; margin-bottom: 20px;">By confirming, funds will be released to the seller immediately.</p>
     <div style="display: flex; gap: 10px; justify-content: center;">
       <button class="btn" style="background: #F3F4F6; color: #374151;" onclick="closeSecondaryModal()">Cancel</button>
       <button class="btn btn-confirm" id="btnRealConfirm">Yes, Confirm</button>
@@ -440,7 +500,6 @@
       <h2>Request Refund</h2>
       <p style="color:#6B7280; font-size:0.9rem; margin-top:5px;">Please tell us why you want to return this item.</p>
     </div>
-
     <div class="modal-body">
       <div class="form-group">
         <label for="refundReasonSelect">Reason for Refund</label>
@@ -455,7 +514,6 @@
         </select>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn-modal-cancel" onclick="closeRefundModal()">Cancel</button>
       <button class="btn-modal-submit" id="submitRefundBtn">Next Step ➜</button>
@@ -476,6 +534,10 @@
 
   // --- Shipping address state ---
   let currentOrderAddress = null;
+
+  // --- Inline Address Selection State ---
+  let selectedReturnAddressStr = null;
+  let fetchedAddressList = []; // 暂存地址列表
 
   async function init() {
     if (!ORDER_ID) {
@@ -503,11 +565,7 @@
       const targetOrder = allOrders.find(o => o.Orders_Order_ID == ORDER_ID);
 
       if (targetOrder) {
-        console.log("Full Order Data:", targetOrder);
-
-        // Fetch buyer shipping address for both roles (if any)
         await loadOrderAddress(targetOrder);
-
         renderOrder(targetOrder);
       } else {
         document.getElementById('detailContent').innerHTML = '<h2 style="text-align:center;">Order not found.</h2>';
@@ -809,218 +867,370 @@
     updateGalleryDisplay();
   }
 
-  // 🔥 Optimized Render Function
+  // =========================================================
+  // 🔥🔥🔥 核心修改：renderRefundStatusCard (含 Inline Logic) 🔥🔥🔥
+  // =========================================================
   function renderRefundStatusCard(order, isBuyer) {
     const status = order.Refund_Status;
     const type = order.Refund_Type;
-    const deliveryMethod = order.Delivery_Method || 'shipping';
+    const deliveryMethod = (order.Delivery_Method || 'shipping').toLowerCase().trim();
 
     if (!status) return '';
-
     let html = '';
-
-    // 辅助文本生成
     const typeText = type === 'refund_only' ? 'Refund Only' : 'Return & Refund';
 
-    // --- 🟢 状态 1: 等待卖家处理 ---
+    // 🟢 1. Pending Approval
     if (status === 'pending_approval') {
-      const icon = `<i class="ri-time-line"></i>`;
-
       if (isBuyer) {
         html = `
-                <div class="refund-status-card status-pending">
-                    <div class="refund-status-header">
-                        <span class="refund-status-label">${icon} Refund Requested</span>
-                        <span style="font-size:0.85rem; color:#9CA3AF;">${new Date().toLocaleDateString()}</span>
-                    </div>
-                    <div class="refund-status-body">
-                        <div class="refund-info-text">
-                            <h4>Waiting for Seller</h4>
-                            <p>You requested a <strong>${typeText}</strong> of <strong>RM${order.Refund_Amount}</strong>.</p>
-                        </div>
-                        <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">
-                            View Details <i class="ri-arrow-right-s-line"></i>
-                        </a>
+            <div class="refund-status-card status-pending">
+                <div class="refund-status-header"><span class="refund-status-label"><i class="ri-time-line"></i> Refund Requested</span></div>
+                <div class="refund-status-body">
+                    <div class="refund-info-text">
+                        <h4>Waiting for Seller</h4>
+                        <p>You requested a <strong>${typeText}</strong> of <strong>RM${order.Refund_Amount}</strong>.</p>
                     </div>
                 </div>
-            `;
+            </div>`;
       } else {
-        // 卖家视角：操作卡片
+        // 卖家操作
+        // 🔥 如果是 Return & Refund，点击 Approve 会展开内嵌地址选择
+        // 🔥 如果是 Refund Only，直接调用 API
+        const approveAction = (type === 'refund_only')
+                ? `sellerProcessRefund(${order.Orders_Order_ID}, 'approve', '${type}')`
+                : `toggleAddressSelection(${order.Orders_Order_ID})`;
+
         html = `
-                <div class="refund-status-card status-pending">
-                    <div class="refund-status-header" style="background:#FFF7ED;">
-                        <span class="refund-status-label" style="color:#C2410C;">⚡ Action Required</span>
+            <div class="refund-status-card status-pending">
+                <div class="refund-status-header" style="background:#FFF7ED;">
+                    <span class="refund-status-label" style="color:#C2410C;">⚡ Action Required</span>
+                </div>
+                <div class="refund-status-body">
+                    <div class="refund-info-text">
+                        <h4>Buyer Requested ${typeText}</h4>
+                        <p>Reason: ${order.Refund_Reason}</p>
                     </div>
-                    <div class="refund-status-body">
-                        <div style="width:100%">
-                            <div class="refund-info-text">
-                                <h4>Buyer Requested ${typeText}</h4>
-                                <p>Reason: ${order.Refund_Reason || 'No reason'}</p>
-                            </div>
-                            <div class="seller-actions-row">
-                                <button class="btn" style="background:#F97316; color:white; flex:1; justify-content:center; padding:10px;"
-                                    onclick="sellerProcessRefund(${order.Orders_Order_ID}, 'approve', '${type}')">
-                                    ✅ Approve
-                                </button>
-                                <button class="btn" style="background:white; border:1px solid #EF4444; color:#EF4444; flex:1; justify-content:center; padding:10px;"
-                                    onclick="sellerProcessRefund(${order.Orders_Order_ID}, 'reject', '${type}')">
-                                    ❌ Reject
-                                </button>
-                                <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">
-                                    Details
-                                </a>
-                            </div>
+
+                    <div style="width:100%">
+                        <div id="action-btns-${order.Orders_Order_ID}" class="seller-actions-row">
+                            <button class="btn" style="background:#F97316; color:white; flex:1; justify-content:center;" onclick="${approveAction}">✅ Approve</button>
+                            <button class="btn" style="background:white; border:1px solid #EF4444; color:#EF4444; flex:1; justify-content:center;" onclick="sellerProcessRefund(${order.Orders_Order_ID}, 'reject', '${type}')">❌ Reject</button>
+                            <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">Details</a>
                         </div>
+
+                        <div id="addr-container-${order.Orders_Order_ID}" class="inline-addr-box" style="display:none;">
+                            </div>
                     </div>
                 </div>
-            `;
+            </div>`;
       }
     }
-
-    // --- 🔵 状态 2: 卖家已同意 (退货进行中) ---
+    // 🔵 2. Awaiting Return / Confirm
     else if (status === 'awaiting_return' || status === 'awaiting_confirm') {
-
-      // 🔥🔥 核心逻辑修改：面交场景 (Meet-up) 🔥🔥
       if (deliveryMethod === 'meetup') {
         if (isBuyer) {
-          // 买家视角：提示去面交
           html = `
                     <div class="refund-status-card status-return">
-                        <div class="refund-status-header">
-                            <span class="refund-status-label"><i class="ri-map-pin-user-line"></i> Return Accepted (Meet-up)</span>
-                        </div>
+                        <div class="refund-status-header"><span class="refund-status-label"><i class="ri-map-pin-user-line"></i> Return Accepted (Meet-up)</span></div>
                         <div class="refund-status-body">
                             <div class="refund-info-text">
-                                <h4>Please Return Item to Seller</h4>
-                                <p>Seller has accepted the return. Please arrange a meet-up via chat to return the item.</p>
+                                <h4>Return Item to Seller</h4>
+                                <p>Please arrange a meet-up via chat.</p>
                                 <div style="margin-top:8px; padding:10px; background:#F3F4F6; border-radius:8px;">
                                     <strong>📍 Meet-up Location:</strong> ${order.Product_Location || 'Negotiate in Chat'}
                                 </div>
                             </div>
                             <button class="btn btn-contact" onclick="alert('Open Chat Window')">💬 Contact Seller</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
         } else {
-          // 🔥 卖家视角：显示“确认收到退货”按钮 🔥
           html = `
                     <div class="refund-status-card status-return">
-                        <div class="refund-status-header" style="background:#ECFDF5;">
-                            <span class="refund-status-label" style="color:#047857;"><i class="ri-hand-coin-line"></i> Meet-up Return in Progress</span>
-                        </div>
+                        <div class="refund-status-header" style="background:#ECFDF5;"><span class="refund-status-label" style="color:#047857;"><i class="ri-hand-coin-line"></i> Meet-up Return</span></div>
                         <div class="refund-status-body">
                             <div style="width:100%">
                                 <div class="refund-info-text">
                                     <h4>Waiting for Return</h4>
-                                    <p>You agreed to a return. Please meet the buyer to get the item back.</p>
+                                    <p>Please meet the buyer to get the item back.</p>
                                 </div>
                                 <div class="seller-actions-row">
-                                    <div style="flex:1;">
-                                        <p style="font-size:0.85rem; color:#6B7280; margin-bottom:5px;">Once you have received the item back:</p>
-                                        <button class="btn" style="background:#10B981; color:white; width:100%; justify-content:center;"
-                                            onclick="sellerConfirmReturnReceived(${order.Orders_Order_ID})">
-                                            📦 Confirm Return Received & Refund
-                                        </button>
-                                    </div>
+                                    <button class="btn" style="background:#10B981; color:white; width:100%; justify-content:center;" onclick="sellerConfirmReturnReceived(${order.Orders_Order_ID})">📦 Confirm Return Received & Refund</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
         }
-      }
+      } else {
+        // 🚚 快递逻辑
+        if (status === 'awaiting_return') {
+          if (isBuyer) {
+            let addrDisplay = order.Seller_Return_Address
+                    ? `<strong>📍 Return To:</strong><br>${order.Seller_Name} (${order.Seller_Phone})<br>${order.Seller_Return_Address}`
+                    : "No address provided. Contact seller.";
 
-      // 🔥🔥 场景 B: 快递 (Shipping) 🔥🔥
-      else {
-        if (isBuyer) {
-          // A: Shipping (Return via Courier)
-          html = `
+            html = `
                     <div class="refund-status-card status-return">
-                        <div class="refund-status-header">
-                            <span class="refund-status-label"><i class="ri-truck-line"></i> Return in Progress</span>
-                        </div>
+                        <div class="refund-status-header"><span class="refund-status-label"><i class="ri-truck-line"></i> Return Accepted</span></div>
                         <div class="refund-status-body">
-                            <div class="refund-info-text">
-                                <h4>Return Request Accepted</h4>
-                                <p>Please ship the item back to the seller.</p>
+                            <div class="refund-info-text" style="width:100%">
+                                <h4>Ship Item Back</h4>
+                                <div style="background:#F9FAFB; padding:15px; border:1px dashed #3B82F6; border-radius:8px; margin:10px 0; font-size:0.9rem;">
+                                    ${addrDisplay}
+                                </div>
+                                <div class="tracking-group">
+                                    <input type="text" id="returnTrackingInput" class="tracking-input" placeholder="Tracking No.">
+                                    <button class="btn-small-upload" onclick="submitReturnTracking(${order.Orders_Order_ID})">Submit</button>
+                                </div>
                             </div>
-                            <div class="tracking-group" style="margin-top:10px; width:100%;">
-                                <input type="text" id="returnTrackingInput" class="tracking-input" placeholder="Tracking No.">
-                                <button class="btn-small-upload" onclick="submitReturnTracking(${order.Orders_Order_ID})">Submit</button>
-                            </div>
-                            <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details" style="margin-left:auto;">Details</a>
                         </div>
-                    </div>
-                `;
-        } else {
-          // 卖家视角：等待买家发货
-          html = `
+                    </div>`;
+          } else {
+            html = `
                     <div class="refund-status-card status-return">
-                        <div class="refund-status-header">
-                            <span class="refund-status-label"><i class="ri-truck-line"></i> Return Accepted</span>
-                        </div>
+                        <div class="refund-status-header"><span class="refund-status-label"><i class="ri-time-line"></i> Waiting for Return</span></div>
                         <div class="refund-status-body">
                             <div class="refund-info-text">
                                 <h4>Waiting for Buyer to Ship</h4>
-                                <p>Waiting for buyer to ship the item.</p>
+                                <p>You have approved the return. Waiting for tracking info.</p>
+                                <p style="font-size:0.85rem; color:#6B7280; margin-top:5px;">(Address shown: <strong>${order.Seller_Return_Address || 'Default'}</strong>)</p>
                             </div>
-                            <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">Details</a>
                         </div>
-                    </div>
-                `;
+                    </div>`;
+          }
+        }
+        else {
+          // awaiting_confirm
+          if (isBuyer) {
+            html = `
+                        <div class="refund-status-card status-return">
+                            <div class="refund-status-header"><span class="refund-status-label" style="color:#3B82F6;"><i class="ri-send-plane-fill"></i> Item Shipped</span></div>
+                            <div class="refund-status-body">
+                                <div class="refund-info-text">
+                                    <h4>Waiting for Seller Confirmation</h4>
+                                    <p>You have submitted the tracking number.</p>
+                                </div>
+                            </div>
+                        </div>`;
+          } else {
+            // 🔥🔥 卖家视角：显示快递单号 🔥🔥
+            // 使用 order.Return_Tracking_Number，如无则显示 Not Available
+            const trackingNo = order.Return_Tracking_Number || order.Tracking_Number || 'Not provided yet';
+
+            html = `
+                        <div class="refund-status-card status-return">
+                            <div class="refund-status-header" style="background:#EFF6FF;"><span class="refund-status-label" style="color:#1E40AF;"><i class="ri-gift-line"></i> Item Shipped</span></div>
+                            <div class="refund-status-body">
+                                <div style="width:100%">
+                                    <div class="refund-info-text">
+                                        <h4>Buyer Has Shipped</h4>
+                                        <p>Please check the tracking number below.</p>
+                                    </div>
+
+                                    <div style="background:#F0F9FF; border:1px dashed #BAE6FD; padding:12px; border-radius:8px; margin:15px 0; color:#0C4A6E;">
+                                        <strong>🚚 Tracking Number:</strong> <span style="font-family:monospace; font-size:1.1rem; margin-left:5px;">${trackingNo}</span>
+                                    </div>
+
+                                    <div class="seller-actions-row">
+                                        <button class="btn" style="background:#10B981; color:white; width:100%; justify-content:center;" onclick="sellerConfirmReturnReceived(${order.Orders_Order_ID})">📦 Confirm Item Received & Refund</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+          }
         }
       }
     }
-
-    // --- ✅ 状态 3: 完成 ---
+    // ✅ 3. Completed
     else if (status === 'completed') {
-
-      // 核心修改：根据身份显示不同文案
-      let message = '';
-      if (isBuyer) {
-        message = `The refund of <strong>RM${order.Refund_Amount || '0.00'}</strong> has been successfully returned to your wallet.`;
-      } else {
-        message = `The refund of <strong>RM${order.Refund_Amount || '0.00'}</strong> has been returned to the buyer's wallet.`;
-      }
-
+      const msg = isBuyer ? "Refund returned to wallet." : "Refund returned to buyer.";
       html = `
             <div class="refund-status-card status-success">
-                <div class="refund-status-header">
-                    <span class="refund-status-label"><i class="ri-checkbox-circle-fill"></i> Refund Completed</span>
-                </div>
+                <div class="refund-status-header"><span class="refund-status-label"><i class="ri-checkbox-circle-fill"></i> Refund Completed</span></div>
                 <div class="refund-status-body">
-                    <div class="refund-success-icon">
-                        <i class="ri-check-double-line"></i>
-                    </div>
-                    <div class="refund-success-content">
-                        <h3>Refund Successful</h3>
-                        <p>${message}</p>
-                    </div>
-                    <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details" style="margin-left:auto;">History</a>
+                    <div class="refund-success-icon"><i class="ri-check-double-line"></i></div>
+                    <div class="refund-success-content"><h3>Success</h3><p>${msg}</p></div>
                 </div>
-            </div>
-        `;
+            </div>`;
     }
-
-    // 🔴 5. Refund Rejected
-    else if (status === 'rejected' || status === 'goods_rejected') {
+    // 🔴 4. Rejected
+    else if (status === 'rejected') {
       html = `
             <div class="refund-status-card status-closed">
-                <div class="refund-status-header">
-                    <span class="refund-status-label"><i class="ri-close-circle-fill"></i> Refund Rejected</span>
-                </div>
-                <div class="refund-status-body">
-                    <div class="refund-info-text">
-                        <h4>Request Rejected</h4>
-                        <p>Seller rejected your request.</p>
-                    </div>
-                    <a href="../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${order.Orders_Order_ID}" class="btn-view-details">Check Reason</a>
-                </div>
-            </div>
-        `;
+                <div class="refund-status-header"><span class="refund-status-label"><i class="ri-close-circle-fill"></i> Refund Rejected</span></div>
+                <div class="refund-status-body"><div class="refund-info-text"><h4>Request Rejected</h4><p>Seller rejected your request.</p></div></div>
+            </div>`;
     }
 
     return html;
+  }
+
+  // =========================================================
+  // 🔥🔥🔥 NEW: Inline Address Selection Logic 🔥🔥🔥
+  // =========================================================
+
+  async function toggleAddressSelection(orderId) {
+    const container = document.getElementById(`addr-container-${orderId}`);
+    const btnGroup = document.getElementById(`action-btns-${orderId}`);
+
+    // Toggle functionality (Close if open)
+    if(container.style.display === 'block') {
+      container.style.display = 'none';
+      btnGroup.style.display = 'flex';
+      return;
+    }
+
+    // Show container, Hide buttons
+    btnGroup.style.display = 'none';
+    container.style.display = 'block';
+    container.innerHTML = '<div style="text-align:center; padding:10px; color:#6B7280;">Loading addresses...</div>';
+
+    try {
+      const res = await fetch('../api/Refund_Actions.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ action: 'get_seller_addresses' })
+      });
+      const data = await res.json();
+
+      if(data.success) {
+        fetchedAddressList = data.data || [];
+        renderInlineAddressList(orderId);
+      } else {
+        container.innerHTML = `<div style="color:red;">Error loading addresses.</div>`;
+      }
+    } catch(e) {
+      container.innerHTML = `<div style="color:red;">Error loading addresses.</div>`;
+    }
+  }
+
+  function renderInlineAddressList(orderId) {
+    const container = document.getElementById(`addr-container-${orderId}`);
+    let html = `<div class="inline-addr-header">Select Return Address:</div>`;
+
+    // 1. 渲染现有地址
+    fetchedAddressList.forEach((addr, index) => {
+      const isDefault = addr.Address_Is_Default == 1;
+      if(isDefault && !selectedReturnAddressStr) selectedReturnAddressStr = `${addr.Address_Detail}, ${addr.Address_Receiver_Name}, ${addr.Address_Phone_Number}`;
+
+      html += `
+            <div class="addr-option ${isDefault ? 'selected' : ''}" onclick="selectInlineAddress(this, '${addr.Address_Detail}, ${addr.Address_Receiver_Name}, ${addr.Address_Phone_Number}')">
+                <input type="radio" name="inlineAddr_${orderId}" ${isDefault ? 'checked' : ''}>
+                <div class="addr-content-inline">
+                    <div><strong>${addr.Address_Receiver_Name}</strong> (${addr.Address_Phone_Number})</div>
+                    <div>${addr.Address_Detail}</div>
+                </div>
+            </div>
+          `;
+    });
+
+    // 2. 🔥 添加新地址按钮 🔥
+    html += `
+        <div class="addr-option" onclick="openNewAddressModal()" style="border-style:dashed; justify-content:center; color:#4F46E5;">
+            <i class="ri-add-circle-line"></i> Use a new Address
+        </div>
+      `;
+
+    // 3. 底部按钮
+    html += `
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn" style="flex:1; justify-content:center; background:#10B981; color:white; font-size:0.9rem; padding:10px;" onclick="submitInlineApproval(${orderId})">Confirm & Approve</button>
+            <button class="btn" style="flex:1; justify-content:center; background:#F3F4F6; color:#374151; font-size:0.9rem; padding:10px;" onclick="cancelInlineSelection(${orderId})">Cancel</button>
+        </div>
+      `;
+    container.innerHTML = html;
+  }
+
+  // --- 新增地址逻辑 ---
+  function openNewAddressModal() {
+    document.getElementById('addNewAddressModal').classList.add('active');
+  }
+
+  function saveNewAddressLocal() {
+    const name = document.getElementById('newAddrName').value.trim();
+    const phone = document.getElementById('newAddrPhone').value.trim();
+    const detail = document.getElementById('newAddrDetail').value.trim();
+
+    if(!name || !phone || !detail) return alert("Please fill in all fields.");
+
+    // 临时添加到列表
+    fetchedAddressList.unshift({
+      Address_Receiver_Name: name,
+      Address_Phone_Number: phone,
+      Address_Detail: detail,
+      Address_Is_Default: 1 // 让它默认选中
+    });
+
+    document.getElementById('addNewAddressModal').classList.remove('active');
+
+    // 清空输入框
+    document.getElementById('newAddrName').value = '';
+    document.getElementById('newAddrPhone').value = '';
+    document.getElementById('newAddrDetail').value = '';
+
+    // 重新渲染列表（会自动选中第一个）
+    selectedReturnAddressStr = null;
+    // 假设当前正在操作的订单ID存储在某个全局变量里，或者我们需要传参
+    // 这里简化：重新触发渲染。因为 toggleAddressSelection 是按 ID 开的，这里有点 trick
+    // 更好的方式是保存 currentOrderIdForAddress
+    // 让我们去找找哪里调用了 toggleAddressSelection
+    // 在 HTML 里是通过 onclick="toggleAddressSelection(${order.Orders_Order_ID})" 调用的
+    // 所以我们需要一个变量存住当前的 ID
+    if(window.currentOrderIdForAddr) renderInlineAddressList(window.currentOrderIdForAddr);
+  }
+
+  // 修改 toggleAddressSelection 记录 ID
+  const originalToggle = toggleAddressSelection;
+  toggleAddressSelection = async function(orderId) {
+    window.currentOrderIdForAddr = orderId;
+    await originalToggle(orderId);
+  }
+
+
+  // Helper: Visual selection
+  window.selectInlineAddress = function(el, fullAddrStr) {
+    // Remove selected class from siblings
+    const siblings = el.parentNode.querySelectorAll('.addr-option');
+    siblings.forEach(sib => sib.classList.remove('selected'));
+    siblings.forEach(sib => sib.querySelector('input').checked = false);
+
+    // Add to clicked
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    selectedReturnAddressStr = fullAddrStr;
+  }
+
+  // Helper: Cancel / Back
+  window.cancelInlineSelection = function(orderId) {
+    document.getElementById(`addr-container-${orderId}`).style.display = 'none';
+    document.getElementById(`action-btns-${orderId}`).style.display = 'flex';
+  }
+
+  // Helper: Submit
+  window.submitInlineApproval = async function(orderId) {
+    if(!selectedReturnAddressStr) return alert("Please select an address.");
+
+    if(!confirm("Approve return with this address?")) return;
+
+    try {
+      const response = await fetch('../api/Refund_Actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'seller_decision',
+          order_id: orderId,
+          decision: 'approve',
+          refund_type: 'return_refund',
+          return_address: selectedReturnAddressStr
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert("✅ Return Approved!");
+        location.reload();
+      } else {
+        alert("❌ Error: " + result.message);
+      }
+    } catch (e) { alert("Network error"); }
   }
 
   function escapeHtml(str) {
@@ -1032,7 +1242,6 @@
             .replaceAll("'", '&#039;');
   }
 
-  // --- Gallery Logic ---
   function updateGalleryDisplay() {
     const mainBox = document.getElementById('mainImageContainer');
     const thumbBox = document.getElementById('thumbnailContainer');
@@ -1083,7 +1292,6 @@
     updateGalleryDisplay();
   }
 
-  // --- Shipping Logic (Seller) ---
   async function submitTracking(orderId) {
     const input = document.getElementById(`trackingInput_${orderId}`);
     const trackingNum = input.value.trim();
@@ -1113,24 +1321,18 @@
     }
   }
 
-  // --- Helpers ---
   function getStatusClass(status) {
     const map = { 'paid': 'status-paid', 'completed': 'status-completed', 'processing': 'status-processing', 'cancelled': 'status-cancelled' };
     return map[status ? status.toLowerCase() : ''] || 'status-processing';
   }
   function capitalizeFirst(str) { return str ? String(str).charAt(0).toUpperCase() + String(str).slice(1) : ''; }
 
-  // ---------------------------------------------
-  // 🔥 Refund Navigation & Actions
-  // ---------------------------------------------
   function goToRefundDetail(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${orderId}`;
   }
 
-  // --- 卖家处理退款 (新加函数) ---
   async function sellerProcessRefund(orderId, action, type) {
     let confirmMsg = "";
-
     if (action === 'approve') {
       if (type === 'refund_only') {
         confirmMsg = "⚠️ Approve Refund Only?\nMoney will be refunded to buyer immediately.";
@@ -1169,7 +1371,6 @@
     }
   }
 
-  // 🔥🔥🔥 新增：卖家确认收到退货 (面交/快递通用) 🔥🔥🔥
   async function sellerConfirmReturnReceived(orderId) {
     if(!confirm("⚠️ Confirm that you have received the item back?\n\nThis will release the refund to the buyer immediately.")) return;
 
@@ -1228,9 +1429,6 @@
     }
   }
 
-  // ---------------------------------------------
-  // Confirm Receipt Modal
-  // ---------------------------------------------
   function openConfirmDialog(orderId) {
     document.getElementById('secondaryConfirmModal').classList.add('active');
     document.getElementById('btnRealConfirm').onclick = () => processConfirmReceipt(orderId);
@@ -1260,9 +1458,6 @@
     }
   }
 
-  // ---------------------------------------------
-  // Refund Request Modal
-  // ---------------------------------------------
   let currentRefundOrderId = null;
 
   function openRefundModal(orderId) {

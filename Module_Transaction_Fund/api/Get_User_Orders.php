@@ -39,19 +39,30 @@ try {
                     MAX(rr.Refund_Status) AS Refund_Status,
                     MAX(rr.Refund_Type) AS Refund_Type,
                     MAX(rr.Refund_Amount) AS Refund_Amount,
+                    
+                    /* 🔥🔥 退款详情 🔥🔥 */
+                    MAX(rr.Refund_Reason) AS Refund_Reason,
+                    MAX(rr.Refund_Description) AS Refund_Description,
+                    MAX(rr.Refund_Updated_At) AS Refund_Updated_At,
+                    
+                    /* 🔥🔥 [新增] 获取退货单号 🔥🔥 */
+                    MAX(rr.Return_Tracking_Number) AS Return_Tracking_Number,
 
-                    /* 🔥 卖家退货地址 (关联 Address 表) */
-                    MAX(sa.Address_Detail) AS Seller_Return_Address,
+                    /* 🔥🔥 退款凭证图片 (多张图用逗号拼起来) 🔥🔥 */
+                    GROUP_CONCAT(DISTINCT re.Evidence_File_Url SEPARATOR ',') AS Refund_Images,
+
+                    /* 🔥 卖家退货地址 (优先读快照，没有则读默认) */
+                    COALESCE(MAX(rr.Return_Address_Detail), MAX(sa.Address_Detail)) AS Seller_Return_Address,
+                    MAX(sa.Address_Receiver_Name) AS Seller_Name,
+                    MAX(sa.Address_Phone_Number) AS Seller_Phone,
 
                     p.Product_ID, 
                     p.Product_Title,
                     p.Product_Description,
                     p.Product_Condition,
                     
-                    /* 🔥🔥 修改点 1：动态判断配送方式 (Address_ID 为空即为面交) 🔥🔥 */
+                    /* 动态判断配送方式 */
                     (CASE WHEN MAX(o.Address_ID) IS NULL THEN 'meetup' ELSE 'shipping' END) AS Delivery_Method,
-                    
-                    /* 🔥🔥 修改点 2：添加 Product_Location 供面交显示 🔥🔥 */
                     p.Product_Location,
                     
                     c.Category_Name,
@@ -70,8 +81,11 @@ try {
                
                /* 关联退款表 */
                LEFT JOIN Refund_Requests rr ON o.Orders_Order_ID = rr.Order_ID
+               
+               /* 关联退款凭证表 */
+               LEFT JOIN Refund_Evidence re ON rr.Refund_ID = re.Refund_ID
 
-               /* 🔥🔥 修复点：使用正确的字段名 Address_User_ID 🔥🔥 */
+               /* 关联卖家地址 */
                LEFT JOIN Address sa ON o.Orders_Seller_ID = sa.Address_User_ID AND sa.Address_Is_Default = 1
                
                WHERE o.Orders_Buyer_ID = :uid
@@ -102,19 +116,30 @@ try {
                     MAX(rr.Refund_Status) AS Refund_Status,
                     MAX(rr.Refund_Type) AS Refund_Type,
                     MAX(rr.Refund_Amount) AS Refund_Amount,
+                    
+                    /* 🔥🔥 退款详情 🔥🔥 */
+                    MAX(rr.Refund_Reason) AS Refund_Reason,
+                    MAX(rr.Refund_Description) AS Refund_Description,
+                    MAX(rr.Refund_Updated_At) AS Refund_Updated_At,
 
-                    /* 🔥 卖家(我)的默认地址 */
-                    MAX(sa.Address_Detail) AS Seller_Return_Address,
+                    /* 🔥🔥 [新增] 获取退货单号 🔥🔥 */
+                    MAX(rr.Return_Tracking_Number) AS Return_Tracking_Number,
+
+                    /* 🔥🔥 退款凭证图片 🔥🔥 */
+                    GROUP_CONCAT(DISTINCT re.Evidence_File_Url SEPARATOR ',') AS Refund_Images,
+
+                    /* 🔥 卖家(我)的退货地址 (优先读快照) */
+                    COALESCE(MAX(rr.Return_Address_Detail), MAX(sa.Address_Detail)) AS Seller_Return_Address,
+                    MAX(sa.Address_Receiver_Name) AS Seller_Name,
+                    MAX(sa.Address_Phone_Number) AS Seller_Phone,
 
                     p.Product_ID, 
                     p.Product_Title,
                     p.Product_Description,
                     p.Product_Condition,
                     
-                    /* 🔥🔥 修改点 1：动态判断配送方式 🔥🔥 */
+                    /* 动态判断配送方式 */
                     (CASE WHEN MAX(o.Address_ID) IS NULL THEN 'meetup' ELSE 'shipping' END) AS Delivery_Method,
-
-                    /* 🔥🔥 修改点 2：添加 Product_Location 🔥🔥 */
                     p.Product_Location,
 
                     c.Category_Name,
@@ -132,8 +157,11 @@ try {
                LEFT JOIN Shipments s ON o.Orders_Order_ID = s.Order_ID AND s.Shipments_Type = 'forward'
 
                LEFT JOIN Refund_Requests rr ON o.Orders_Order_ID = rr.Order_ID
+               
+               /* 关联退款凭证表 */
+               LEFT JOIN Refund_Evidence re ON rr.Refund_ID = re.Refund_ID
 
-               /* 🔥🔥 修复点：使用正确的字段名 Address_User_ID 🔥🔥 */
+               /* 关联卖家地址 */
                LEFT JOIN Address sa ON o.Orders_Seller_ID = sa.Address_User_ID AND sa.Address_Is_Default = 1
 
                WHERE o.Orders_Seller_ID = :uid
