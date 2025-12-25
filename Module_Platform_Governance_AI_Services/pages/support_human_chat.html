@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TreasureGO - Human Support Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <style>
     :root {
       --bg-body: #F3F4F6;
@@ -15,110 +16,58 @@
       --text-gray: #9CA3AF;
       --border-radius: 24px;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+      /* Fallback; will be updated via JS by measuring headerbar. */
+      --headerbar-h: 70px;
+      --chat-gap-top: 10px;
+      --chat-gap-bottom: 10px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Screen-reader only utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
 
     body {
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg-body);
       color: var(--text-dark);
-      height: 100vh;
+      /* Use dynamic viewport height for mobile address-bar behavior */
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+
+      /* Important: do NOT push the whole page down, otherwise headerbar ends up away from the top */
+      padding-top: 0;
     }
 
     .main-container {
       flex: 1;
       display: flex;
-      max-width: 1600px;
+      max-width: 1000px;
       width: 100%;
       margin: 0 auto;
-      padding: 20px 40px 40px 40px;
-      gap: 24px;
-      height: calc(100vh - 80px);
-    }
+      gap: 0;
 
-    .sidebar-card {
-      width: 360px;
-      background: var(--card-bg);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
+      /* 10px gap below headerbar + 10px gap from bottom (with safe-area) */
+      padding: var(--chat-gap-top) 16px calc(var(--chat-gap-bottom) + env(safe-area-inset-bottom, 0px)) 16px;
 
-    .sidebar-header {
-      padding: 18px 24px 8px 24px;
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--text-dark);
-    }
+      /* Fill remaining viewport under headerbar */
+      height: calc(100dvh - var(--headerbar-h));
 
-    .sidebar-subtitle {
-      padding: 0 24px 16px 24px;
-      font-size: 0.85rem;
-      color: var(--text-gray);
-    }
-
-    .contacts-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 16px 16px 16px;
-    }
-
-    .contact-item {
-      display: flex;
-      align-items: center;
-      padding: 16px;
-      margin-bottom: 8px;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: all 0.1s ease;
-      background: transparent;
-      position: relative;
-    }
-
-    .contact-item:hover { background-color: #F9FAFB; }
-    .contact-item.active { background-color: var(--primary-light) !important; }
-
-    .contact-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #E5E7EB;
-      margin-right: 16px;
-      object-fit: cover;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; color: #6B7280;
-    }
-
-    .contact-info { flex: 1; min-width: 0; }
-
-    .contact-top-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .contact-name {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--text-dark);
-    }
-
-    .contact-time { font-size: 0.75rem; color: #D1D5DB; }
-
-    .contact-msg {
-      font-size: 0.85rem;
-      color: var(--text-gray);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      /* Avoid flex children overflow issues that can hide the input bar */
+      min-height: 0;
     }
 
     .chat-card {
@@ -130,6 +79,7 @@
       flex-direction: column;
       overflow: hidden;
       position: relative;
+      min-width: 0;
     }
 
     .chat-header {
@@ -140,6 +90,7 @@
       justify-content: space-between;
       gap: 16px;
       height: 80px;
+      flex-shrink: 0;
     }
 
     .chat-header-left {
@@ -149,13 +100,18 @@
       min-width: 0;
     }
 
+    /* Fixed support avatar using Remix Icon */
     .chat-header-avatar {
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      object-fit: cover;
-      background: #eee;
+      background: #EEF2FF;
+      color: var(--primary);
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
     }
 
     .chat-header-title {
@@ -192,6 +148,7 @@
       padding: 8px 12px;
       border-radius: 10px;
       background: #F3F4F6;
+      white-space: nowrap;
     }
 
     .messages-container {
@@ -202,6 +159,7 @@
       flex-direction: column;
       gap: 20px;
       background: #fff;
+      min-height: 0;
     }
 
     .message-row {
@@ -251,6 +209,10 @@
       display: flex;
       align-items: center;
       gap: 15px;
+      flex-shrink: 0;
+
+      /* Bottom spacing handled by .main-container padding (prevents double-spacing and layout bugs) */
+      margin-bottom: 0;
     }
 
     .input-wrapper {
@@ -262,6 +224,7 @@
       align-items: center;
       border: 1px solid #E5E7EB;
       transition: border 0.2s;
+      min-width: 0;
     }
     .input-wrapper:focus-within { border-color: var(--primary); }
 
@@ -272,6 +235,7 @@
       padding: 10px;
       outline: none;
       font-size: 0.95rem;
+      min-width: 0;
     }
 
     .send-btn {
@@ -288,6 +252,7 @@
       box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
       transition: transform 0.2s;
       font-size: 1.1rem;
+      flex-shrink: 0;
     }
 
     .send-btn:hover { transform: scale(1.05); }
@@ -313,36 +278,64 @@
       display: flex; align-items: center; justify-content: center;
       color: #9CA3AF;
     }
+
+    @media (max-width: 900px) {
+      .main-container {
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        padding: var(--chat-gap-top) 10px calc(var(--chat-gap-bottom) + env(safe-area-inset-bottom, 0px)) 10px;
+        max-width: 100%;
+      }
+
+      .chat-header {
+        padding: 12px 14px;
+        height: 72px;
+      }
+
+      .messages-container {
+        padding: 14px;
+        gap: 14px;
+      }
+
+      .message-row { max-width: 92%; }
+
+      .input-area {
+        padding: 12px 14px;
+        gap: 10px;
+      }
+
+      .send-btn {
+        width: 42px;
+        height: 42px;
+      }
+    }
   </style>
 </head>
 <body>
 
 <div class="main-container">
-  <div class="sidebar-card">
-    <div class="sidebar-header">Human Support</div>
-    <div class="sidebar-subtitle">Support chat (not product inquiry)</div>
-    <div class="contacts-list" id="contactsList">
-      <div style="padding:16px;color:#9CA3AF;">Loading…</div>
-    </div>
-  </div>
-
   <div class="chat-card">
     <div id="errorBanner" style="display:none;padding:12px 16px;background:#FEF2F2;color:#991B1B;border-bottom:1px solid #FECACA;"></div>
 
     <div id="emptyState" class="empty-state">
       <div class="empty-icon">💬</div>
       <h3 style="font-weight:600; color:#374151;">Opening support chat…</h3>
-      <p style="color:#9CA3AF;margin-top:6px;">If you are not logged in, a login prompt will appear.</p>
+      <p style="color:#9CA3AF;margin-top:6px;">Loading messages…</p>
     </div>
 
-    <!-- Show chat UI immediately; JS will load messages and keep it updated. -->
     <div id="chatContent" style="display: flex; flex-direction: column; height: 100%;">
       <div class="chat-header">
         <div class="chat-header-left">
-          <img src="" id="chatHeaderAvatar" class="chat-header-avatar" alt="Support avatar">
+          <div class="chat-header-avatar" aria-hidden="true">
+            <i class="ri-customer-service-2-fill"></i>
+          </div>
           <div class="chat-header-title">
             <div class="chat-header-name" id="chatHeaderName">Human Support</div>
-            <div class="chat-header-badge">Support</div>
+            <div class="chat-header-badge" id="chatHeaderBadge">Support</div>
           </div>
         </div>
         <div class="chat-header-right">
@@ -354,6 +347,7 @@
 
       <div class="input-area">
         <div class="input-wrapper">
+          <label class="sr-only" for="messageInput">Message</label>
           <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." />
         </div>
         <button class="send-btn" id="sendBtn">➤</button>
@@ -363,56 +357,33 @@
 </div>
 
 <script src="../../Public_Assets/js/headerbar.js"></script>
-<script src="../../Public_Assets/js/auth_modal.js"></script>
 <script>
   if (window.TreasureGoHeaderbar && typeof window.TreasureGoHeaderbar.mount === 'function') {
     window.TreasureGoHeaderbar.mount({ basePath: '../../' });
   }
 
-  const SESSION_STATUS_API = '/Module_User_Account_Management/api/session_status.php';
+  // Measure headerbar height and keep a CSS variable updated.
+  (function syncHeaderbarHeight() {
+    const root = document.documentElement;
+    const update = () => {
+      const hb = document.querySelector('.headerbar, header, #headerbar, [data-treasurego-headerbar]');
+      if (hb && hb.getBoundingClientRect) {
+        const h = Math.round(hb.getBoundingClientRect().height);
+        if (h > 0) root.style.setProperty('--headerbar-h', h + 'px');
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    // Give headerbar.js time to mount
+    setTimeout(update, 50);
+    setTimeout(update, 250);
+  })();
+
   const SUPPORT_API = '/Module_Platform_Governance_AI_Services/api/support_human_chat_api.php';
 
   let myId = null;
   let agentId = null;
   let pollingInterval = null;
-
-  function setContactsList(avatarUrl, lastMsgText, lastTimeText) {
-    const listEl = document.getElementById('contactsList');
-    const avatarHtml = avatarUrl
-      ? `<img src="${avatarUrl}" class="contact-avatar" alt="Support avatar">`
-      : `<div class="contact-avatar">💬</div>`;
-
-    listEl.innerHTML = `
-      <div class="contact-item active" id="supportContact">
-        ${avatarHtml}
-        <div class="contact-info">
-          <div class="contact-top-row">
-            <span class="contact-name">Human Support</span>
-            <span class="contact-time">${lastTimeText || ''}</span>
-          </div>
-          <div class="contact-msg">${lastMsgText || 'Start a conversation'}</div>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('supportContact').onclick = () => {
-      document.getElementById('emptyState').style.display = 'none';
-      document.getElementById('chatContent').style.display = 'flex';
-      document.getElementById('chatHeaderName').innerText = 'Human Support';
-
-      const headerAvatar = document.getElementById('chatHeaderAvatar');
-      if (avatarUrl) {
-        headerAvatar.src = avatarUrl;
-        headerAvatar.style.display = 'block';
-      } else {
-        headerAvatar.style.display = 'none';
-      }
-
-      loadMessages(true);
-      if (pollingInterval) clearInterval(pollingInterval);
-      pollingInterval = setInterval(loadMessages, 2000);
-    };
-  }
 
   function formatTime(str) {
     if (!str) return '';
@@ -423,44 +394,6 @@
     const b = document.getElementById('errorBanner');
     b.style.display = 'block';
     b.textContent = msg;
-  }
-
-  async function ensureLoggedIn() {
-    try {
-      const res = await fetch(SESSION_STATUS_API, {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-        cache: 'no-cache'
-      });
-
-      const ct = res.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) {
-        const txt = await res.text();
-        showErrorBanner('session_status did not return JSON. ' + txt.slice(0, 120));
-        throw new Error('session_status did not return JSON');
-      }
-
-      const data = await res.json();
-      if (!data.is_logged_in) {
-        // Not logged in -> show prompt or redirect
-        if (window.AuthModal && typeof window.AuthModal.show === 'function') {
-          window.AuthModal.show();
-        } else {
-          window.location.href = '/Module_User_Account_Management/pages/login.php';
-        }
-        throw new Error('Not logged in');
-      }
-
-      myId = data.user?.user_id ?? null;
-      if (!myId) {
-        showErrorBanner('Logged in but missing user_id from session_status.');
-      }
-      return data;
-    } catch (e) {
-      showErrorBanner('Login/session check failed: ' + String(e));
-      throw e;
-    }
   }
 
   async function loadMessages(scrollToBottom = false) {
@@ -489,6 +422,7 @@
       document.getElementById('emptyState').style.display = 'none';
 
       agentId = json.agent_id ?? agentId;
+      myId = json.my_id ?? myId;
 
       const container = document.getElementById('messagesContainer');
       const isAtBottomNow = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
@@ -497,7 +431,7 @@
 
       const msgs = json.data || [];
       msgs.forEach(msg => {
-        const isMe = (msg.Message_Sender_ID == myId);
+        const isMe = String(msg.Message_Sender_ID) === String(myId);
         const div = document.createElement('div');
         div.className = `message-row ${isMe ? 'sent' : 'received'}`;
 
@@ -514,11 +448,6 @@
 
         container.appendChild(div);
       });
-
-      // Update sidebar preview
-      const last = msgs.length ? msgs[msgs.length - 1] : null;
-      const lastPreview = last ? (last.Message_Type === 'image' ? '[Image]' : last.Message_Content) : '';
-      setContactsList(null, lastPreview, last ? formatTime(last.Message_Sent_At) : '');
 
       if (scrollToBottom || isAtBottomNow) {
         container.scrollTop = container.scrollHeight;
@@ -565,19 +494,21 @@
     }
   }
 
-  // Boot
+  // Boot (no login detection / no redirects)
   (async function boot() {
     try {
-      await ensureLoggedIn();
-      setContactsList(null, 'Start a conversation', '');
-
       document.getElementById('sendBtn').addEventListener('click', sendMessage);
       document.getElementById('messageInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
       });
 
-      // Auto-open chat
-      document.getElementById('supportContact').click();
+      // Default chat
+      // setActiveChat('support');
+
+      // Load and poll
+      await loadMessages(true);
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = setInterval(loadMessages, 2000);
     } catch (e) {
       console.error(e);
     }
@@ -585,3 +516,4 @@
 </script>
 </body>
 </html>
+

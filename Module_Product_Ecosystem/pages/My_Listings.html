@@ -163,6 +163,70 @@
         padding: 4px 10px;
         border-width: 3px;
       }
+
+      /* ========================================= */
+      /* ✅ Tabs mobile layout: 方案 B（两行换行，不滚动） */
+      /* 注意：只在手机端生效，不影响桌面端 */
+      /* ========================================= */
+
+      .tabs-container {
+        /* 关闭横向滚动，改为两行换行 */
+        overflow-x: hidden;
+        overflow-y: hidden;
+
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+
+        /* 关键：限制最多两行（第二行之后隐藏），避免把页面顶得太长 */
+        /* tab 高度约 38-40px，两行+gap 约 86-92px，取一个安全值 */
+        max-height: 96px;
+
+        /* 去掉之前用于滚动体验的设置 */
+        -webkit-overflow-scrolling: auto;
+        scroll-snap-type: none;
+
+        /* 去掉“边缘裁切”那套滚动补丁 */
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: 0;
+        margin-right: 0;
+
+        align-items: stretch;
+      }
+
+      .tab-btn {
+        /* 让每个按钮在两行布局里更平均 */
+        flex: 1 1 auto;
+        min-width: 140px; /* 确保 Under Review/Rejected 不会挤成很奇怪 */
+
+        /* 维持单行文字，不让按钮内部换行 */
+        white-space: nowrap;
+
+        /* 移除滚动吸附 */
+        scroll-snap-align: none;
+
+        /* 适配两行布局的按钮尺寸 */
+        padding: 9px 14px;
+        font-size: 0.88rem;
+        text-align: center;
+      }
+
+      .tab-count {
+        padding: 2px 6px;
+        margin-left: 6px;
+        font-size: 0.72rem;
+      }
+    }
+
+    /* 更小屏进一步优化：让 tab 更紧凑，避免一屏显示不下 */
+    @media (max-width: 420px) {
+      .container { padding: 0 14px; }
+      .page-title { font-size: 1.55rem; }
+
+      .tabs-container { gap: 8px; max-height: 92px; }
+      .tab-btn { min-width: 120px; padding: 8px 12px; font-size: 0.82rem; }
+      .tab-count { font-size: 0.7rem; padding: 2px 5px; }
     }
   </style>
 </head>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TreasureGO - Smart Search</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <style>
     /* =========================================
        1. 全局样式 & Navbar
@@ -181,13 +182,88 @@
       .search-wrapper { padding: 0 15px; }
       .main-container { display: block; margin-top: 20px; }
 
+      /* ✅ Mobile trigger button polish (icon) */
+      .mobile-filter-trigger {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+        padding-bottom: 0;
+        font-weight: 600;
+      }
+      .mobile-filter-trigger:hover { background: #f9fafb; transform: translateY(-1px); }
+      .mobile-filter-trigger:active { transform: translateY(0); }
+      .mobile-filter-trigger i { font-size: 22px; line-height: 0; }
+
       .filter-sidebar {
         position: fixed; top: 0; left: -100%; width: 85%; height: 100vh; overflow-y: auto;
         border-radius: 0 20px 20px 0; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 2000; padding-bottom: 80px;
       }
       .filter-sidebar.active { left: 0; }
-      .mobile-sidebar-close { display: block; }
+
+      /* ✅ Close button: icon-only, hover effect */
+      .mobile-sidebar-close {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .mobile-sidebar-close button {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: #fff;
+        color: #6b7280;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+        transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+      }
+      .mobile-sidebar-close button:hover { background: #f3f4f6; color: var(--text-dark); transform: translateY(-1px); }
+      .mobile-sidebar-close button:active { transform: translateY(0); }
+      .mobile-sidebar-close i { font-size: 22px; line-height: 0; }
+
+      /* ✅ Condition pills (mobile only) */
+      .filter-group .filter-option {
+        padding: 0;
+        margin-bottom: 10px;
+      }
+      .filter-group .filter-option {
+        position: relative;
+      }
+      .filter-group .filter-option .filter-checkbox {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .filter-group .filter-option {
+        display: inline-flex;
+        width: 100%;
+      }
+      .filter-group .filter-option {
+        color: var(--text-dark);
+      }
+      .filter-group .filter-option {
+        background: #f9f9fb;
+        border: 1px solid #eee;
+        border-radius: 999px;
+        padding: 10px 14px;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      }
+      .filter-group .filter-option:hover {
+        border-color: rgba(79, 70, 229, 0.35);
+        background: #fff;
+        transform: translateY(-1px);
+      }
+      .filter-group .filter-option:has(.filter-checkbox:checked) {
+        border-color: var(--primary);
+        background: rgba(79, 70, 229, 0.08);
+        color: var(--primary);
+        font-weight: 700;
+      }
 
       .submenu-panel {
         position: static; width: 100%; margin-left: 0; box-shadow: none; border: none;
@@ -212,8 +288,8 @@
 <script>
   // 1. 🔥 定义全局 AuthModal (适配当前页面的路径)
   // 必须定义在 window 上，headerbar.js 才能找到它
-  if (!window.AuthModal) {
-    window.AuthModal = {
+  if (!globalThis.AuthModal) {
+    globalThis.AuthModal = {
       htmlContent: `
             <dialog id="globalLoginDialog" class="tg-auth-modal">
                 <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
@@ -270,14 +346,20 @@
   <div class="search-wrapper">
     <input type="text" class="search-input" id="mainSearchInput" placeholder="Search for items...">
     <button class="search-btn-small" onclick="applyAllFilters()">Search</button>
-    <button class="mobile-filter-trigger" onclick="toggleMobileSidebar()">•••</button>
+    <button class="mobile-filter-trigger" onclick="toggleMobileSidebar()" aria-label="Open filters">
+      <i class="ri-more-2-fill" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
 <div class="main-container">
 
   <aside class="filter-sidebar" id="filterSidebar">
-    <div class="mobile-sidebar-close" onclick="toggleMobileSidebar()">&times; Close</div>
+    <div class="mobile-sidebar-close">
+      <button type="button" onclick="toggleMobileSidebar()" aria-label="Close filters">
+        <i class="ri-close-line" aria-hidden="true"></i>
+      </button>
+    </div>
 
     <span class="filter-title">Categories</span>
 
@@ -383,7 +465,6 @@
       const icon = iconMap[parent.Category_Name] || iconMap['default'];
       const li = document.createElement('li');
       li.className = 'sidebar-item-wrapper';
-      li.setAttribute('onclick', 'toggleMobileSubmenu(this)');
 
       const safeParentName = parent.Category_Name.replace(/'/g, "\\'");
 
@@ -392,7 +473,8 @@
         const subTags = parent.children.map(child => {
           return `
                 <span class="sub-tag"
-                      onclick="setCategory(event, ${child.Category_ID}, '${safeParentName}')">
+                      data-sub-category-id="${child.Category_ID}"
+                      data-parent-name="${safeParentName}">
                     ${child.Category_Name}
                 </span>
             `;
@@ -412,7 +494,9 @@
       li.innerHTML = `
             <div class="category-trigger"
                  id="cat-${parent.Category_Name.toLowerCase()}"
-                 onclick="setCategory(event, ${parent.Category_ID}, '${safeParentName}')">
+                 data-category-id="${parent.Category_ID}"
+                 data-parent-name="${safeParentName}"
+                 data-has-children="${parent.children && parent.children.length > 0 ? '1' : '0'}">
                 ${icon} ${parent.Category_Name}
             </div>
             ${subHtml}
@@ -440,6 +524,8 @@
   }
 
   function setCategory(event, categoryId, parentName) {
+    if (event) event.stopPropagation();
+
     currentCategory = categoryId;
     document.getElementById('mainSearchInput').value = "";
 
@@ -455,20 +541,64 @@
     applyAllFilters();
   }
 
-  /* --- 5. UI Toggles --- */
-  function toggleMobileSubmenu(element) {
+  // ✅ Single, unified category interaction (desktop + mobile)
+  document.addEventListener('click', (e) => {
+    const subTag = e.target.closest('.sub-tag');
+    if (subTag) {
+      const subId = parseInt(subTag.dataset.subCategoryId || '0');
+      const parentName = subTag.dataset.parentName || '';
+      if (subId && parentName) {
+        setCategory(e, subId, parentName);
+      }
+      return;
+    }
+
+    const trigger = e.target.closest('.category-trigger');
+    if (!trigger) return;
+
+    const wrapper = trigger.closest('.sidebar-item-wrapper');
+    const hasChildren = trigger.dataset.hasChildren === '1';
+    const categoryId = parseInt(trigger.dataset.categoryId || '0');
+    const parentName = trigger.dataset.parentName || '';
+
+    if (!wrapper || !categoryId || !parentName) return;
+
     if (window.innerWidth <= 768) {
-      const currentExpanded = document.querySelector('.sidebar-item-wrapper.mobile-expanded');
-      if (element.classList.contains('mobile-expanded')) {
-        element.classList.remove('mobile-expanded');
+      // Mobile: first tap expands if has children; second tap applies
+      e.stopPropagation();
+
+      if (hasChildren) {
+        if (!wrapper.classList.contains('mobile-expanded')) {
+          document.querySelectorAll('.sidebar-item-wrapper.mobile-expanded').forEach(el => {
+            if (el !== wrapper) el.classList.remove('mobile-expanded');
+          });
+          wrapper.classList.add('mobile-expanded');
+          return;
+        }
+        // already expanded => apply
+        setCategory(e, categoryId, parentName);
         return;
       }
-      if (currentExpanded && currentExpanded !== element) {
-        currentExpanded.classList.remove('mobile-expanded');
-      }
-      element.classList.add('mobile-expanded');
+
+      // no children => apply
+      setCategory(e, categoryId, parentName);
+      return;
     }
-  }
+
+    // Desktop: clicking parent applies immediately (hover submenu remains handled by CSS)
+    setCategory(e, categoryId, parentName);
+  }, true);
+
+  // Close expanded mobile submenu when clicking outside the category list
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth > 768) return;
+    const insideCategories = e.target.closest('#dynamic-category-list');
+    if (insideCategories) return;
+    document.querySelectorAll('.sidebar-item-wrapper.mobile-expanded').forEach(el => el.classList.remove('mobile-expanded'));
+  });
+
+  /* --- 5. UI Toggles --- */
+  // (removed toggleMobileSubmenu: unified click handler above handles expand/collapse)
 
   function toggleMobileSidebar() {
     const sidebar = document.getElementById('filterSidebar');
@@ -534,12 +664,28 @@
       return;
     }
 
+    // ✅ Normalize server-provided image paths to a usable relative URL from /Module_Product_Ecosystem/pages/
+    const normalizeImageUrl = (rawPath) => {
+      if (!rawPath) return '';
+      let p = String(rawPath).trim();
+
+      // already absolute URL
+      if (/^https?:\/\//i.test(p)) return p;
+
+      // remove leading slashes and ../
+      p = p.replace(/^\/+/, '').replace(/^\.\.\//, '');
+
+      // if DB already stores paths like Module_Product_Ecosystem/Public_Product_Images/...
+      // we can reach it from pages/ by prefixing ../../
+      return `../../${p}`;
+    };
+
     products.forEach(item => {
       // 1. 图片处理
       let imgHtml = '';
       if (item.Main_Image) {
-        const cleanPath = item.Main_Image.replace(/^.*?Public_Product_Images\//, 'Public_Product_Images/');
-        imgHtml = `<img src="../${cleanPath}" alt="${item.Product_Title}" style="width:100%;height:100%;object-fit:cover;">`;
+        const imgUrl = normalizeImageUrl(item.Main_Image);
+        imgHtml = `<img src="${imgUrl}" alt="${item.Product_Title}" style="width:100%;height:100%;object-fit:cover;">`;
       } else {
         imgHtml = `<div style="font-size:3rem;">📦</div>`;
       }

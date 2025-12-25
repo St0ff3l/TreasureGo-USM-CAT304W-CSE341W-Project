@@ -338,6 +338,64 @@
       .item-thumb { width: 70px; height: 70px; }
       .details-content { flex-direction: column; gap: 30px; padding: 25px; }
       .detail-meta { border-left: none; border-top: 1px solid #e5e7eb; padding-left: 0; padding-top: 20px; }
+
+      /* ========================= */
+      /* ✅ Mobile-only Enhancements */
+      /* 不影响桌面端：仅在 <=768px 生效 */
+      /* ========================= */
+
+      /* 页面左右留白更舒服，避免横向滚动 */
+      body { padding-bottom: 60px; }
+      .container { margin: 28px auto; padding: 0 14px; }
+
+      /* 标题和 Tab 在手机端上下排列 */
+      .page-header { align-items: flex-start; gap: 14px; flex-direction: column; }
+      .page-title { font-size: 1.65rem; padding-left: 18px; }
+      .page-title::before { height: 28px; }
+
+      .tabs { width: 100%; justify-content: space-between; padding: 6px; gap: 10px; }
+      .tab-btn { flex: 1; padding: 10px 12px; text-align: center; font-size: 0.95rem; }
+
+      /* 摘要行避免内容被挤压溢出 */
+      .col-info h4 { font-size: 1.05rem; margin-bottom: 6px; }
+      .col-info p { font-size: 0.85rem; gap: 8px; flex-wrap: wrap; }
+      .badge-cat { font-size: 0.75rem; padding: 3px 10px; }
+
+      /* 操作按钮缩小一点，适配窄屏但仍保持可点区域 */
+      .col-actions { gap: 10px; }
+      .btn-action { width: 42px; height: 42px; min-width: 42px; min-height: 42px; font-size: 1.15rem; }
+      .action-divider { height: 18px; margin: 0 2px; }
+
+      /* 详情区：文本别太挤，长词换行 */
+      .details-content { padding: 20px; }
+      .detail-text { margin-bottom: 18px; overflow-wrap: anywhere; word-break: break-word; }
+
+      /* 图片画廊：手机端更紧凑，避免一行溢出 */
+      .image-gallery { gap: 10px; }
+      .gallery-img { width: 96px; height: 96px; border-radius: 14px; }
+
+      /* 图片查看器：更大利用屏幕 */
+      .img-viewer-content { max-width: 92%; max-height: 82vh; }
+      .img-viewer-close { top: 16px; right: 18px; font-size: 44px; }
+
+      /* 模态框在手机端更贴合 */
+      .modal-card { width: calc(100% - 28px); padding: 22px; border-radius: 22px; }
+      .modal-title { font-size: 1.4rem; }
+      .modal-textarea { height: 120px; padding: 14px; }
+      .modal-btns { gap: 10px; }
+      .btn-modal { padding: 10px 16px; border-radius: 12px; }
+
+      /* AI 结果框：更紧凑 */
+      .ai-result-box { padding: 16px; border-radius: 14px; }
+    }
+
+    /* 更小屏（比如 iPhone SE）进一步优化，不影响桌面 */
+    @media (max-width: 420px) {
+      .item-summary { grid-template-columns: 62px 1fr auto; padding: 16px; gap: 12px; }
+      .item-thumb, .no-img { width: 62px; height: 62px; border-radius: 14px; }
+      .btn-action { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+      .gallery-img { width: 84px; height: 84px; }
+      .tab-btn { padding: 9px 10px; font-size: 0.92rem; }
     }
 
     /* AI 结果框 */
@@ -746,7 +804,7 @@
                 console.log('🤖 后台已处理:', data.processed);
               }
             })
-            .catch(err => {
+            .catch(() => {
               console.log('后台任务静默运行中...');
             });
   }
