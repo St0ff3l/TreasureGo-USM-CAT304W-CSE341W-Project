@@ -603,6 +603,10 @@
             <i class="ri-bank-card-line"></i> Withdrawal Requests
         </a>
 
+        <a href="../../Module_Platform_Governance_AI_Services/pages/admin_support_dashboard.html" class="action-btn">
+            <i class="ri-customer-service-2-line"></i> Support Admin Dashboard
+        </a>
+
         <a href="../../Module_Platform_Governance_AI_Services/pages/admin_reports.html" class="action-btn">
             <i class="ri-file-warning-line"></i> Report Center
         </a>
@@ -756,11 +760,20 @@
                 datasets: [{ data: counts, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: true,
+                responsive: true,
+                maintainAspectRatio: true,
                 plugins: {
-                    legend: { position: 'bottom', labels: { padding: 15, font: { size: 12, weight: '600' }, usePointStyle: true } },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12, weight: '600' },
+                            usePointStyle: true
+                        }
+                    },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
                         callbacks: {
                             label: function(context) {
                                 const label = context.label || '';
@@ -1167,4 +1180,5 @@
 </script>
 </body>
 </html>
+
 

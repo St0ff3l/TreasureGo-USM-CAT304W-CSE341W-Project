@@ -2,9 +2,303 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>feedback</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - TreasureGO</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* =========================================
+           1. Global Variables & Reset
+           ========================================= */
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --primary-light: #EEF2FF;
+            --text-dark: #111827;
+            --text-gray: #6B7280;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #F0F2F5;
+            background-image:
+                    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
+                    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
+                    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%234f46e5" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'), linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================================
+           2. Feedback Container
+           ========================================= */
+        .feedback-container {
+            max-width: 600px;
+            width: 90%;
+            margin: 80px auto;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 60px 40px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255,255,255,0.6);
+            text-align: center;
+            animation: fadeInPage 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback-container::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--primary), #818CF8);
+        }
+
+        .icon-wrapper {
+            width: 80px; height: 80px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #111827 0%, #4F46E5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-gray);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* =========================================
+           3. Email Card Styles
+           ========================================= */
+        .email-card {
+            background: #F8FAFC;
+            border: 2px dashed #CBD5E1;
+            border-radius: 16px;
+            padding: 20px 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            user-select: none;
+        }
+
+        .email-card:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1);
+        }
+
+        .email-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            letter-spacing: 0.5px;
+            word-break: break-all;
+            text-align: left;
+        }
+
+        .email-card:hover .email-text { color: var(--primary); }
+
+        .copy-btn {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            color: var(--text-gray);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .email-card:hover .copy-btn {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .email-card:active .copy-btn { transform: scale(0.9); }
+
+        .copy-btn.copied {
+            background: #10B981 !important;
+            border-color: #10B981 !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            color: var(--text-gray);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--primary); text-decoration: underline; }
+
+        /* SweetAlert Override */
+        div.swal2-popup.custom-toast-popup {
+            background: #ffffff !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15) !important;
+            padding: 12px 20px !important;
+            display: flex !important;
+            align-items: center;
+        }
+        div.swal2-popup.custom-toast-popup .swal2-title {
+            color: #111827 !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-weight: 600 !important;
+            margin: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .feedback-container { width: 90%; margin: 40px auto; padding: 40px 20px; }
+            .page-title { font-size: 1.75rem; }
+            .email-card { padding: 15px 20px; gap: 15px; }
+            .email-text { font-size: 1.05rem; }
+            .copy-btn { width: 36px; height: 36px; font-size: 1.1rem; }
+        }
+    </style>
 </head>
 <body>
+
+<script src="../../Public_Assets/js/headerbar.js"></script>
+<script>TreasureGoHeaderbar.mount({ basePath: '../../' });</script>
+
+<div class="feedback-container">
+    <div class="icon-wrapper">💌</div>
+    <h1 class="page-title">We Value Your Voice</h1>
+    <p class="subtitle">
+        Found a bug? Have a suggestion? <br class="mobile-hide">
+        Drop us an email directly!
+    </p>
+
+    <div class="email-card" id="emailCard">
+        <span class="email-text" id="emailDisplay">Loading...</span>
+        <div class="copy-btn" id="copyIconBtn">
+            <i class="ri-file-copy-line" id="iconInner"></i>
+        </div>
+    </div>
+
+    <br>
+    <a href="../../index.html" class="back-link">← Return to Home</a>
+</div>
+
+<script>
+    /* =================================================================
+       ⚙️ CONFIGURATION ZONE (配置区域)
+       在此处修改邮箱地址，页面会自动更新
+       ================================================================= */
+
+    const APP_CONFIG = {
+        // 👇👇👇 CHANGE EMAIL HERE 👇👇👇
+        CONTACT_EMAIL: "support@treasurego.com"
+    };
+
+    /* ================================================================= */
+
+    // 1. 初始化：自动将配置的邮箱填入页面
+    document.addEventListener('DOMContentLoaded', () => {
+        const emailDisplay = document.getElementById('emailDisplay');
+        const emailCard = document.getElementById('emailCard');
+
+        if(emailDisplay) {
+            emailDisplay.textContent = APP_CONFIG.CONTACT_EMAIL;
+        }
+
+        // 绑定点击事件，使用配置的邮箱
+        if(emailCard) {
+            emailCard.addEventListener('click', () => {
+                copyToClipboard(APP_CONFIG.CONTACT_EMAIL);
+            });
+        }
+    });
+
+    // 2. 核心功能：复制逻辑
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+
+            // 弹窗提示
+            if (typeof Swal !== 'undefined') {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: false,
+                    customClass: { popup: 'custom-toast-popup' },
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+                Toast.fire({ icon: 'success', title: 'Email Copied!' });
+            }
+
+            // 按钮动画
+            const btn = document.getElementById('copyIconBtn');
+            const icon = document.getElementById('iconInner');
+
+            if(btn && icon) {
+                btn.classList.add('copied');
+                icon.classList.remove('ri-file-copy-line');
+                icon.classList.add('ri-check-line');
+
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    icon.classList.remove('ri-check-line');
+                    icon.classList.add('ri-file-copy-line');
+                }, 2000);
+            }
+
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+</script>
 
 </body>
 </html>

@@ -240,7 +240,7 @@
         <span class="sidebar-text">Report</span>
     </a>
 
-    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('#')">
+    <a href="javascript:void(0)" class="sidebar-item" onclick="handleProtectedNavigation('Module_Platform_Governance_AI_Services/pages/feedback.html')">
         <span class="sidebar-icon">📝</span>
         <span class="sidebar-text">Feedback</span>
     </a>
@@ -308,8 +308,10 @@
 <script>
     // 1. AuthModal 逻辑
     // 🔥 修改点 2: 显式挂载到 window 对象，确保 headerbar.js 能访问到
-    window.AuthModal = {
-        htmlContent: `
+    // 某些 IDE/检查器会把 window.AuthModal 误判为只读，所以这里用 defineProperty 更稳。
+    (function initGlobalAuthModal() {
+        const authModalObj = {
+            htmlContent: `
             <dialog id="globalLoginDialog" class="tg-auth-modal">
                 <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
                 <h3 style="margin-bottom:10px; color: #1F2937; font-size: 1.2rem; font-family: 'Poppins', sans-serif;">Login Required</h3>
@@ -328,10 +330,10 @@
                 </div>
             </dialog>
         `,
-        init: function() {
-            if (document.getElementById('globalLoginDialog')) return;
-            const style = document.createElement('style');
-            style.innerHTML = `
+            init: function() {
+                if (document.getElementById('globalLoginDialog')) return;
+                const style = document.createElement('style');
+                style.innerHTML = `
                 .tg-auth-modal::backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
                 .tg-auth-modal {
                     position: fixed; top: 30%; bottom: auto; left: 0; right: 0; margin: 0 auto;
@@ -342,19 +344,33 @@
                 }
                 @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             `;
-            document.head.appendChild(style);
-            document.body.insertAdjacentHTML('beforeend', this.htmlContent);
-        },
-        show: function() {
-            this.init();
-            const dialog = document.getElementById('globalLoginDialog');
-            if (dialog) dialog.showModal();
-        },
-        close: function() {
-            const dialog = document.getElementById('globalLoginDialog');
-            if (dialog) dialog.close();
+                document.head.appendChild(style);
+                document.body.insertAdjacentHTML('beforeend', this.htmlContent);
+            },
+            show: function() {
+                this.init();
+                const dialog = document.getElementById('globalLoginDialog');
+                if (dialog) dialog.showModal();
+            },
+            close: function() {
+                const dialog = document.getElementById('globalLoginDialog');
+                if (dialog) dialog.close();
+            }
+        };
+
+        // 如果某个脚本/typings 把 AuthModal 变成了只读属性，先尝试删除再重建
+        try {
+            delete window.AuthModal;
+        } catch (_) {
+            // ignore
         }
-    };
+
+        Object.defineProperty(window, 'AuthModal', {
+            value: authModalObj,
+            writable: true,
+            configurable: true
+        });
+    })();
 
     // 🔥 全局变量：存储当前登录用户的ID
     let isUserLoggedIn = false;
@@ -499,4 +515,5 @@
 
 </body>
 </html>
+
 
