@@ -1,0 +1,56 @@
+<!-- Address subview fragment: injected into profile.html main content area.
+     NOTE: Do NOT include <html>/<head>/<body> here. The shell (profile.html) provides layout + assets. -->
+
+<div class="settings-card">
+  <div class="settings-header">
+    <h2><i class="ri-map-pin-line"></i> My Addresses</h2>
+  </div>
+
+  <!-- Return button (only visible when coming from Order Confirmation) -->
+  <div id="addr-return-row" style="display:none; margin-bottom: 16px;">
+    <button type="button" class="btn-outline" data-action="return-to-order" style="display:inline-flex; align-items:center; gap:8px;">
+      <i class="ri-arrow-left-line"></i> Back to Order
+    </button>
+  </div>
+
+  <div class="address-list" id="address-list-container"></div>
+
+  <div class="add-addr-row" data-action="open-add-address">
+    <i class="ri-add-line" style="font-size:1.2rem;"></i> Add New Address
+  </div>
+</div>
+
+<div class="modal-overlay" id="address-modal">
+  <div class="modal-content">
+    <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
+      <h2 id="modal-title">Address</h2>
+      <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" data-action="close-address-modal"></i>
+    </div>
+
+    <form id="address-form">
+      <input type="hidden" id="modal_addr_id">
+
+      <div class="form-group" style="margin-bottom:15px;">
+        <label class="form-label">Receiver Name</label>
+        <input type="text" class="form-input" id="modal_addr_name" placeholder="Full Name" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom:15px;">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="modal_addr_phone" placeholder="Phone Number" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <input type="checkbox" id="modal_addr_default" style="width: 18px; height: 18px; cursor: pointer;">
+        <label for="modal_addr_default" style="font-size: 0.95rem; cursor: pointer; font-weight: 600;">Set as Default Address</label>
+      </div>
+
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">Address Details</label>
+        <textarea class="form-input" id="modal_addr_detail" rows="3" placeholder="Unit, Building, Street..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn-save" style="width:100%;">Save Address</button>
+    </form>
+  </div>
+</div>

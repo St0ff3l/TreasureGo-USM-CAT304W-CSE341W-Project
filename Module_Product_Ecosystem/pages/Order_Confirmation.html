@@ -626,7 +626,10 @@
     }
 
     function goManageAddress() {
-        window.location.href = '/Module_User_Account_Management/views/profile.html#address';
+        // Go to the authenticated profile shell and open Address tab directly
+        // Include a return URL so the Address page can show a "Back to Order" button.
+        const ret = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+        window.location.href = `../../Module_User_Account_Management/pages/profile.php?return=${ret}#address`;
     }
 
     function escapeHtml(str) {

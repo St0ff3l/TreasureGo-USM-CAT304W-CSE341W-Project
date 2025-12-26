@@ -7,6 +7,7 @@
 
   <script src="../../Public_Assets/js/headerbar.js"></script>
   <script src="../../Public_Assets/js/status_dialog.js"></script>
+  <script src="../assets/js/profile_address_subview.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -507,18 +508,7 @@
     </div>
 
     <div id="view-address" class="view-section">
-      <div class="settings-card">
-        <div class="settings-header">
-          <h2><i class="ri-map-pin-line"></i> My Addresses</h2>
-        </div>
-
-        <div class="address-list" id="address-list-container">
-        </div>
-
-        <div class="add-addr-row" onclick="openAddressModal()">
-          <i class="ri-add-line" style="font-size:1.2rem;"></i> Add New Address
-        </div>
-      </div>
+      <div id="profile-subview-container"></div>
     </div>
 
     <div id="view-security" class="view-section">
@@ -569,38 +559,7 @@
 
 </div>
 
-<div class="modal-overlay" id="address-modal">
-  <div class="modal-content">
-    <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
-      <h2 id="modal-title">Address</h2>
-      <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeAddressModal()"></i>
-    </div>
-
-    <form onsubmit="handleAddressSubmit(event)">
-      <input type="hidden" id="modal_addr_id">
-      <div class="form-group" style="margin-bottom:15px;">
-        <label class="form-label">Receiver Name</label>
-        <input type="text" class="form-input" id="modal_addr_name" placeholder="Full Name" required>
-      </div>
-
-      <!-- ✅ Missing in original: phone number input (was referenced by JS, causing edit click to crash) -->
-      <div class="form-group" style="margin-bottom:15px;">
-        <label class="form-label">Phone Number</label>
-        <input type="text" class="form-input" id="modal_addr_phone" placeholder="Phone Number" required>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-        <input type="checkbox" id="modal_addr_default" style="width: 18px; height: 18px; cursor: pointer;">
-        <label for="modal_addr_default" style="font-size: 0.95rem; cursor: pointer; font-weight: 600;">Set as Default Address</label>
-      </div>
-      <div class="form-group" style="margin-bottom:20px;">
-        <label class="form-label">Address Details</label>
-        <textarea class="form-input" id="modal_addr_detail" rows="3" placeholder="Unit, Building, Street..." required></textarea>
-      </div>
-      <button type="submit" class="btn-save" style="width:100%;">Save Address</button>
-    </form>
-  </div>
-</div>
+<!-- Address modal is now provided by the injected subview fragment -->
 
 <!-- Avatar Upload Modal -->
 <div class="modal-overlay" id="avatar-modal">
@@ -637,10 +596,14 @@
 
     // 2. 获取个人资料数据
     await fetchProfileData();
-    // 3. 获取地址数据
-    await fetchAddressList();
-    // 4. 获取 Active Listings
-    fetchActiveListings();
+
+    // 3. 支持 hash 深链接（例如 profile.php#address）
+    const hash = (window.location.hash || '').replace('#', '').trim();
+    if (hash === 'address' || hash === 'personal' || hash === 'security' || hash === 'overview') {
+      // 找到对应的 sidebar button 并触发 switchView
+      const btn = document.querySelector(`.sidebar-card button.menu-item[onclick="switchView('${hash}', this)"]`);
+      await switchView(hash, btn || null);
+    }
   });
 
   // --- Tab Switching Logic ---
@@ -754,217 +717,8 @@
     }
   }
 
-  // --- 🔥 Address Logic (New) ---
-  async function fetchAddressList() {
-    try {
-      const res = await fetch('../api/get_addresses.php');
-      const json = await res.json();
-      if(json.status === 'success') {
-        renderAddressList(json.data);
-      }
-    } catch (err) { console.error("Fetch Address Error:", err); }
-  }
-
-  function renderAddressList(list) {
-    const container = document.getElementById('address-list-container');
-    if (!container) return;
-
-    // ✅ Fix: container does NOT include the add button. It's outside.
-    // Just clear and render items.
-    container.innerHTML = '';
-
-    list.forEach((addr) => {
-      const div = document.createElement('div');
-      div.className = 'address-item';
-
-      const isDefault = (addr.Address_Is_Default == 1);
-      const tagHtml = isDefault ? `<span class="addr-tag">Default</span>` : '';
-
-      div.innerHTML = `
-      <div class="addr-content">
-        <div class="addr-main-text">
-          <i class="ri-map-pin-2-line"></i>${escapeHtml(addr.Address_Detail)}
-        </div>
-
-        <div class="addr-meta-row">
-           <span class="addr-name-bold">
-             <i class="ri-user-line"></i>${escapeHtml(addr.Address_Receiver_Name)}
-           </span>
-           <span class="addr-phone-text">
-             <i class="ri-phone-line"></i>${escapeHtml(addr.Address_Phone_Number)}
-           </span>
-           ${tagHtml}
-        </div>
-      </div>
-
-      <div class="addr-actions-right">
-        ${isDefault ? '' : `
-          <button class="icon-btn" title="Set as Default" data-action="set-default" data-id="${addr.Address_ID}">
-            <i class="ri-star-line"></i>
-          </button>
-        `}
-        <button class="icon-btn" title="Edit" data-action="edit" data-id="${addr.Address_ID}">
-          <i class="ri-edit-2-line"></i>
-        </button>
-        <button class="icon-btn delete" title="Delete" data-action="delete" data-id="${addr.Address_ID}">
-          <i class="ri-delete-bin-line"></i>
-        </button>
-      </div>
-    `;
-
-      // store full object safely for edit
-      div.dataset.addr = JSON.stringify(addr);
-      container.appendChild(div);
-    });
-  }
-
-  // ✅ Event delegation for address actions (avoids inline JSON issues & ensures edit works)
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-    const item = btn.closest('.address-item');
-    const addrJson = item?.dataset?.addr;
-
-    if (action === 'edit') {
-      try {
-        const addr = JSON.parse(addrJson);
-        openAddressModal(addr);
-      } catch (err) {
-        console.error('Parse address failed:', err);
-        StatusDialog.fail('Error', 'Failed to open address editor.');
-      }
-      return;
-    }
-
-    if (action === 'delete') {
-      const id = Number(btn.dataset.id);
-      if (Number.isFinite(id)) deleteAddress(id);
-      return;
-    }
-
-    if (action === 'set-default') {
-      const id = Number(btn.dataset.id);
-      if (Number.isFinite(id)) setDefaultAddress(id);
-    }
-  });
-
-  async function setDefaultAddress(addressId) {
-    // Load current list from DOM dataset for minimal payload
-    const item = document.querySelector(`.address-item .addr-actions-right button[data-id="${addressId}"]`)?.closest('.address-item');
-    if (!item?.dataset?.addr) return;
-
-    let addr;
-    try { addr = JSON.parse(item.dataset.addr); } catch { return; }
-
-    // Reuse save_address.php logic: when Address_Is_Default=1 it resets others
-    const payload = {
-      Address_ID: addr.Address_ID,
-      Address_Receiver_Name: addr.Address_Receiver_Name,
-      Address_Phone_Number: addr.Address_Phone_Number,
-      Address_Detail: addr.Address_Detail,
-      Address_Is_Default: 1
-    };
-
-    try {
-      const res = await fetch('../api/save_address.php', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const json = await res.json();
-      if (json.status === 'success') {
-        StatusDialog.success('Updated', 'Default address updated.', 'OK', fetchAddressList);
-      } else {
-        StatusDialog.fail('Error', json.message || 'Failed to set default address.');
-      }
-    } catch (err) {
-      console.error(err);
-      StatusDialog.fail('Network Error', 'Check your connection.');
-    }
-  }
-
-  // --- Modal & Form Logic ---
-  const modal = document.getElementById('address-modal');
-  function openAddressModal(data = null) {
-    const title = document.getElementById('modal-title');
-    const idIn = document.getElementById('modal_addr_id');
-    const nameIn = document.getElementById('modal_addr_name');
-    const phoneIn = document.getElementById('modal_addr_phone');
-    const detailIn = document.getElementById('modal_addr_detail');
-    const defaultCheck = document.getElementById('modal_addr_default');
-
-    if(data) {
-      title.innerText = "Edit Address";
-      idIn.value = data.Address_ID;
-      nameIn.value = data.Address_Receiver_Name;
-      phoneIn.value = data.Address_Phone_Number;
-      detailIn.value = data.Address_Detail;
-      defaultCheck.checked = (data.Address_Is_Default == 1);
-    } else {
-      title.innerText = "Add New Address";
-      idIn.value = ""; nameIn.value = ""; phoneIn.value = ""; detailIn.value = "";
-      defaultCheck.checked = false;
-    }
-    modal.classList.add('open');
-  }
-  function closeAddressModal() { modal.classList.remove('open'); }
-
-  // basic HTML escaping for user-data rendering
-  function escapeHtml(str) {
-    return String(str ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
-  async function handleAddressSubmit(e) {
-    e.preventDefault();
-    const payload = {
-      Address_ID: document.getElementById('modal_addr_id').value || null,
-      Address_Receiver_Name: document.getElementById('modal_addr_name').value,
-      Address_Phone_Number: document.getElementById('modal_addr_phone').value,
-      Address_Detail: document.getElementById('modal_addr_detail').value,
-      // 将 checkbox 的状态转为 1 或 0 发送给后端
-      Address_Is_Default: document.getElementById('modal_addr_default').checked ? 1 : 0
-    };
-    closeAddressModal();
-
-    try {
-      const res = await fetch('../api/save_address.php', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
-      });
-      const json = await res.json();
-      if(json.status === 'success') {
-        StatusDialog.success('Saved', 'Address updated successfully.', 'OK', fetchAddressList);
-      } else {
-        StatusDialog.fail('Error', json.message);
-      }
-    } catch(err) {
-      StatusDialog.fail('Network Error', 'Check your connection.');
-    }
-  }
-  function deleteAddress(id) {
-    StatusDialog.confirm('Delete Address?', 'This cannot be undone.', 'Delete', 'Cancel', async () => {
-      try {
-        const res = await fetch('../api/delete_address.php', {
-          method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({Address_ID:id})
-        });
-        const json = await res.json();
-        if(json.status === 'success') {
-          StatusDialog.success('Deleted', 'Address removed.', 'OK', fetchAddressList);
-        } else {
-          StatusDialog.fail('Error', json.message);
-        }
-      } catch(err) { StatusDialog.fail('Error', 'Network error.'); }
-    }, true);
-  }
-
   // --- View Switching Logic ---
-  function switchView(viewName, btnElement) {
+  async function switchView(viewName, btnElement) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
 
@@ -973,6 +727,46 @@
 
     if (btnElement) {
       btnElement.classList.add('active-view');
+    }
+
+    // Address view: inject fragment and mount module (only once)
+    if (viewName === 'address') {
+      await loadAddressSubview();
+    }
+
+    // 记录 hash（让刷新/复制链接保持在当前页）
+    try {
+      if (viewName) window.location.hash = '#' + viewName;
+    } catch (_) {}
+  }
+
+  let __addressSubviewLoaded = false;
+  async function loadAddressSubview() {
+    const host = document.getElementById('profile-subview-container');
+    if (!host) return;
+
+    if (!__addressSubviewLoaded) {
+      try {
+        // profile is served via /pages/profile.php -> this HTML is included from /views/profile.html
+        // so relative fetch paths resolve from /pages/ (not /views/).
+        const res = await fetch('../views/subviews/address.html', { cache: 'no-store' });
+        host.innerHTML = await res.text();
+        __addressSubviewLoaded = true;
+      } catch (e) {
+        console.error(e);
+        host.innerHTML = '<div class="settings-card">Failed to load address view.</div>';
+        return;
+      }
+    }
+
+    // Mount or refresh
+    if (typeof window.AddressSubview !== 'undefined') {
+      window.AddressSubview.mount({
+        baseApi: '../api',
+        containerId: 'address-list-container'
+      });
+    } else {
+      console.error('AddressSubview script not loaded.');
     }
   }
 
@@ -1062,6 +856,8 @@
     }
   }
 </script>
+
 </body>
 </html>
+
 
