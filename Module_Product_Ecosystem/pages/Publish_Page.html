@@ -448,39 +448,75 @@
 </div>
 
 <script>
-  // Data Structure from your Database
-  const categoryData = {
-    "100000000": { name: "Digital", subs: [ {id: "100000005", name: "Mobile Phones"}, {id: "100000006", name: "Laptops & Computers"}, {id: "100000007", name: "Tablets & iPads"}, {id: "100000008", name: "Cameras & Photography"}, {id: "100000009", name: "Audio & Headphones"}, {id: "100000010", name: "Gaming & Consoles"}, {id: "100000011", name: "Tech Accessories"} ] },
-    "100000001": { name: "Fashion", subs: [ {id: "100000012", name: "Men's Clothing"}, {id: "100000013", name: "Women's Clothing"}, {id: "100000014", name: "Sneakers & Shoes"}, {id: "100000015", name: "Bags & Wallets"}, {id: "100000016", name: "Watches & Jewelry"} ] },
-    "100000002": { name: "Home", subs: [ {id: "100000017", name: "Furniture"}, {id: "100000018", name: "Kitchen & Dining"}, {id: "100000019", name: "Home Appliances"}, {id: "100000020", name: "Decor & Lighting"}, {id: "100000021", name: "Storage & Organization"} ] },
-    "100000003": { name: "Books", subs: [ {id: "100000022", name: "University Textbooks"}, {id: "100000023", name: "Fiction & Novels"}, {id: "100000024", name: "Comics & Manga"}, {id: "100000025", name: "Notes & Study Materials"}, {id: "100000026", name: "Stationery"} ] },
-    "100000004": { name: "Transport", subs: [ {id: "100000027", name: "Bicycles"}, {id: "100000028", name: "E-Scooters"}, {id: "100000029", name: "Skateboards"}, {id: "100000030", name: "Helmets & Gear"} ] }
-  };
-
+  // ==========================================
+  // Dynamic Category Loading (API Adapted)
+  // ==========================================
+  let categoryList = []; // Array to store data from backend
   const parentSelect = document.getElementById('parentCategory');
   const subSelect = document.getElementById('subCategory');
 
-  for (const [id, data] of Object.entries(categoryData)) {
-    const option = document.createElement('option');
-    option.value = id;
-    option.textContent = data.name;
-    parentSelect.appendChild(option);
-  }
+  // Load categories on page load
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // Fetch from the PHP file you provided
+      const response = await fetch('../api/Get_Categories.php');
+      const result = await response.json();
 
-  parentSelect.addEventListener('change', function() {
-    const parentId = this.value;
-    const subCategories = categoryData[parentId].subs;
-    subSelect.innerHTML = '<option value="" disabled selected>Select Sub-Category</option>';
-    subSelect.disabled = false;
-    subCategories.forEach(sub => {
-      const option = document.createElement('option');
-      option.value = sub.id;
-      option.textContent = sub.name;
-      subSelect.appendChild(option);
-    });
+      if (result.success) {
+        // The backend returns an array structure in result.data
+        categoryList = result.data;
+        renderParentCategories();
+      } else {
+        console.error("Failed to load categories:", result.message);
+      }
+    } catch (error) {
+      console.error("Network error loading categories:", error);
+    }
   });
 
-  // Real-time Price Calculator
+  function renderParentCategories() {
+    parentSelect.innerHTML = '<option value="" disabled selected>Select Category</option>';
+
+    // Loop through the array from backend
+    categoryList.forEach(cat => {
+      const option = document.createElement('option');
+      // Use the exact key names from your PHP output: Category_ID and Category_Name
+      option.value = cat.Category_ID;
+      option.textContent = cat.Category_Name;
+      parentSelect.appendChild(option);
+    });
+  }
+
+  // Handle Parent Category Change
+  parentSelect.addEventListener('change', function() {
+    const parentId = this.value;
+
+    // Find the selected category object in the array
+    // Note: parentId is a string, Category_ID is likely int/string, so use loose comparison (==)
+    const selectedCategory = categoryList.find(cat => cat.Category_ID == parentId);
+
+    // Reset Sub-Category dropdown
+    subSelect.innerHTML = '<option value="" disabled selected>Select Sub-Category</option>';
+
+    // Check if children exist
+    // Your PHP outputs 'children' array
+    if (selectedCategory && selectedCategory.children && selectedCategory.children.length > 0) {
+      subSelect.disabled = false;
+      selectedCategory.children.forEach(child => {
+        const option = document.createElement('option');
+        option.value = child.Category_ID;
+        option.textContent = child.Category_Name;
+        subSelect.appendChild(option);
+      });
+    } else {
+      subSelect.disabled = true;
+    }
+  });
+
+
+  // ==========================================
+  // Price Calculator
+  // ==========================================
   const priceInput = document.getElementById('priceInput');
   const priceCalculator = document.getElementById('priceCalculator');
   const feeAmount = document.getElementById('feeAmount');
@@ -674,18 +710,18 @@
         if (result.status === 'Pending') {
           // AI 拦截 -> 警告/待审核弹窗
           StatusDialog.warning(
-            'Under Review',
-            'Your item has been flagged by AI for manual review. It will be visible once approved.',
-            'View My Listings',
-            () => { window.location.href = 'My_Listings.html'; }
+                  'Under Review',
+                  'Your item has been flagged by AI for manual review. It will be visible once approved.',
+                  'View My Listings',
+                  () => { window.location.href = 'My_Listings.html'; }
           );
         } else {
           // 正常发布 -> 成功弹窗
           StatusDialog.success(
-            'Published!',
-            'Your item is now live on the marketplace.',
-            'Go to Home',
-            () => { window.location.href = '../../index.html'; }
+                  'Published!',
+                  'Your item is now live on the marketplace.',
+                  'Go to Home',
+                  () => { window.location.href = '../../index.html'; }
           );
         }
       } else {
@@ -706,4 +742,3 @@
 
 </body>
 </html>
-
