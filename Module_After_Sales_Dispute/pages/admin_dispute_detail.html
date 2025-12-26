@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dispute Details - Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="../../Public_Assets/js/admin_guard.js"></script>
+
+  <style>
+    :root {
+      --bg: #F3F6F9; --primary: #4F46E5; --text: #1F2937; --border: #E5E7EB;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+
+    .top-nav { max-width: 1200px; margin: 0 auto 20px; display: flex; gap: 10px; align-items: center; }
+    .back-btn { text-decoration: none; color: #6B7280; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .back-btn:hover { color: var(--primary); }
+
+    .layout {
+      display: grid; grid-template-columns: 320px 1fr; gap: 24px;
+      max-width: 1200px; margin: 0 auto; align-items: start;
+    }
+
+    /* Cards */
+    .card { background: white; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 24px; margin-bottom: 20px; }
+    .card-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Left Sidebar (Sticky) */
+    .sidebar { position: sticky; top: 20px; }
+    .status-badge {
+      padding: 8px 12px; border-radius: 8px; font-weight: 800; display: block; text-align: center; margin-bottom: 20px; font-size: 1.2rem;
+    }
+
+    /* Forms */
+    .form-group { margin-bottom: 16px; }
+    .label { display: block; font-size: 0.75rem; font-weight: 700; color: #9CA3AF; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem; }
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 10px; }
+    .btn-save { background: var(--primary); color: white; }
+    .btn-save:hover { background: #4338CA; }
+
+    /* Info Grid */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .kv-box { background: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #F3F4F6; }
+    .k { font-size: 0.75rem; color: #9CA3AF; font-weight: 700; text-transform: uppercase; }
+    .v { font-size: 0.95rem; font-weight: 600; color: #111827; margin-top: 4px; word-break: break-word; }
+
+    /* Highlights */
+    .hl-user { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+    .hl-avatar { width: 32px; height: 32px; background: #E0E7FF; color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+    /* Status Colors */
+    .st-Open { background: #FEF3C7; color: #B45309; }
+    .st-Resolved { background: #D1FAE5; color: #047857; }
+    .st-Closed { background: #E5E7EB; color: #374151; }
+    .st-In\ Review { background: #DBEAFE; color: #1E40AF; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="admin_dispute_dashboard.html" class="back-btn">&larr; Back to Dashboard</a>
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="card">
+      <div id="statusDisplay" class="status-badge st-Open">Loading...</div>
+
+      <div class="form-group">
+        <label class="label">Update Status</label>
+        <select id="updateStatus">
+          <option value="Open">Open</option>
+          <option value="In Review">In Review</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); margin: 20px 0;"></div>
+
+      <div class="card-title" style="font-size:0.9rem;">Resolution Decision</div>
+
+      <div class="form-group">
+        <label class="label">Outcome</label>
+        <select id="drOutcome">
+          <option value="">(Select Outcome)</option>
+          <option value="refund_buyer">Refund Buyer</option>
+          <option value="refund_seller">Refund Seller</option>
+          <option value="partial">Partial Refund</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="label">Refund Amount (MYR)</label>
+        <input type="number" id="drAmount" placeholder="0.00" step="0.01">
+      </div>
+
+      <button class="btn btn-save" onclick="saveChanges()">Save Changes</button>
+      <div id="saveMsg" style="text-align:center; margin-top:10px; font-size:0.85rem; height:20px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Admin Action</div>
+      <div class="form-group">
+        <label class="label">Action Type (e.g. Warning)</label>
+        <input id="aaType" placeholder="Optional" />
+      </div>
+      <div class="form-group">
+        <label class="label">Internal Note</label>
+        <input id="aaReason" placeholder="Reason for action" />
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="card">
+      <div class="card-title">
+        <span>Dispute #<span id="dID">...</span></span>
+        <span style="font-size:0.8rem; color:#6B7280;" id="dDate"></span>
+      </div>
+
+      <div class="info-grid">
+        <div class="kv-box">
+          <div class="k">Buyer (Reporting)</div>
+          <div class="hl-user">
+            <div class="hl-avatar">B</div>
+            <div class="v" id="buyerName">...</div>
+          </div>
+        </div>
+        <div class="kv-box">
+          <div class="k">Seller (Reported)</div>
+          <div class="hl-user">
+            <div class="hl-avatar" style="background:#FEF3C7; color:#B45309">S</div>
+            <div class="v" id="sellerName">...</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="label">Buyer's Reason</div>
+        <div style="background:#F3F4F6; padding:12px; border-radius:8px; line-height:1.5;" id="dReason">...</div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="label">Dispute Details</div>
+        <div style="font-size:0.9rem; color:#4B5563;" id="dDetails">...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Replies</div>
+
+      <div class="form-group">
+        <label class="label">Admin Reply to Buyer</label>
+        <textarea id="drReplyBuyer" placeholder="Explanation visible to buyer..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="label">Admin Reply to Seller</label>
+        <textarea id="drReplySeller" placeholder="Explanation visible to seller..."></textarea>
+      </div>
+
+      <div style="margin-top:20px; padding-top:20px; border-top:1px dashed #E5E7EB;">
+        <div class="label">Seller's Response (If any)</div>
+        <div id="sellerResponse" style="margin-top:5px; font-style:italic; color:#6B7280;">No response yet.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Technical Context</div>
+      <div class="info-grid">
+        <div class="kv-box"><div class="k">Order ID</div><div class="v" id="tOrder"></div></div>
+        <div class="kv-box"><div class="k">Order Amount</div><div class="v" id="tAmount"></div></div>
+        <div class="kv-box"><div class="k">Refund ID</div><div class="v" id="tRefundId"></div></div>
+        <div class="kv-box"><div class="k">Refund Type</div><div class="v" id="tRefundType"></div></div>
+        <div class="kv-box"><div class="k">Return Tracking</div><div class="v" id="tTracking"></div></div>
+        <div class="kv-box"><div class="k">Return Address</div><div class="v" id="tAddress"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API_GET = '../api/admin_dispute_get.php';
+  const API_UPDATE = '../api/admin_dispute_update.php';
+  const params = new URLSearchParams(window.location.search);
+  const disputeId = params.get('id');
+
+  if(!disputeId) { alert('No ID provided'); window.location.href='admin_dispute_dashboard.html'; }
+
+  document.getElementById('dID').textContent = disputeId;
+
+  // Fetch Data
+  async function init() {
+    try {
+      const res = await fetch(`${API_GET}?dispute_id=${disputeId}`);
+      const json = await res.json();
+      if(json.status !== 'success') throw new Error(json.message);
+
+      const d = json.data;
+      render(d);
+    } catch(e) {
+      alert('Error loading: ' + e.message);
+    }
+  }
+
+  function render(d) {
+    // Left Sidebar
+    const st = d.Dispute_Status || 'Open';
+    const stEl = document.getElementById('statusDisplay');
+    stEl.textContent = st;
+    stEl.className = `status-badge st-${st.replaceAll(' ','\\ ')}`;
+    document.getElementById('updateStatus').value = st;
+
+    document.getElementById('drOutcome').value = d.Dispute_Resolution_Outcome || '';
+    document.getElementById('drAmount').value = d.Dispute_Refund_Amount || '';
+
+    // Main Content
+    document.getElementById('dDate').textContent = d.Dispute_Creation_Date;
+    document.getElementById('buyerName').textContent = `${d.Reporting_Username || ''} (ID: ${d.Reporting_User_ID})`;
+    document.getElementById('sellerName').textContent = `${d.Reported_Username || ''} (ID: ${d.Reported_User_ID})`;
+    document.getElementById('dReason').textContent = d.Dispute_Reason;
+    document.getElementById('dDetails').textContent = d.Dispute_Details || '(No details provided)';
+
+    // Communication
+    document.getElementById('drReplyBuyer').value = d.Dispute_Admin_Reply_To_Buyer || '';
+    document.getElementById('drReplySeller').value = d.Dispute_Admin_Reply_To_Seller || '';
+    if(d.Dispute_Seller_Response) {
+      document.getElementById('sellerResponse').textContent = d.Dispute_Seller_Response;
+      document.getElementById('sellerResponse').style.color = '#1F2937';
+      document.getElementById('sellerResponse').style.fontStyle = 'normal';
+    }
+
+    // Technical
+    document.getElementById('tOrder').textContent = d.Order_ID ? `#${d.Order_ID}` : '-';
+    document.getElementById('tAmount').textContent = d.Orders_Total_Amount ? `MYR ${d.Orders_Total_Amount}` : '-';
+    document.getElementById('tRefundId').textContent = d.Refund_ID ? `#${d.Refund_ID}` : '-';
+    document.getElementById('tRefundType').textContent = d.Refund_Type || '-';
+    document.getElementById('tTracking').textContent = d.Return_Tracking_Number || 'N/A';
+    document.getElementById('tAddress').textContent = d.Return_Address_Detail || 'N/A';
+  }
+
+  async function saveChanges() {
+    const btn = document.querySelector('.btn-save');
+    const msg = document.getElementById('saveMsg');
+    btn.disabled = true; msg.textContent = 'Saving...';
+
+    const body = {
+      Dispute_ID: disputeId,
+      Dispute_Status: document.getElementById('updateStatus').value,
+      Dispute_Resolution_Outcome: document.getElementById('drOutcome').value,
+      Dispute_Refund_Amount: document.getElementById('drAmount').value,
+      Dispute_Admin_Reply_To_Buyer: document.getElementById('drReplyBuyer').value,
+      Dispute_Admin_Reply_To_Seller: document.getElementById('drReplySeller').value,
+
+      // Admin Action optional
+      Admin_Action_Type: document.getElementById('aaType').value,
+      Admin_Action_Reason: document.getElementById('aaReason').value
+    };
+
+    try {
+      const res = await fetch(API_UPDATE, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      if(json.status !== 'success') throw new Error(json.message);
+
+      msg.textContent = '✅ Saved Successfully';
+      msg.style.color = 'green';
+      init(); // Reload to refresh status display
+    } catch(e) {
+      msg.textContent = '❌ ' + e.message;
+      msg.style.color = 'red';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

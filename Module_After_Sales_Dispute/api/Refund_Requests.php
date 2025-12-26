@@ -90,33 +90,71 @@ try {
         throw new Exception("Refund amount exceeds order total.");
     }
 
-    // (B) 检查是否已有退款申请 (防止重复)
-    $checkDup = "SELECT Refund_ID FROM Refund_Requests WHERE Order_ID = ?";
+    // (B) 检查是否已有退款申请
+    $checkDup = "SELECT Refund_ID, Refund_Status, Request_Attempt FROM Refund_Requests WHERE Order_ID = ?";
     $stmtDup = $conn->prepare($checkDup);
     $stmtDup->execute([$order_id]);
-    if ($stmtDup->fetch()) {
-        throw new Exception("A refund request already exists for this order.");
+    $existingRefund = $stmtDup->fetch(PDO::FETCH_ASSOC);
+
+    // ✅ 新规则：同一订单允许最多提交两次。
+    // - 第一次：INSERT
+    // - 第二次：UPDATE 现有记录，Request_Attempt + 1，并把状态重置为 pending_approval
+    // - 第三次：拒绝
+    if ($existingRefund) {
+        // 如果数据库还没有 Request_Attempt 字段，这里会是 null。
+        // 为了不让旧库直接崩溃，我们按“旧逻辑”处理。
+        if (!array_key_exists('Request_Attempt', $existingRefund) || $existingRefund['Request_Attempt'] === null) {
+            throw new Exception("A refund request already exists for this order. (DB not patched for multi-attempt)");
+        }
+
+        $attempt = intval($existingRefund['Request_Attempt']);
+        if ($attempt >= 2) {
+            throw new Exception("Refund request limit reached (max 2 attempts). Please proceed to dispute.");
+        }
+
+        // 第二次提交：更新原记录
+        $updateReqSql = "UPDATE Refund_Requests
+                         SET Refund_Type = ?,
+                             Refund_Amount = ?,
+                             Refund_Reason = ?,
+                             Refund_Description = ?,
+                             Refund_Status = 'pending_approval',
+                             Refund_Updated_At = NOW(),
+                             Request_Attempt = Request_Attempt + 1
+                         WHERE Refund_ID = ?";
+
+        $stmtUpdate = $conn->prepare($updateReqSql);
+        $stmtUpdate->execute([
+            $refund_type,
+            $amount,
+            $reason,
+            $description,
+            $existingRefund['Refund_ID']
+        ]);
+
+        $new_refund_id = $existingRefund['Refund_ID'];
+
+    } else {
+        // (C) 插入主表 Refund_Requests
+        $insertReqSql = "INSERT INTO Refund_Requests (
+            Order_ID, Buyer_ID, Seller_ID, Refund_Type, Refund_Has_Received_Goods, 
+            Refund_Amount, Refund_Reason, Refund_Description, Refund_Status, Refund_Created_At, Request_Attempt
+        ) VALUES (?, ?, ?, ?, 1, ?, ?, ?, 'pending_approval', NOW(), 1)";
+
+        $stmtInsert = $conn->prepare($insertReqSql);
+        $stmtInsert->execute([
+            $order_id,
+            $current_user_id,
+            $orderData['Orders_Seller_ID'],
+            $refund_type,
+            $amount,
+            $reason,
+            $description
+        ]);
+
+        // 获取刚插入的 Refund_ID
+        $new_refund_id = $conn->lastInsertId();
     }
-
-    // (C) 插入主表 Refund_Requests
-    $insertReqSql = "INSERT INTO Refund_Requests (
-        Order_ID, Buyer_ID, Seller_ID, Refund_Type, Refund_Has_Received_Goods, 
-        Refund_Amount, Refund_Reason, Refund_Description, Refund_Status, Refund_Created_At
-    ) VALUES (?, ?, ?, ?, 1, ?, ?, ?, 'pending_approval', NOW())";
-
-    $stmtInsert = $conn->prepare($insertReqSql);
-    $stmtInsert->execute([
-        $order_id,
-        $current_user_id,
-        $orderData['Orders_Seller_ID'],
-        $refund_type,
-        $amount,
-        $reason,
-        $description
-    ]);
-
-    // 获取刚插入的 Refund_ID
-    $new_refund_id = $conn->lastInsertId();
 
     // =================================================================
     // 🔥🔥🔥 核心修改：同步更新 Orders 表状态 🔥🔥🔥

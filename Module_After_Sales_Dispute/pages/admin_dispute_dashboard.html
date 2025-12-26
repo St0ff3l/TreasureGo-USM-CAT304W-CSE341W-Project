@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TreasureGO - Admin Dispute Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="../../Public_Assets/js/admin_guard.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      --border-color: #E5E7EB;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-dark);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    .page-header { text-align: center; padding: 60px 20px 30px; }
+    .page-title {
+      font-size: 2.5rem; line-height: 1.1; margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #1F2937 0%, #4F46E5 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    .filters {
+      display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
+      gap: 10px; align-items: end; margin-bottom: 18px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .label { font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #9CA3AF; }
+    select, input {
+      padding: 10px 12px; border: 1px solid var(--border-color);
+      border-radius: 12px; background: white; font-family: inherit; font-size: 0.95rem; outline: none;
+    }
+
+    .btn { padding: 10px 16px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; }
+    .btn.primary { background: var(--primary); color: white; }
+    .btn.ghost { background: white; border: 1px solid var(--border-color); color: #374151; }
+
+    .list { background: white; border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--card-shadow); overflow: hidden; }
+    .list-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #F9FAFB; border-bottom: 1px solid var(--border-color); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 14px 16px; border-bottom: 1px solid #F3F4F6; text-align: left; font-size: 0.95rem; }
+    th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #9CA3AF; }
+
+    .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+    .badge.Open { background: #FEF3C7; color: #B45309; }
+    .badge.Resolved { background: #D1FAE5; color: #047857; }
+    .badge.Closed { background: #F3F4F6; color: #6B7280; }
+    .badge.In\ Review { background: #DBEAFE; color: #1E40AF; }
+
+    .btn-view { background: #F3F4F6; border: none; border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .btn-view:hover { background: var(--primary); color: white; }
+
+    .footer { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #F9FAFB; border-top: 1px solid var(--border-color); }
+    .pager { display: flex; gap: 10px; align-items: center; }
+
+    @media (max-width: 900px) { .filters { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1 class="page-title">⚖️ Dispute Dashboard</h1>
+  <p style="color:var(--text-gray)">Admin view for after-sales disputes</p>
+</header>
+
+<main class="container">
+  <section class="filters">
+    <div class="field">
+      <div class="label">Search</div>
+      <input id="q" placeholder="Dispute ID / Order ID / username" />
+    </div>
+    <div class="field">
+      <div class="label">Status</div>
+      <select id="status">
+        <option value="All">All</option>
+        <option value="Open">Open</option>
+        <option value="In Review">In Review</option>
+        <option value="Resolved">Resolved</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="label">From</div>
+      <input id="from" type="date" />
+    </div>
+    <div class="field">
+      <div class="label">To</div>
+      <input id="to" type="date" />
+    </div>
+    <div class="actions">
+      <button class="btn primary" onclick="applyFilters()">Apply</button>
+      <button class="btn ghost" onclick="resetFilters()">Reset</button>
+    </div>
+  </section>
+
+  <section class="list">
+    <div class="list-header">
+      <div style="font-weight:800;">Disputes List</div>
+      <div style="color:var(--text-gray); font-size:0.9rem;" id="meta">Loading…</div>
+    </div>
+    <div style="overflow:auto;">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Reason</th>
+          <th>Order</th>
+          <th>Buyer</th>
+          <th>Seller</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody id="rows">
+        <tr><td colspan="8" style="padding:30px; text-align:center;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">
+      <div id="meta2" style="color:var(--text-gray); font-size:0.9rem;">—</div>
+      <div class="pager">
+        <button class="btn ghost" onclick="prevPage()">Prev</button>
+        <div id="pageLabel" style="font-weight:700;">1</div>
+        <button class="btn ghost" onclick="nextPage()">Next</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const API_LIST = '../api/admin_dispute_list.php';
+  let state = { page: 1, pageSize: 20, total: 0, items: [] };
+
+  function escapeHtml(s) {
+    return String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  }
+  function badge(status) {
+    const s = String(status || 'Open');
+    return `<span class="badge ${s.replaceAll(' ', '\\ ')}">${escapeHtml(s)}</span>`;
+  }
+  function fmtDate(d) {
+    if (!d) return '-';
+    try { return new Date(d).toLocaleDateString() + ' ' + new Date(d).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); } catch { return d; }
+  }
+
+  async function load() {
+    const p = new URLSearchParams({
+      q: document.getElementById('q').value.trim(),
+      status: document.getElementById('status').value,
+      from: document.getElementById('from').value,
+      to: document.getElementById('to').value,
+      page: state.page,
+      pageSize: state.pageSize
+    });
+
+    try {
+      const res = await fetch(`${API_LIST}?${p}`);
+      const json = await res.json();
+      if (json.status !== 'success') throw new Error(json.message);
+      state.total = json.data.total;
+      state.items = json.data.items || [];
+      render();
+    } catch (e) {
+      document.getElementById('rows').innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">${e.message}</td></tr>`;
+    }
+  }
+
+  function render() {
+    const rows = document.getElementById('rows');
+    if (!state.items.length) {
+      rows.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;">No disputes found.</td></tr>`;
+      return;
+    }
+    rows.innerHTML = state.items.map(d => `
+      <tr>
+        <td>#${d.Dispute_ID}</td>
+        <td>${badge(d.Dispute_Status)}</td>
+        <td>${escapeHtml(d.Dispute_Reason)}</td>
+        <td>#${d.Order_ID}</td>
+        <td>${escapeHtml(d.Reporting_Username || d.Reporting_User_ID)}</td>
+        <td>${escapeHtml(d.Reported_Username || d.Reported_User_ID)}</td>
+        <td>${fmtDate(d.Dispute_Creation_Date)}</td>
+        <td style="text-align:right;">
+          <button class="btn-view" onclick="viewDetail(${d.Dispute_ID})">Manage &rarr;</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.getElementById('pageLabel').textContent = state.page;
+    document.getElementById('meta').textContent = `Total: ${state.total}`;
+  }
+
+  function viewDetail(id) {
+    // 核心改动：跳转到独立的详情页
+    window.location.href = `admin_dispute_detail.html?id=${id}`;
+  }
+
+  function applyFilters() { state.page = 1; load(); }
+  function resetFilters() { document.getElementById('q').value=''; document.getElementById('status').value='All'; state.page=1; load(); }
+  function prevPage() { if(state.page > 1) { state.page--; load(); } }
+  function nextPage() { if(state.page * state.pageSize < state.total) { state.page++; load(); } }
+
+  load();
+</script>
+</body>
+</html>
