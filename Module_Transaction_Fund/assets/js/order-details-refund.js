@@ -248,30 +248,31 @@
 
     // 5. Dispute
     if (status === 'dispute_in_progress') {
-      const hasRefuse = !!(order.Seller_Refuse_Receive_Reason_Code || order.Seller_Refuse_Receive_Reason_Text);
-      const disputeUrl = hasRefuse
-          ? `../../Module_After_Sales_Dispute/pages/Dispute_Reject_After_Receive_Return.html?order_id=${encodeURIComponent(order.Orders_Order_ID)}`
-          : `../../Module_After_Sales_Dispute/pages/Dispute_Reject_Return.html?order_id=${encodeURIComponent(order.Orders_Order_ID)}`;
+      // We keep users on Order Details. Buyer and Seller enter different dispute flows.
 
-      const sellerStatementBtn = !isBuyer
-          ? `<button class="btn" style="background:#111827; color:white; justify-content:center;" onclick="openSellerDisputeModal(${Number(
-              order.Orders_Order_ID,
-          )})">📝 Submit Statement (Admin)</button>`
-          : '';
+      const hasBuyerReturnTracking = !!(order.Return_Tracking_Number || order.return_tracking_number);
+
+      const disputeBtn = isBuyer
+        ? `<button class="btn" style="background:#111827; color:white; justify-content:center;" onclick="goToBuyerDispute(${Number(
+            order.Orders_Order_ID,
+        )}, ${Number(hasBuyerReturnTracking)})">Dispute to Platform Support</button>`
+        : `<button class="btn" style="background:#111827; color:white; justify-content:center;" onclick="goToSellerStatement(${Number(
+            order.Orders_Order_ID,
+        )})">Dispute to Platform Support</button>`;
 
       return `
         <div class="refund-status-card status-closed">
           <div class="refund-status-header">
             <div class="refund-status-label"><i class="ri-alert-line"></i> Dispute In Progress</div>
-            <a class="btn-view-details" href="${disputeUrl}">View</a>
+            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View Details</a>
           </div>
           <div class="refund-status-body">
             <div class="refund-info-text">
-              <h4>Admin Reviewing</h4>
-              <p>Please wait for admin decision.</p>
+              <h4>Under Review</h4>
+              <p>Please wait for the dispute decision.</p>
             </div>
             <div class="btn-group">
-              ${sellerStatementBtn}
+              ${disputeBtn}
             </div>
           </div>
         </div>
@@ -279,6 +280,20 @@
     }
 
     return '';
+  }
+
+  function goToBuyerDispute(orderId, hasBuyerReturnTracking) {
+    const oid = encodeURIComponent(orderId);
+    // If buyer has uploaded a return tracking number, it means goods were shipped back.
+    // Dispute page for "after receive return" stage should be used.
+    const url = Number(hasBuyerReturnTracking)
+      ? `../../Module_After_Sales_Dispute/pages/Dispute_Reject_After_Receive_Return.html?order_id=${oid}`
+      : `../../Module_After_Sales_Dispute/pages/Dispute_Reject_Return.html?order_id=${oid}`;
+    window.location.href = url;
+  }
+
+  function goToSellerStatement(orderId) {
+    window.location.href = `../../Module_After_Sales_Dispute/pages/Dispute_Seller_Statement.html?order_id=${encodeURIComponent(orderId)}`;
   }
 
   // =========================================
@@ -422,68 +437,21 @@
   }
 
   // =========================================
-  // Seller Dispute Statement (Modal)
+  // Seller Dispute Statement
   // =========================================
-
-  function openSellerDisputeModal(orderId) {
-    __sellerDisputeOrderId = orderId;
-
-    const t = document.getElementById('sellerDisputeText');
-    if (t) t.value = '';
-
-    const modal = document.getElementById('sellerDisputeModal');
-    if (modal) modal.classList.add('active');
-
-    const btn = document.getElementById('btnSellerDisputeSubmit');
-    if (btn) btn.onclick = () => submitSellerDisputeStatement();
-  }
-
-  function closeSellerDisputeModal() {
-    const modal = document.getElementById('sellerDisputeModal');
-    if (modal) modal.classList.remove('active');
-    __sellerDisputeOrderId = null;
-  }
-
-  async function submitSellerDisputeStatement() {
-    const orderId = __sellerDisputeOrderId;
-    if (!orderId) return;
-
-    const text = document.getElementById('sellerDisputeText')?.value?.trim();
-    if (!text || text.length < 20) return alert('Please provide more details (min 20 chars).');
-    if (!confirm('Submit this statement to admin?')) return;
-
-    try {
-      const res = await fetch(API_SELLER_DISPUTE_SUBMIT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ order_id: orderId, statement: text }),
-      });
-      const data = await res.json();
-
-      if (!data || !data.success) throw new Error(data?.message || 'Submit failed');
-
-      alert('Seller statement submitted.');
-      closeSellerDisputeModal();
-      location.reload();
-    } catch (e) {
-      alert(String(e?.message || e));
-    }
-  }
+  // (Moved to a dedicated page: Module_After_Sales_Dispute/pages/Dispute_Seller_Statement.html)
 
   global.OrderDetailsRefund = {
     renderRefundStatusCard,
     goToRefundDetail,
+    goToSellerStatement,
+    goToBuyerDispute,
 
     sellerProcessRefund,
     sellerConfirmReturnReceived,
     sellerRefuseReturnReceived,
     submitReturnTracking,
     confirmReturnHandover,
-
-    openSellerDisputeModal,
-    closeSellerDisputeModal,
-    submitSellerDisputeStatement,
   };
 
   // legacy globals
@@ -493,7 +461,7 @@
   global.sellerRefuseReturnReceived = sellerRefuseReturnReceived;
   global.submitReturnTracking = submitReturnTracking;
   global.confirmReturnHandover = confirmReturnHandover;
+  global.goToSellerStatement = goToSellerStatement;
+  global.goToBuyerDispute = goToBuyerDispute;
 
-  global.openSellerDisputeModal = openSellerDisputeModal;
-  global.closeSellerDisputeModal = closeSellerDisputeModal;
 })(window);

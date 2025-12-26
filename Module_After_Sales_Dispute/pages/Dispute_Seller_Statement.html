@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dispute to Platform Support</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#F3F6F9; --primary:#111827; --danger:#EF4444; --border:#E5E7EB; --text:#111827; --muted:#6B7280; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); padding:20px; }
+    .wrap{ max-width:780px; margin:0 auto; }
+    .card{ background:#fff; border:1px solid var(--border); border-radius:16px; padding:24px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+    .title{ font-size:1.4rem; font-weight:800; margin:0 0 6px; }
+    .subtitle{ margin:0 0 18px; color:var(--muted); font-size:0.95rem; line-height:1.5; }
+    .label{ display:block; font-size:0.8rem; font-weight:800; color:#9CA3AF; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px; }
+    textarea{ width:100%; min-height:160px; resize:vertical; padding:12px; border:1px solid var(--border); border-radius:12px; font-family:inherit; font-size:0.95rem; line-height:1.5; }
+    .hint{ margin-top:8px; color:var(--muted); font-size:0.85rem; }
+    .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap; }
+    button{ border:none; cursor:pointer; border-radius:12px; padding:10px 16px; font-weight:800; font-size:0.95rem; }
+    .btn-cancel{ background:#fff; border:1px solid var(--border); color:#374151; }
+    .btn-submit{ background:var(--primary); color:#fff; }
+    .btn-submit:disabled{ opacity:.6; cursor:not-allowed; }
+    .msg{ margin-top:12px; min-height:22px; font-size:0.9rem; }
+    .err{ color:var(--danger); }
+    .ok{ color:#059669; }
+
+    .evidence-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; margin-top:12px; }
+    .evidence-item{ border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#F9FAFB; position:relative; }
+    .evidence-item img{ width:100%; height:110px; object-fit:cover; display:block; }
+    .evidence-item .badge{ position:absolute; left:8px; top:8px; background:rgba(17,24,39,.85); color:#fff; font-size:.72rem; padding:4px 8px; border-radius:999px; }
+
+    .btn-secondary{ background:#EEF2FF; color:#3730A3; border:1px solid #C7D2FE; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 class="title">Dispute to Platform Support</h1>
+      <p class="subtitle">
+        Please provide your explanation and supporting evidence. This helps the platform review your dispute fairly.
+      </p>
+
+      <div>
+        <label class="label" for="statement">Statement</label>
+        <textarea id="statement" placeholder="Explain your side (timeline, condition, proof, etc.). Minimum 20 characters."></textarea>
+        <div class="hint" id="charHint">0 / 20</div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <label class="label" for="evidence">Evidence Images (optional)</label>
+        <input id="evidence" type="file" accept="image/*" multiple />
+        <div class="hint">Up to 6 images. JPG/PNG/WebP recommended.</div>
+        <div class="evidence-grid" id="evidencePreview" style="display:none;"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-cancel" id="btnCancel" type="button">Cancel</button>
+        <button class="btn-secondary" id="btnViewEvidence" type="button">View Uploaded Evidence</button>
+        <button class="btn-secondary" id="btnUpload" type="button">Upload Evidence</button>
+        <button class="btn-submit" id="btnSubmit" type="button">Submit</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const API_SELLER_DISPUTE_SUBMIT = '../api/dispute_seller_submit.php';
+
+      const params = new URLSearchParams(window.location.search);
+      const orderId = Number(params.get('order_id') || 0);
+
+      const elText = document.getElementById('statement');
+      const elHint = document.getElementById('charHint');
+      const elMsg = document.getElementById('msg');
+      const elEvidence = document.getElementById('evidence');
+      const elPreview = document.getElementById('evidencePreview');
+      const btnSubmit = document.getElementById('btnSubmit');
+      const btnCancel = document.getElementById('btnCancel');
+      const btnUpload = document.getElementById('btnUpload');
+      const btnViewEvidence = document.getElementById('btnViewEvidence');
+
+      // 存储当前会话中已知的有效图片路径
+      let uploadedEvidenceUrls = [];
+
+      function setMsg(text, type) {
+        elMsg.textContent = text || '';
+        elMsg.className = 'msg ' + (type || '');
+      }
+
+      function updateHint() {
+        const len = (elText.value || '').trim().length;
+        elHint.textContent = `${len} / 20`;
+      }
+
+      // 渲染用户刚选择但未上传的本地预览
+      function renderPreview(files) {
+        const list = Array.from(files || []);
+        // 注意：这里为了简化UI，如果选择了新文件，先隐藏之前的服务器图片展示
+        // 实际上传后会合并
+        if (list.length === 0) return;
+
+        elPreview.style.display = 'grid';
+        elPreview.innerHTML = list.slice(0, 6).map((f, idx) => {
+          const url = URL.createObjectURL(f);
+          return `<div class="evidence-item"><span class="badge">New #${idx + 1}</span><img src="${url}" /></div>`;
+        }).join('');
+      }
+
+      // 渲染服务器端已存在的图片
+      function renderUploadedEvidence(urls) {
+        const list = Array.from(urls || []).filter(Boolean);
+        if (list.length === 0) {
+          elPreview.style.display = 'none';
+          elPreview.innerHTML = '';
+          return;
+        }
+
+        elPreview.style.display = 'grid';
+        elPreview.innerHTML = list.slice(0, 6).map((u, idx) => {
+          // 这里的 u 是数据库存的相对路径 (Module_After_Sales_Dispute/assets/...)
+          // 当前页面在 pages/ 目录，所以我们需要回退两级找到 Module 根目录
+          const src = `../../${u}`;
+          return `<div class="evidence-item"><span class="badge">Saved #${idx + 1}</span><img src="${src}" onerror="this.src='';this.alt='Image not found'"/></div>`;
+        }).join('');
+      }
+
+      async function viewUploadedEvidence() {
+        if (!orderId) { setMsg('Missing order_id.', 'err'); return; }
+
+        btnViewEvidence.disabled = true;
+        setMsg('Loading uploaded evidence...', '');
+
+        try {
+          const res = await fetch(`${API_SELLER_DISPUTE_SUBMIT}?action=list_evidence&order_id=${encodeURIComponent(orderId)}`);
+          const data = await res.json();
+          if (!data || !data.success) throw new Error(data?.message || 'Failed to load evidence');
+
+          const serverUrls = (data.files || []).map(x => x.url).filter(Boolean);
+
+          // --- 修复点：合并去重 ---
+          const combined = [...(uploadedEvidenceUrls || []), ...serverUrls];
+          uploadedEvidenceUrls = Array.from(new Set(combined));
+
+          if (uploadedEvidenceUrls.length === 0) {
+            setMsg('No evidence found on server.', '');
+          } else {
+            setMsg(`Loaded evidence (${uploadedEvidenceUrls.length}).`, 'ok');
+          }
+          renderUploadedEvidence(uploadedEvidenceUrls);
+
+        } catch (e) {
+          setMsg(String(e?.message || e), 'err');
+        } finally {
+          btnViewEvidence.disabled = false;
+        }
+      }
+
+      async function uploadImages() {
+        if (!orderId) { setMsg('Missing order_id.', 'err'); return; }
+        const files = Array.from(elEvidence.files || []);
+        if (files.length === 0) { setMsg('Please choose images first.', 'err'); return; }
+
+        btnUpload.disabled = true;
+        setMsg('Uploading...', '');
+
+        try {
+          const fd = new FormData();
+          fd.append('order_id', String(orderId));
+          files.forEach(f => fd.append('evidence[]', f));
+
+          const res = await fetch(API_SELLER_DISPUTE_SUBMIT, {
+            method: 'POST',
+            body: fd,
+          });
+          const data = await res.json();
+          if (!data || !data.success) throw new Error(data?.message || 'Upload failed');
+
+          const newUrls = (data.files || []).map(x => x.url).filter(Boolean);
+
+          // 合并新旧图片
+          uploadedEvidenceUrls = Array.from(new Set([...uploadedEvidenceUrls, ...newUrls]));
+
+          setMsg(`Upload success. Total images: ${uploadedEvidenceUrls.length}`, 'ok');
+          renderUploadedEvidence(uploadedEvidenceUrls);
+
+          // 清空文件选择框，防止重复上传
+          elEvidence.value = '';
+
+        } catch (e) {
+          setMsg(String(e?.message || e), 'err');
+        } finally {
+          btnUpload.disabled = false;
+        }
+      }
+
+      async function submit() {
+        if (!orderId) { setMsg('Missing order_id.', 'err'); return; }
+
+        const statement = (elText.value || '').trim();
+        if (statement.length < 20) { setMsg('Statement too short (min 20 chars).', 'err'); return; }
+
+        // --- 新增逻辑：检查用户是否选了图但忘了点 Upload ---
+        const fileCount = (elEvidence.files || []).length;
+        // 如果选了本地文件(>0)，但上传列表里没有新东西，可能用户忘了点上传
+        // 注意：这里简单的逻辑是只要选了文件就提醒，你可以根据 uploadImages 是否被调用过做更复杂的判断，
+        // 但为了保险起见，这里做一个简单提示
+        if (fileCount > 0) {
+          // 检查 uploadedEvidenceUrls 里是否有刚刚上传的图片
+          // 这里为了简化，直接弹窗确认
+          if (!confirm(`You have selected ${fileCount} file(s). Did you remember to click "Upload Evidence"?\n\nClick OK to submit anyway (files NOT uploaded will be ignored).\nClick Cancel to go back and upload.`)) {
+            return;
+          }
+        } else {
+          // 没选文件，普通确认
+          if (!confirm('Submit Dispute Response?')) return;
+        }
+
+        btnSubmit.disabled = true;
+        setMsg('Submitting...', '');
+
+        try {
+          const res = await fetch(API_SELLER_DISPUTE_SUBMIT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              order_id: orderId,
+              seller_response: statement,
+              evidence_images: uploadedEvidenceUrls, // 发送图片路径数组
+            })
+          });
+
+          const data = await res.json();
+          if (!data || !data.success) throw new Error(data?.message || 'Submit failed');
+
+          setMsg('Submitted successfully! Redirecting...', 'ok');
+          setTimeout(() => {
+            // 跳转回订单详情页
+            window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?order_id=${encodeURIComponent(orderId)}`;
+          }, 800);
+
+        } catch (e) {
+          setMsg(String(e?.message || e), 'err');
+          btnSubmit.disabled = false;
+        }
+      }
+
+      // --- 事件绑定区域 ---
+
+      // 1. Cancel 按钮：如果有 orderId，跳回订单详情；否则后退
+      btnCancel.addEventListener('click', () => {
+        if (orderId) {
+          window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?order_id=${encodeURIComponent(orderId)}`;
+        } else {
+          history.back();
+        }
+      });
+
+      // 2. View Evidence 按钮（保留作为手动刷新的手段）
+      if(btnViewEvidence) btnViewEvidence.addEventListener('click', viewUploadedEvidence);
+
+      // 3. 上传与提交
+      btnUpload.addEventListener('click', uploadImages);
+      btnSubmit.addEventListener('click', submit);
+
+      // 4. 字数统计
+      elText.addEventListener('input', updateHint);
+
+      // 5. 文件选择监听：给用户明确提示
+      elEvidence.addEventListener('change', () => {
+        // 展示本地预览
+        renderPreview(elEvidence.files);
+
+        // 提示用户下一步操作
+        if (elEvidence.files.length > 0) {
+          setMsg('Files selected. Please click "Upload Evidence" to save them before submitting.', '');
+          // 可选：让上传按钮变色提醒
+          btnUpload.style.fontWeight = 'bold';
+        } else {
+          setMsg('', '');
+        }
+      });
+
+      // --- 初始化逻辑 ---
+
+      updateHint();
+
+      if (!orderId) {
+        setMsg('Error: No Order ID provided.', 'err');
+        btnSubmit.disabled = true;
+        btnUpload.disabled = true;
+        if (btnViewEvidence) btnViewEvidence.disabled = true;
+      } else {
+        // [关键修改] 页面加载时自动拉取服务器已有的图片
+        // 这样用户一进来就能看到之前上传过的证据，不需要手动点 View 按钮
+        viewUploadedEvidence();
+      }
+
+    })();
+  </script>
+</body>
+</html>

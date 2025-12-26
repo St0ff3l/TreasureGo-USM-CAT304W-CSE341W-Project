@@ -177,22 +177,9 @@
   }
 
   function maybeBuyerDisputeRedirect(order, isBuyer) {
-    if (!isBuyer) return;
-    if (!order || !order.Refund_Status) return;
-    if (String(order.Refund_Status).toLowerCase() !== 'dispute_in_progress') return;
-
-    const oid = String(order.Orders_Order_ID);
-    if (state.__disputeRedirected.has(oid)) return;
-    state.__disputeRedirected.add(oid);
-
-    const hasRefuse = !!(order.Seller_Refuse_Receive_Reason_Code || order.Seller_Refuse_Receive_Reason_Text);
-    const disputeUrl = hasRefuse
-      ? `../../Module_After_Sales_Dispute/pages/Dispute_Reject_After_Receive_Return.html?order_id=${encodeURIComponent(oid)}`
-      : `../../Module_After_Sales_Dispute/pages/Dispute_Reject_Return.html?order_id=${encodeURIComponent(oid)}`;
-
-    setTimeout(() => {
-      window.location.href = disputeUrl;
-    }, 400);
+    // Previously, buyer was auto-redirected away from Order Details when dispute started.
+    // New UX: keep both buyer and seller on Order Details, and let them enter dispute flows explicitly.
+    return;
   }
 
   async function init() {

@@ -34,11 +34,7 @@
       padding: 40px 0;
     }
 
-    .container {
-      max-width: 850px;
-      margin: 0 auto;
-      padding: 0 18px;
-    }
+    .container { max-width: 850px; margin: 0 auto; padding: 0 18px; }
 
     .card {
       background: var(--card);
@@ -48,287 +44,180 @@
       box-shadow: var(--shadow-lg);
       animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-
     @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      color: var(--text-gray);
-      font-weight: 700;
-      transition: 0.2s;
-    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-gray); font-weight: 700; transition: 0.2s; }
     .back-link:hover { color: var(--primary); transform: translateX(-3px); }
 
     .page-title {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -1px;
+      font-size: 2rem; font-weight: 800; letter-spacing: -1px;
       background: linear-gradient(135deg, #111827 0%, #4F46E5 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;
     }
-
-    .subtitle {
-      color: var(--text-gray);
-      margin-bottom: 22px;
-      line-height: 1.6;
-    }
+    .subtitle { color: var(--text-gray); margin-bottom: 22px; line-height: 1.6; }
 
     .status-banner {
-      padding: 18px 20px;
-      border-radius: 16px;
-      margin: 14px 0 22px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      border: 1px solid #FECACA;
-      background: #FEF2F2;
-      color: #991B1B;
+      padding: 18px 20px; border-radius: 16px; margin: 14px 0 22px;
+      display: flex; gap: 12px; align-items: flex-start;
+      border: 1px solid #FECACA; background: #FEF2F2; color: #991B1B;
     }
     .status-banner i { font-size: 1.4rem; margin-top: 2px; color: #EF4444; }
     .status-banner h3 { margin: 0 0 4px; font-size: 1.05rem; }
     .status-banner p { margin: 0; opacity: 0.9; line-height: 1.6; }
 
     .order-summary {
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
-      border-radius: 18px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 22px;
+      background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 18px; padding: 18px;
+      display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
     }
-    .order-thumb {
-      width: 70px;
-      height: 70px;
-      border-radius: 14px;
-      background: #E5E7EB;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
+    .order-thumb { width: 70px; height: 70px; border-radius: 14px; background: #E5E7EB; object-fit: cover; flex-shrink: 0; }
     .order-main { flex: 1; min-width: 0; }
     .order-main h4 { margin-bottom: 4px; font-weight: 800; font-size: 1.05rem; }
     .order-main p { margin: 0; color: var(--text-gray); font-size: 0.95rem; line-height: 1.45; }
     .order-price { font-weight: 900; color: var(--primary); font-size: 1.15rem; }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 20px;
-    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
     @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } .card { padding: 26px; } }
 
-    .kv {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px 16px;
-    }
+    .kv { background: #ffffff; border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; }
     .kv .k { font-size: 0.78rem; color: #9CA3AF; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     .kv .v { font-weight: 700; color: #111827; word-break: break-word; }
 
-    .section-title {
-      margin: 18px 0 10px;
-      font-weight: 900;
-      font-size: 1.05rem;
-      color: #111827;
-    }
-
-    label {
-      display: block;
-      font-weight: 800;
-      font-size: 0.85rem;
-      margin-bottom: 10px;
-      color: #374151;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    select, textarea, input[type="text"] {
-      width: 100%;
-      padding: 14px 16px;
-      background: #F3F4F6;
-      border: 2px solid transparent;
-      border-radius: 14px;
-      font-family: inherit;
-      font-size: 0.98rem;
-      transition: 0.2s;
-    }
+    .section-title { margin: 18px 0 10px; font-weight: 900; font-size: 1.05rem; color: #111827; }
+    label { display: block; font-weight: 800; font-size: 0.85rem; margin-bottom: 10px; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; }
+    select, textarea, input[type="text"] { width: 100%; padding: 14px 16px; background: #F3F4F6; border: 2px solid transparent; border-radius: 14px; font-family: inherit; font-size: 0.98rem; transition: 0.2s; }
     select:focus, textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--primary); background: #fff; }
-
     textarea { min-height: 140px; resize: vertical; line-height: 1.6; }
+    .help { font-size: 0.92rem; color: var(--text-gray); line-height: 1.6; margin-top: 8px; }
 
-    .help {
-      font-size: 0.92rem;
-      color: var(--text-gray);
-      line-height: 1.6;
-      margin-top: 8px;
-    }
+    .evidence { border: 2px dashed #D1D5DB; border-radius: 16px; padding: 16px; background: #FAFAFB; }
 
-    .evidence {
-      border: 2px dashed #D1D5DB;
-      border-radius: 16px;
-      padding: 16px;
-      background: #FAFAFB;
-    }
-    .evidence input[type="file"] { width: 100%; }
-
-    .actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 22px;
-      flex-wrap: wrap;
-    }
-    .btn {
-      border: none;
-      border-radius: 14px;
-      padding: 12px 18px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .actions { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 14px; padding: 12px 18px; font-weight: 800; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
     .btn-secondary { background: #F3F4F6; color: #374151; }
     .btn-secondary:hover { background: #E5E7EB; }
-
-    .muted { color: var(--text-gray); }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; padding: 6px 10px; border-radius: 999px; background: var(--primary-light); color: var(--primary); font-weight: 800; }
     .line { height: 1px; background: #F3F4F6; margin: 18px 0; }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.9rem;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: var(--primary-light);
-      color: var(--primary);
-      font-weight: 800;
-    }
+    .muted { color: var(--text-gray); }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="card">
-      <div class="topbar">
-        <a class="back-link" href="javascript:history.back()"><i class="ri-arrow-left-line"></i>Back</a>
-        <span class="pill"><i class="ri-file-warning-line"></i>Dispute</span>
-      </div>
+<div class="container">
+  <div class="card">
+    <div class="topbar">
+      <a class="back-link" href="javascript:history.back()"><i class="ri-arrow-left-line"></i>Back</a>
+      <span class="pill"><i class="ri-file-warning-line"></i>Dispute</span>
+    </div>
 
-      <div class="page-title">Dispute: Rejected Return</div>
-      <div class="subtitle">
-        Use this page to escalate a dispute when your return request has been rejected.
-        Please describe the situation clearly and attach evidence.
-      </div>
+    <div class="page-title">Dispute: Rejected Return</div>
+    <div class="subtitle">
+      Use this page to escalate a dispute when your return request has been rejected.
+      Please describe the situation clearly and attach evidence.
+    </div>
 
-      <div id="statusBanner" class="status-banner" style="display:none;"></div>
+    <div id="statusBanner" class="status-banner" style="display:none;"></div>
+    <div id="orderSummary" class="order-summary" style="display:none;"></div>
+    <div class="grid" id="orderMeta" style="display:none;"></div>
 
-      <div id="orderSummary" class="order-summary" style="display:none;"></div>
+    <div class="line"></div>
 
-      <div class="grid" id="orderMeta" style="display:none;"></div>
+    <div class="section-title">Dispute Information</div>
 
-      <div class="line"></div>
+    <div style="margin-bottom: 18px;">
+      <label for="disputeReason">Reason</label>
+      <select id="disputeReason">
+        <option value="seller_wrongly_rejected">Seller wrongly rejected the return</option>
+        <option value="item_not_as_described">Item not as described</option>
+        <option value="item_damaged">Item arrived damaged</option>
+        <option value="missing_parts">Missing parts/accessories</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
 
-      <div class="section-title">Dispute Information</div>
+    <div style="margin-bottom: 18px;">
+      <label for="disputeDetails">Details</label>
+      <textarea id="disputeDetails" placeholder="Describe what happened (include dates, messages, photos evidence, etc.)"></textarea>
+      <div class="help">Tip: include why the rejection is unreasonable and what resolution you expect.</div>
+    </div>
 
-      <div style="margin-bottom: 18px;">
-        <label for="disputeReason">Reason</label>
-        <select id="disputeReason">
-          <option value="seller_wrongly_rejected">Seller wrongly rejected the return</option>
-          <option value="item_not_as_described">Item not as described</option>
-          <option value="item_damaged">Item arrived damaged</option>
-          <option value="missing_parts">Missing parts/accessories</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom: 18px;">
-        <label for="disputeDetails">Details</label>
-        <textarea id="disputeDetails" placeholder="Describe what happened (include dates, messages, photos evidence, etc.)"></textarea>
-        <div class="help">Tip: include why the rejection is unreasonable and what resolution you expect.</div>
-      </div>
-
-      <div class="section-title">Evidence (optional)</div>
-      <div class="evidence">
+    <div class="section-title">Evidence (Optional)</div>
+    <div class="evidence">
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
         <input id="evidenceFiles" type="file" multiple accept="image/*" />
-        <div class="help">This page is ready for uploads, but evidence submission may require backend integration.</div>
+        <button type="button" id="btnUploadEvidence" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.9rem;">
+          <i class="ri-upload-cloud-line"></i> Upload Images
+        </button>
       </div>
 
-      <div class="actions">
-        <button class="btn btn-primary" id="btnSubmit"><i class="ri-send-plane-2-line"></i>Submit Dispute</button>
-        <button class="btn btn-secondary" id="btnBackToOrder"><i class="ri-file-list-3-line"></i>Back to Order</button>
+      <div id="uploadStatus" class="help" style="color: #6B7280; margin-bottom: 8px;">
+        Select images and click "Upload Images" before submitting.
       </div>
 
-      <div class="help" style="margin-top: 14px;">
-        <span class="muted">Note:</span> This is a dispute creation page. It doesn't change your order automatically unless dispute APIs are connected.
-      </div>
+      <div id="evidencePreview" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="btnSubmit"><i class="ri-send-plane-2-line"></i>Submit Dispute</button>
+      <button class="btn btn-secondary" id="btnBackToOrder"><i class="ri-file-list-3-line"></i>Back to Order</button>
+    </div>
+
+    <div class="help" style="margin-top: 14px;">
+      <span class="muted">Note:</span> This is a dispute creation page. It doesn't change your order automatically unless dispute APIs are connected.
     </div>
   </div>
+</div>
 
-  <script>
-    const API_SESSION_STATUS = '../../Module_User_Account_Management/api/session_status.php';
-    const API_GET_USER_ORDERS = '../../Module_Transaction_Fund/api/Get_User_Orders.php';
-    const API_SUBMIT_DISPUTE = '../api/dispute_buyer_submit.php';
+<script>
+  const API_SESSION_STATUS = '../../Module_User_Account_Management/api/session_status.php';
+  const API_GET_USER_ORDERS = '../../Module_Transaction_Fund/api/Get_User_Orders.php';
+  const API_SUBMIT_DISPUTE = '../api/dispute_buyer_submit.php';
 
-    const FALLBACK_IMAGE_DATA_URL = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e5e7eb%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2214%22 fill=%22%236b7280%22%3ENo%20Image%3C/text%3E%3C/svg%3E';
+  const FALLBACK_IMAGE_DATA_URL = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e5e7eb%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2214%22 fill=%22%236b7280%22%3ENo%20Image%3C/text%3E%3C/svg%3E';
 
-    function getQueryParam(name) {
-      const url = new URL(window.location.href);
-      return url.searchParams.get(name);
-    }
+  // 全局变量：存储已上传成功的图片路径
+  let uploadedEvidenceUrls = [];
 
-    function formatMoney(amount) {
-      const n = Number(amount);
-      if (Number.isNaN(n)) return 'RM 0.00';
-      return `RM ${n.toFixed(2)}`;
-    }
+  function getQueryParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+  }
 
-    function safeText(v, fallback = 'N/A') {
-      if (v === null || v === undefined) return fallback;
-      const s = String(v).trim();
-      return s.length ? s : fallback;
-    }
+  function formatMoney(amount) {
+    const n = Number(amount);
+    if (Number.isNaN(n)) return 'RM 0.00';
+    return `RM ${n.toFixed(2)}`;
+  }
 
-    function renderBanner({ title, message }) {
-      const el = document.getElementById('statusBanner');
-      el.style.display = 'flex';
-      el.innerHTML = `
+  function safeText(v, fallback = 'N/A') {
+    if (v === null || v === undefined) return fallback;
+    const s = String(v).trim();
+    return s.length ? s : fallback;
+  }
+
+  function renderBanner({ title, message }) {
+    const el = document.getElementById('statusBanner');
+    el.style.display = 'flex';
+    el.innerHTML = `
         <i class="ri-close-circle-fill"></i>
         <div>
           <h3>${title}</h3>
           <p>${message}</p>
         </div>
       `;
-    }
+  }
 
-    function renderOrder(order) {
-      const summary = document.getElementById('orderSummary');
-      const meta = document.getElementById('orderMeta');
+  function renderOrder(order) {
+    const summary = document.getElementById('orderSummary');
+    const meta = document.getElementById('orderMeta');
 
-      const title = safeText(order.Product_Title, 'Product');
-      const img = order.Main_Image ? `../../${order.Main_Image}` : '';
+    const title = safeText(order.Product_Title, 'Product');
+    const img = order.Main_Image ? `../../${order.Main_Image}` : '';
 
-      summary.style.display = 'flex';
-      summary.innerHTML = `
+    summary.style.display = 'flex';
+    summary.innerHTML = `
         <img class="order-thumb" src="${img || FALLBACK_IMAGE_DATA_URL}" alt="Product" />
         <div class="order-main">
           <h4>${title}</h4>
@@ -338,13 +227,13 @@
         <div class="order-price">${formatMoney(order.Orders_Total_Amount)}</div>
       `;
 
-      const thumb = summary.querySelector('img.order-thumb');
-      if (thumb) {
-        thumb.addEventListener('error', () => { thumb.src = FALLBACK_IMAGE_DATA_URL; }, { once: true });
-      }
+    const thumb = summary.querySelector('img.order-thumb');
+    if (thumb) {
+      thumb.addEventListener('error', () => { thumb.src = FALLBACK_IMAGE_DATA_URL; }, { once: true });
+    }
 
-      meta.style.display = 'grid';
-      meta.innerHTML = `
+    meta.style.display = 'grid';
+    meta.innerHTML = `
         <div class="kv"><div class="k">Order Status</div><div class="v">${safeText(order.Orders_Status)}</div></div>
         <div class="kv"><div class="k">Refund Status</div><div class="v">${safeText(order.Refund_Status, 'none')}</div></div>
         <div class="kv"><div class="k">Refund Type</div><div class="v">${safeText(order.Refund_Type, 'N/A')}</div></div>
@@ -353,112 +242,175 @@
         <div class="kv"><div class="k">Last Updated</div><div class="v">${safeText(order.Refund_Updated_At)}</div></div>
       `;
 
-      const rStatus = String(order.Refund_Status || '').toLowerCase();
-      if (rStatus !== 'rejected') {
-        renderBanner({
-          title: 'Dispute Page Notice',
-          message: `This page is intended for rejected return requests. Current refund status: ${safeText(order.Refund_Status, 'none')}. You may still continue if needed.`
-        });
-      } else {
-        renderBanner({
-          title: 'Return Request Rejected',
-          message: 'You can open a dispute and submit evidence to request platform intervention.'
-        });
-      }
-    }
-
-    async function ensureLogin() {
-      const res = await fetch(API_SESSION_STATUS, { credentials: 'include' });
-      const data = await res.json();
-      if (!data || !data.is_logged_in) {
-        window.location.href = '../../Module_User_Account_Management/pages/login.php';
-        return null;
-      }
-      return data.user;
-    }
-
-    async function fetchOrderById(orderId) {
-      const res = await fetch(API_GET_USER_ORDERS, { credentials: 'include' });
-      const data = await res.json();
-      if (!data || !data.success) throw new Error(data?.msg || 'Failed to load orders');
-
-      const all = [...(data.buying || []), ...(data.selling || [])];
-      const found = all.find(o => String(o.Orders_Order_ID) === String(orderId));
-      if (!found) throw new Error('Order not found in your account');
-      return found;
-    }
-
-    function wireActions(orderId) {
-      document.getElementById('btnBackToOrder').addEventListener('click', () => {
-        window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?id=${encodeURIComponent(orderId)}`;
+    const rStatus = String(order.Refund_Status || '').toLowerCase();
+    if (rStatus !== 'rejected') {
+      renderBanner({
+        title: 'Dispute Page Notice',
+        message: `This page is intended for rejected return requests. Current refund status: ${safeText(order.Refund_Status, 'none')}. You may still continue if needed.`
       });
-
-      document.getElementById('btnSubmit').addEventListener('click', async () => {
-        const reason = document.getElementById('disputeReason').value;
-        const details = document.getElementById('disputeDetails').value.trim();
-
-        if (!details || details.length < 20) {
-          if (window.showStatusDialog) {
-            window.showStatusDialog('Please provide more details (at least 20 characters).', 'error');
-          } else {
-            alert('Please provide more details (at least 20 characters).');
-          }
-          return;
-        }
-
-        if (!confirm('Submit dispute to platform for review?')) return;
-
-        try {
-          const res = await fetch(API_SUBMIT_DISPUTE, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              order_id: orderId,
-              dispute_type: 'rejected_return',
-              dispute_reason: reason,
-              dispute_details: details
-            })
-          });
-
-          const data = await res.json();
-          if (!data.success) throw new Error(data.message || 'Submit failed');
-
-          const msg = `Dispute submitted. Dispute ID: #${data.dispute_id}`;
-          if (window.showStatusDialog) window.showStatusDialog(msg, 'success');
-          else alert(msg);
-
-          setTimeout(() => {
-            window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?id=${encodeURIComponent(orderId)}`;
-          }, 600);
-
-        } catch (e) {
-          if (window.showStatusDialog) window.showStatusDialog(String(e.message || e), 'error');
-          else alert(String(e.message || e));
-        }
+    } else {
+      renderBanner({
+        title: 'Return Request Rejected',
+        message: 'You can open a dispute and submit evidence to request platform intervention.'
       });
     }
+  }
 
-    (async function init() {
-      const orderId = getQueryParam('order_id') || getQueryParam('id');
-      if (!orderId) {
-        renderBanner({
-          title: 'Missing order_id',
-          message: 'Open this page with ?order_id=YOUR_ORDER_ID'
-        });
+  async function ensureLogin() {
+    const res = await fetch(API_SESSION_STATUS, { credentials: 'include' });
+    const data = await res.json();
+    if (!data || !data.is_logged_in) {
+      window.location.href = '../../Module_User_Account_Management/pages/login.php';
+      return null;
+    }
+    return data.user;
+  }
+
+  async function fetchOrderById(orderId) {
+    const res = await fetch(API_GET_USER_ORDERS, { credentials: 'include' });
+    const data = await res.json();
+    if (!data || !data.success) throw new Error(data?.msg || 'Failed to load orders');
+
+    const all = [...(data.buying || []), ...(data.selling || [])];
+    const found = all.find(o => String(o.Orders_Order_ID) === String(orderId));
+    if (!found) throw new Error('Order not found in your account');
+    return found;
+  }
+
+  // --- 新增：图片上传逻辑 ---
+  function setupEvidenceUpload() {
+    const btnUpload = document.getElementById('btnUploadEvidence');
+    const fileInput = document.getElementById('evidenceFiles');
+    const statusDiv = document.getElementById('uploadStatus');
+    const previewDiv = document.getElementById('evidencePreview');
+
+    btnUpload.addEventListener('click', async () => {
+      if (fileInput.files.length === 0) {
+        alert('Please select files first.');
         return;
       }
 
-      await ensureLogin();
+      const fd = new FormData();
+      Array.from(fileInput.files).forEach(f => fd.append('evidence[]', f));
+
+      btnUpload.disabled = true;
+      btnUpload.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Uploading...';
+      statusDiv.textContent = 'Uploading...';
 
       try {
-        const order = await fetchOrderById(orderId);
-        renderOrder(order);
-        wireActions(orderId);
+        const res = await fetch(API_SUBMIT_DISPUTE, {
+          method: 'POST',
+          body: fd
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          const newUrls = data.files.map(f => f.url);
+          uploadedEvidenceUrls = [...uploadedEvidenceUrls, ...newUrls];
+
+          // 渲染预览
+          previewDiv.innerHTML = '';
+          uploadedEvidenceUrls.forEach((url, idx) => {
+            previewDiv.innerHTML += `
+                        <div style="position:relative; width:80px; height:80px;">
+                            <img src="../../${url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid #E5E7EB;">
+                            <span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.6); color:#fff; font-size:10px; padding:2px 4px; border-radius:4px;">#${idx+1}</span>
+                        </div>
+                    `;
+          });
+
+          statusDiv.innerHTML = `<span style="color:green;">Success! ${uploadedEvidenceUrls.length} images ready to submit.</span>`;
+          fileInput.value = '';
+        } else {
+          throw new Error(data.message || 'Upload failed');
+        }
       } catch (e) {
-        renderBanner({ title: 'Unable to load order', message: safeText(e.message, 'Unknown error') });
+        statusDiv.innerHTML = `<span style="color:red;">Error: ${e.message}</span>`;
+        alert('Upload Error: ' + e.message);
+      } finally {
+        btnUpload.disabled = false;
+        btnUpload.innerHTML = '<i class="ri-upload-cloud-line"></i> Upload Images';
       }
-    })();
-  </script>
+    });
+  }
+
+  function wireActions(orderId) {
+    document.getElementById('btnBackToOrder').addEventListener('click', () => {
+      window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?id=${encodeURIComponent(orderId)}`;
+    });
+
+    document.getElementById('btnSubmit').addEventListener('click', async () => {
+      const reason = document.getElementById('disputeReason').value;
+      const details = document.getElementById('disputeDetails').value.trim();
+
+      if (!details || details.length < 20) {
+        return alert('Please provide more details (at least 20 characters).');
+      }
+
+      // 检查：如果用户选了文件但没点上传按钮
+      const fileInput = document.getElementById('evidenceFiles');
+      if (fileInput.files.length > 0 && uploadedEvidenceUrls.length === 0) {
+        if(!confirm('You selected files but did NOT click "Upload Images". Submit without images?')) {
+          return;
+        }
+      }
+
+      if (!confirm('Submit dispute to platform for review?')) return;
+
+      try {
+        const res = await fetch(API_SUBMIT_DISPUTE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            order_id: orderId,
+            dispute_type: 'rejected_return', // 注意类型
+            dispute_reason: reason,
+            dispute_details: details,
+            evidence_images: uploadedEvidenceUrls // 带上图片
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Submit failed');
+
+        const msg = `Dispute submitted. Dispute ID: #${data.dispute_id}`;
+        if (window.showStatusDialog) window.showStatusDialog(msg, 'success');
+        else alert(msg);
+
+        setTimeout(() => {
+          window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?id=${encodeURIComponent(orderId)}`;
+        }, 600);
+
+      } catch (e) {
+        if (window.showStatusDialog) window.showStatusDialog(String(e.message || e), 'error');
+        else alert(String(e.message || e));
+      }
+    });
+  }
+
+  (async function init() {
+    const orderId = getQueryParam('order_id') || getQueryParam('id');
+    if (!orderId) {
+      renderBanner({
+        title: 'Missing order_id',
+        message: 'Open this page with ?order_id=YOUR_ORDER_ID'
+      });
+      return;
+    }
+
+    await ensureLogin();
+
+    try {
+      const order = await fetchOrderById(orderId);
+      renderOrder(order);
+
+      setupEvidenceUpload(); // 初始化上传监听
+      wireActions(orderId);
+    } catch (e) {
+      renderBanner({ title: 'Unable to load order', message: safeText(e.message, 'Unknown error') });
+    }
+  })();
+</script>
 </body>
 </html>
