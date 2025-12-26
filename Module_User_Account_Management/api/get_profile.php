@@ -28,7 +28,7 @@ try {
 
     if ($user) {
         // 3. 计算统计数据 (分开处理，防止一个失败影响其他)
-        
+
         // A. Published Count
         try {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM Product WHERE User_ID = ?");
@@ -87,7 +87,7 @@ try {
                 $tierRecords = array_filter($allMemberships, function($m) use ($highestActiveTier) {
                     return $m['Membership_Tier'] === $highestActiveTier;
                 });
-                
+
                 // Sort by Start Date (crucial for merging)
                 usort($tierRecords, function($a, $b) {
                     return strcmp($a['Memberships_Start_Date'], $b['Memberships_Start_Date']);
@@ -104,7 +104,7 @@ try {
                     } else {
                         $lastIndex = count($mergedIntervals) - 1;
                         $last = &$mergedIntervals[$lastIndex];
-                        
+
                         // Check for overlap or adjacency (within 1 second/day? Let's assume strict overlap or abutment)
                         // If current start <= last end, merge.
                         if ($rec['Memberships_Start_Date'] <= $last['end']) {
@@ -152,7 +152,27 @@ try {
             $user['Memberships_tier'] = 'Free';
             $user['Membership_Description'] = 'Error retrieving membership details.';
         }
-        
+
+        // =================================================================
+        // D. 新增：Privileges (特权计算)
+        // =================================================================
+
+        // 1. 获取当前计算出的等级，如果没有则默认为 Free
+        $current_tier = $user['Memberships_tier'] ?? 'Free';
+
+        // 2. 定义哪些等级可以免除平台费 (根据你的需求修改这里的字符串，大小写必须和数据库一致)
+        $waive_platform_fee_tiers = ['VIP', 'SVIP'];
+
+        // 3. 定义哪些等级可以免除提现费 (如果以后需要)
+        $waive_withdrawal_fee_tiers = ['SVIP'];
+
+        // 4. 将特权状态注入到 user 数组中
+        $user['privileges'] = [
+            'waive_platform_fee' => in_array($current_tier, $waive_platform_fee_tiers),
+            'waive_withdrawal_fee' => in_array($current_tier, $waive_withdrawal_fee_tiers)
+        ];
+        // =================================================================
+
         // 4. 返回 JSON
         echo json_encode(['status' => 'success', 'data' => $user]);
     } else {

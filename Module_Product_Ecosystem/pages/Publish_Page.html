@@ -449,21 +449,20 @@
 
 <script>
   // ==========================================
-  // Dynamic Category Loading (API Adapted)
+  // Dynamic Category Loading & User Profile Check
   // ==========================================
   let categoryList = []; // Array to store data from backend
   const parentSelect = document.getElementById('parentCategory');
   const subSelect = document.getElementById('subCategory');
+  let isFeeWaived = false; // 新增：状态变量
 
-  // Load categories on page load
+  // Load categories and User Profile on page load
   document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Fetch Categories
     try {
-      // Fetch from the PHP file you provided
       const response = await fetch('../api/Get_Categories.php');
       const result = await response.json();
-
       if (result.success) {
-        // The backend returns an array structure in result.data
         categoryList = result.data;
         renderParentCategories();
       } else {
@@ -472,15 +471,32 @@
     } catch (error) {
       console.error("Network error loading categories:", error);
     }
+
+    // 2. Fetch User Profile to check for Privileges (VIP/SVIP Status)
+    try {
+      // 注意：这里用了 ../../ 回到根目录，然后进入用户管理模块
+      const profileRes = await fetch('../../Module_User_Account_Management/api/get_profile.php');
+      const profileData = await profileRes.json();
+
+      // 检查是否登录成功且包含特权信息
+      if (profileData.status === 'success' && profileData.data.privileges) {
+        // 读取后端返回的免手续费标志 (VIP和SVIP都是 true)
+        isFeeWaived = profileData.data.privileges.waive_platform_fee;
+
+        // 如果用户在数据加载前已经输入了价格，这里手动触发一次输入事件来更新 UI
+        if (priceInput.value) {
+          priceInput.dispatchEvent(new Event('input'));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to check user privileges:', err);
+    }
   });
 
   function renderParentCategories() {
     parentSelect.innerHTML = '<option value="" disabled selected>Select Category</option>';
-
-    // Loop through the array from backend
     categoryList.forEach(cat => {
       const option = document.createElement('option');
-      // Use the exact key names from your PHP output: Category_ID and Category_Name
       option.value = cat.Category_ID;
       option.textContent = cat.Category_Name;
       parentSelect.appendChild(option);
@@ -490,16 +506,8 @@
   // Handle Parent Category Change
   parentSelect.addEventListener('change', function() {
     const parentId = this.value;
-
-    // Find the selected category object in the array
-    // Note: parentId is a string, Category_ID is likely int/string, so use loose comparison (==)
     const selectedCategory = categoryList.find(cat => cat.Category_ID == parentId);
-
-    // Reset Sub-Category dropdown
     subSelect.innerHTML = '<option value="" disabled selected>Select Sub-Category</option>';
-
-    // Check if children exist
-    // Your PHP outputs 'children' array
     if (selectedCategory && selectedCategory.children && selectedCategory.children.length > 0) {
       subSelect.disabled = false;
       selectedCategory.children.forEach(child => {
@@ -515,19 +523,41 @@
 
 
   // ==========================================
-  // Price Calculator
+  // Price Calculator (Updated for VIP/SVIP Logic)
   // ==========================================
   const priceInput = document.getElementById('priceInput');
   const priceCalculator = document.getElementById('priceCalculator');
-  const feeAmount = document.getElementById('feeAmount');
+  const feeRow = document.querySelector('.calc-fee');
   const incomeAmount = document.getElementById('incomeAmount');
 
   priceInput.addEventListener('input', function() {
     const price = parseFloat(this.value);
+
     if (!isNaN(price) && price > 0) {
-      const fee = price * 0.02;
+      let fee = price * 0.02; // 默认 2% 手续费
+      let displayHTML = '';
+
+      // --- 判断是否免手续费 (VIP 或 SVIP) ---
+      if (isFeeWaived) {
+        // 免除手续费
+        const originalFee = fee;
+        fee = 0;
+
+        // UI 显示：划掉原价，显示 "Waived"
+        displayHTML = `
+            Platform Fee (VIP/SVIP):
+            <span style="color:#9CA3AF; text-decoration: line-through; margin-right:5px;">-RM${originalFee.toFixed(2)}</span>
+            <span style="color:#059669; font-weight:700;">Waived 🎉</span>
+        `;
+      } else {
+        // 普通用户
+        displayHTML = `Platform Fee (2%): <span id="feeAmount" style="color:#EF4444">-RM${fee.toFixed(2)}</span>`;
+      }
+
       const income = price - fee;
-      feeAmount.textContent = `-RM${fee.toFixed(2)}`;
+
+      // 更新 DOM
+      feeRow.innerHTML = displayHTML;
       incomeAmount.textContent = `RM${income.toFixed(2)}`;
       priceCalculator.style.display = 'block';
     } else {

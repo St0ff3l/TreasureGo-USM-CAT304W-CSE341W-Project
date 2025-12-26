@@ -114,7 +114,27 @@ try {
     // ----------------------------------------------------------------
     // 6. 生成订单 (插入 Orders 表)
     // ----------------------------------------------------------------
-    $platformFee = $productPrice * 0.02;
+    // Check Seller Membership for Platform Fee
+    $sqlMembership = "SELECT mp.Membership_Tier
+                      FROM Memberships m
+                      JOIN Membership_Plans mp ON m.Plan_ID = mp.Plan_ID
+                      WHERE m.User_ID = :seller_id
+                        AND m.Memberships_Start_Date <= NOW()
+                        AND m.Memberships_End_Date > NOW()
+                      ORDER BY mp.Membership_Price DESC
+                      LIMIT 1";
+    $stmtMembership = $conn->prepare($sqlMembership);
+    $stmtMembership->execute([':seller_id' => $sellerId]);
+    $membership = $stmtMembership->fetch(PDO::FETCH_ASSOC);
+
+    $sellerTier = $membership ? $membership['Membership_Tier'] : 'Free';
+    $waiveFeeTiers = ['VIP', 'SVIP'];
+
+    if (in_array($sellerTier, $waiveFeeTiers)) {
+        $platformFee = 0.00;
+    } else {
+        $platformFee = $productPrice * 0.02;
+    }
 
     $sqlOrder = "INSERT INTO Orders (
                     Orders_Buyer_ID, 
