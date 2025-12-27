@@ -30,7 +30,6 @@
         }
 
         /* --- 2. Navbar & Layout --- */
-        /* Note: Navbar styles are handled by headerbar.js generally, but keeping layout basics */
         .breadcrumb { max-width: 1100px; margin: 20px auto; padding: 0 20px; font-size: 0.9rem; color: var(--text-gray); }
         .breadcrumb a { text-decoration: none; color: var(--text-gray); }
 
@@ -70,12 +69,10 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* 🔥🔥🔥 核心修改：缩略图选中样式优化 🔥🔥🔥 */
         .thumbnails {
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            /* 增加内边距，防止光圈被切 */
             padding: 10px 5px;
         }
         .thumb {
@@ -85,26 +82,21 @@
             cursor: pointer;
             flex-shrink: 0;
             overflow: hidden;
-            /* 默认半透明且稍微缩小 */
             opacity: 0.6;
             transform: scale(0.95);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* 弹性动画 */
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .thumb img {
             width: 100%; height: 100%;
             object-fit: cover;
         }
-        .thumb:hover {
-            opacity: 0.8;
-        }
+        .thumb:hover { opacity: 0.8; }
         .thumb.active {
             opacity: 1;
-            /* 选中时：恢复原大并稍微放大，加上主色光圈投影 */
             transform: scale(1.05);
             box-shadow: 0 0 0 3px var(--primary), 0 5px 15px rgba(79, 70, 229, 0.3);
         }
-        /* 🔥🔥🔥 修改结束 🔥🔥🔥 */
 
         /* --- 4. Product Info & Report --- */
         .product-info { padding-top: 10px; }
@@ -195,7 +187,6 @@
 <script src="../../Public_Assets/js/auth_modal.js"></script>
 
 <script>
-    // 统一挂载 Headerbar
     TreasureGoHeaderbar.mount({ basePath: '../../' });
 </script>
 
@@ -264,31 +255,22 @@
 <div id="toast" class="toast">Action Successful</div>
 
 <script>
-    // --- 1. 全局变量 ---
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
-
-    // 图片画廊变量
     let globalImageList = [];
     let currentImageIndex = 0;
-
-    // Report 数据缓存
     let currentProductForReport = null;
 
-    // --- 2. 初始化 ---
     document.addEventListener('DOMContentLoaded', () => {
         if (!productId) {
             alert("Product not found!");
             window.location.href = '../../index.html';
             return;
         }
-
-        // 加载详情 & 检查收藏 (并行)
         loadProductDetails(productId);
         checkFavoriteStatus();
     });
 
-    // --- 3. 核心加载逻辑 ---
     async function loadProductDetails(id) {
         try {
             const response = await fetch(`../api/Get_Products.php?product_id=${id}`);
@@ -305,23 +287,21 @@
         }
     }
 
-    // --- 4. 渲染页面 ---
     function renderProduct(item) {
-        // A. 基础文本
+        // --- 1. Basic Text ---
         document.querySelector('.product-title').innerText = item.Product_Title;
         document.querySelector('.product-price').innerHTML = `RM${parseFloat(item.Product_Price).toFixed(2)}`;
         document.querySelector('.description-text').innerText = item.Product_Description || "No description available.";
         document.querySelector('.seller-details h4').innerText = item.User_Username;
         const rating = item.User_Average_Rating ? `★ ${item.User_Average_Rating}` : 'New Seller';
         document.querySelector('.seller-rating').innerText = rating;
-
         const location = item.Product_Location || 'Unknown Location';
         document.querySelector('.location-box div strong').innerText = location;
 
         const conditionTag = document.querySelector('.product-tag');
         conditionTag.innerText = `Condition: ${item.Product_Condition}`;
 
-        // B. 动态渲染交易方式标签 (Badges)
+        // --- 2. Delivery Badges ---
         const badgesContainer = document.querySelector('.delivery-badges');
         badgesContainer.innerHTML = '';
         const method = item.Delivery_Method;
@@ -332,10 +312,12 @@
             badgesContainer.innerHTML += `<span class="badge badge-ship">🚚 Shipping Available</span>`;
         }
 
-        // C. 按钮状态逻辑 (Sold vs Active)
+        // --- 3. Status Logic (Sold vs Unlisted vs Active) ---
         const buyBtn = document.querySelector('.btn-buy');
-        if (item.Product_Status === 'Sold' || item.Product_Status === 'Inactive') {
-            // 已售出
+        const status = (item.Product_Status || '').toLowerCase(); // Normalize to lowercase
+
+        if (status === 'sold') {
+            // 🔥 Sold Out Logic
             buyBtn.innerText = "Sold Out";
             buyBtn.style.background = "#9CA3AF";
             buyBtn.style.cursor = "not-allowed";
@@ -346,8 +328,22 @@
             conditionTag.innerText = "● SOLD OUT";
             conditionTag.style.background = "#FEE2E2";
             conditionTag.style.color = "#EF4444";
+
+        } else if (status === 'unlisted' || status === 'inactive') {
+            // 🔥🔥 Unlisted / Off Shelf Logic (已下架) 🔥🔥
+            buyBtn.innerText = "Item Unlisted"; // 界面显示 "Item Unlisted" 代表已下架
+            buyBtn.style.background = "#9CA3AF"; // 灰色按钮
+            buyBtn.style.cursor = "not-allowed";
+            buyBtn.style.boxShadow = "none";
+            buyBtn.href = "javascript:void(0)";
+            buyBtn.onclick = (e) => e.preventDefault();
+
+            conditionTag.innerText = "● OFF SHELF"; // 灰色标签
+            conditionTag.style.background = "#F3F4F6"; // 灰色背景
+            conditionTag.style.color = "#6B7280"; // 灰色文字
+
         } else {
-            // 正常状态
+            // ✅ Active Logic
             buyBtn.innerText = "Buy Now";
             buyBtn.href = `Order_Confirmation.html?id=${item.Product_ID}`;
             buyBtn.onclick = function(event) {
@@ -356,7 +352,7 @@
             };
         }
 
-        // D. 举报按钮链接生成 (Report)
+        // --- 4. Report & Chat Setup ---
         currentProductForReport = {
             productId: item.Product_ID,
             sellerUserId: item.User_ID,
@@ -364,61 +360,51 @@
         };
         const reportUrl = buildReportSubmitUrlForProduct();
         const reportBtn = document.getElementById('reportBtn');
-        if(reportBtn && reportUrl) {
-            reportBtn.href = reportUrl;
-        }
+        if(reportBtn && reportUrl) reportBtn.href = reportUrl;
 
-        // E. 聊天按钮逻辑 (Chat) - 检查是否为本人
-        setupChatButton(item);
+        setupChatButton(item); // Handle Chat button visibility based on status
 
-        // F. 图片处理
+        // --- 5. Images ---
         handleImages(item);
 
-        // G. 卖家头像处理 (与 Headerbar 逻辑一致)
+        // --- 6. Avatar ---
         const sellerAvatarEl = document.querySelector('.seller-avatar');
-        
-        // 添加点击跳转到公开个人主页
         sellerAvatarEl.style.cursor = 'pointer';
         sellerAvatarEl.onclick = () => {
             window.location.href = `../../Module_User_Account_Management/pages/public_profile.php?user_id=${item.User_ID}`;
         };
-        
         if (item.User_Profile_Image && item.User_Profile_Image.trim() !== '') {
-            // 处理路径：如果是 http 开头则直接用，否则加上 ../../
-            const avatarSrc = item.User_Profile_Image.startsWith('http') 
-                ? item.User_Profile_Image 
-                : ('../../' + item.User_Profile_Image);
-            
+            const avatarSrc = item.User_Profile_Image.startsWith('http') ? item.User_Profile_Image : ('../../' + item.User_Profile_Image);
             const fallbackInitial = (item.User_Username || '?').charAt(0).toUpperCase();
-            
             sellerAvatarEl.innerHTML = `<img src="${avatarSrc}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}'; this.parentNode.style.background='#EEF2FF'; this.parentNode.style.color='#4F46E5';">`;
             sellerAvatarEl.style.background = 'transparent';
         } else {
-            // 无头像，显示首字母
             sellerAvatarEl.innerText = (item.User_Username || '?').charAt(0).toUpperCase();
             sellerAvatarEl.style.background = '#EEF2FF';
             sellerAvatarEl.style.color = '#4F46E5';
         }
     }
 
-    // --- 5. 辅助功能逻辑 ---
+    // --- Helper Functions ---
 
-    // 5.1 Chat Button Setup
     function setupChatButton(item) {
         const chatBtn = document.querySelector('.chat-btn-small');
+        const status = (item.Product_Status || '').toLowerCase();
 
-        // 检查 Session (使用统一的 Session API)
+        // 🔥🔥🔥 核心修改：如果是 Sold 或 Unlisted，直接隐藏 Chat 按钮 🔥🔥🔥
+        if (status === 'sold' || status === 'unlisted' || status === 'inactive') {
+            chatBtn.style.display = 'none';
+            return;
+        }
+
         fetch('../../Module_User_Account_Management/api/session_status.php')
             .then(res => res.json())
             .then(session => {
-                // 如果已登录 且 当前用户是卖家 -> 隐藏按钮
                 if (session.is_logged_in && String(session.user.user_id) === String(item.User_ID)) {
                     chatBtn.style.display = 'none';
                 } else {
-                    // 否则绑定点击事件
                     chatBtn.style.display = 'block';
                     chatBtn.onclick = function() {
-                        // 检查登录后跳转聊天页
                         const chatUrl = `../../Module_User_Account_Management/pages/chat.php?contact_id=${item.User_ID}&product_id=${item.Product_ID}`;
                         checkLoginAndProceed(chatUrl);
                     };
@@ -427,36 +413,23 @@
             .catch(err => console.error("Session Check Error:", err));
     }
 
-    // 5.2 Build Report URL
     function buildReportSubmitUrlForProduct() {
         if (!currentProductForReport || !currentProductForReport.productId) return null;
-
         const baseUrl = '../../Module_Platform_Governance_AI_Services/pages/report_submit.html';
         const params = new URLSearchParams();
         params.set('itemId', String(currentProductForReport.productId));
-        if (currentProductForReport.sellerUserId) {
-            params.set('reportedUserId', String(currentProductForReport.sellerUserId));
-        }
-        if (currentProductForReport.sellerUserName) {
-            params.set('reportedUserName', String(currentProductForReport.sellerUserName));
-        }
+        if (currentProductForReport.sellerUserId) params.set('reportedUserId', String(currentProductForReport.sellerUserId));
+        if (currentProductForReport.sellerUserName) params.set('reportedUserName', String(currentProductForReport.sellerUserName));
         params.set('type', 'product');
-
         return `${baseUrl}?${params.toString()}`;
     }
 
-    // 5.3 Image Gallery Logic
     function handleImages(item) {
         globalImageList = [];
-
-        // 解析图片路径 - 修复了路径拼接问题 (../ -> ../../)
         if (item.All_Images) {
             globalImageList = item.All_Images.split(',').map(path => {
-                // 1. 标准化斜杠，防止 Windows 路径错误
                 let cleanPath = path.replace(/\\/g, '/');
-                // 2. 截取 Public_Images 之后的部分
                 cleanPath = cleanPath.replace(/^.*?Public_Images\//, 'Public_Images/');
-                // 3. 使用正确的 ../../ 层级
                 return `../../${cleanPath}`;
             });
         } else if (item.Main_Image) {
@@ -464,12 +437,10 @@
             cleanPath = cleanPath.replace(/^.*?Public_Images\//, 'Public_Images/');
             globalImageList = [`../../${cleanPath}`];
         }
-
         if (globalImageList.length === 0) {
             document.getElementById('mainImage').innerHTML = '<div style="font-size:5rem;">📦</div>';
             return;
         }
-
         updateMainImageDisplay();
         renderThumbnails();
     }
@@ -477,8 +448,6 @@
     function updateMainImageDisplay() {
         const mainImgBox = document.getElementById('mainImage');
         mainImgBox.innerHTML = '';
-
-        // Main Image
         const img = document.createElement('img');
         img.src = globalImageList[currentImageIndex];
         img.style.width = '100%';
@@ -486,24 +455,18 @@
         img.style.objectFit = 'contain';
         img.className = 'fade-anim';
         mainImgBox.appendChild(img);
-
-        // Arrows
         if (globalImageList.length > 1) {
             const prevBtn = document.createElement('button');
             prevBtn.className = 'nav-arrow prev-btn';
             prevBtn.innerHTML = '❮';
             prevBtn.onclick = () => changeImage(-1);
-
             const nextBtn = document.createElement('button');
             nextBtn.className = 'nav-arrow next-btn';
             nextBtn.innerHTML = '❯';
             nextBtn.onclick = () => changeImage(1);
-
             mainImgBox.appendChild(prevBtn);
             mainImgBox.appendChild(nextBtn);
         }
-
-        // Highlight Active Thumb
         const thumbs = document.querySelectorAll('.thumb');
         thumbs.forEach((t, idx) => {
             if (idx === currentImageIndex) t.classList.add('active');
@@ -533,22 +496,16 @@
         updateMainImageDisplay();
     }
 
-    // 5.4 Favorites Logic
     async function checkFavoriteStatus() {
         if (!productId) return;
         try {
             const response = await fetch('../api/Get_User_Favorites.php');
             const result = await response.json();
             if (result.success && Array.isArray(result.data)) {
-                // String comparison to be safe
                 const isFavorited = result.data.some(item => String(item.Product_ID) === String(productId));
-                if (isFavorited) {
-                    document.getElementById('favBtn').classList.add('active');
-                }
+                if (isFavorited) document.getElementById('favBtn').classList.add('active');
             }
-        } catch (error) {
-            console.error('Check Fav Error:', error);
-        }
+        } catch (error) { console.error('Check Fav Error:', error); }
     }
 
     async function toggleFav() {
@@ -556,11 +513,9 @@
         const btn = document.getElementById('favBtn');
         const formData = new FormData();
         formData.append('product_id', productId);
-
         try {
             const response = await fetch('../api/Toggle_Favorite.php', { method: 'POST', body: formData });
             const result = await response.json();
-
             if (result.success) {
                 if (result.action === 'added') {
                     btn.classList.add('active');
@@ -571,41 +526,23 @@
                 }
             } else {
                 if(result.message === 'Please login first') {
-                    if (typeof AuthModal !== 'undefined' && AuthModal.show) {
-                        AuthModal.show();
-                    } else if(confirm("Login required. Go to login?")) {
-                        window.location.href = '../../Module_User_Account_Management/pages/login.php';
-                    }
-                } else {
-                    showToast('⚠️ ' + result.message);
-                }
+                    if (typeof AuthModal !== 'undefined' && AuthModal.show) AuthModal.show();
+                    else if(confirm("Login required. Go to login?")) window.location.href = '../../Module_User_Account_Management/pages/login.php';
+                } else showToast('⚠️ ' + result.message);
             }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('❌ Network Error');
-        }
+        } catch (error) { console.error('Error:', error); showToast('❌ Network Error'); }
     }
 
-    // 5.5 Check Login Middleware
     async function checkLoginAndProceed(targetUrl) {
         try {
-            // 使用统一的 session 检查点
             const response = await fetch('../../Module_User_Account_Management/api/session_status.php');
             const result = await response.json();
-
-            if (result.is_logged_in) {
-                window.location.href = targetUrl;
-            } else {
-                if (typeof AuthModal !== 'undefined' && AuthModal.show) {
-                    AuthModal.show();
-                } else if (confirm("Please login to continue. Go to login page?")) {
-                    window.location.href = '../../Module_User_Account_Management/pages/login.php';
-                }
+            if (result.is_logged_in) window.location.href = targetUrl;
+            else {
+                if (typeof AuthModal !== 'undefined' && AuthModal.show) AuthModal.show();
+                else if (confirm("Please login to continue. Go to login page?")) window.location.href = '../../Module_User_Account_Management/pages/login.php';
             }
-        } catch (error) {
-            console.error('Session check failed:', error);
-            alert("Network error. Please check your connection.");
-        }
+        } catch (error) { console.error('Session check failed:', error); alert("Network error. Please check your connection."); }
     }
 
     function showToast(message) {
@@ -618,4 +555,3 @@
 
 </body>
 </html>
-
