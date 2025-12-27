@@ -44,7 +44,7 @@ try {
                 d.Order_ID,
                 d.Refund_ID,
 
-                -- 🔥 修正 1：获取证据图片 (对应数据库 Dispute 表的字段)
+                -- 获取证据图片 (对应数据库 Dispute 表的字段)
                 -- 这里的 AS 别名是为了配合前端 JS: renderImgs(d.Dispute_Evidence_Image, ...)
                 d.Dispute_Buyer_Evidence AS Dispute_Evidence_Image, 
                 d.Dispute_Seller_Evidence AS Dispute_Seller_Evidence_Image,
@@ -64,13 +64,11 @@ try {
                 -- 买家信息
                 u1.User_Username AS Reporting_Username,
                 u1.User_Email AS Reporting_Email,
-                -- 🔥 修正 2：根据你的 User 表定义，字段名是 User_Profile_Image
                 u1.User_Profile_Image AS Reporting_User_Avatar,
 
                 -- 卖家信息
                 u2.User_Username AS Reported_Username,
                 u2.User_Email AS Reported_Email,
-                -- 🔥 修正 2：同上
                 u2.User_Profile_Image AS Reported_User_Avatar,
 
                 -- 订单信息
@@ -84,6 +82,10 @@ try {
                 rr.Refund_Status,
                 rr.Refund_Amount,
                 rr.Refund_Reason,
+                
+                -- 🔥🔥🔥 【关键修改：这里补上了收货状态字段】 🔥🔥🔥
+                rr.Refund_Has_Received_Goods,
+                
                 rr.Refund_Description,
                 rr.Return_Address_Detail,
                 rr.Return_Tracking_Number,
