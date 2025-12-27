@@ -4,9 +4,9 @@
  * - bootstrap (session + load order)
  * - render order UI (except refund status card)
  * - image gallery
- * - confirm receipt + refund reason modal redirect
+ * - confirm receipt
  *
- * This file intentionally exposes a few functions on window for legacy inline onclick usage.
+ * Updated: Removed old refund modal logic, delegates to OrderDetailsRefund for pre-check modal.
  */
 
 (function (global) {
@@ -21,8 +21,6 @@
 
     globalOrderImages: [],
     currentOrderImageIndex: 0,
-
-    __disputeRedirected: new Set(),
   };
 
   function escapeHtml(value) {
@@ -176,12 +174,6 @@
     }
   }
 
-  function maybeBuyerDisputeRedirect(order, isBuyer) {
-    // Previously, buyer was auto-redirected away from Order Details when dispute started.
-    // New UX: keep both buyer and seller on Order Details, and let them enter dispute flows explicitly.
-    return;
-  }
-
   async function init() {
     const urlParams = new URLSearchParams(window.location.search);
     state.ORDER_ID = urlParams.get('id');
@@ -223,12 +215,6 @@
 
       if (global.OrderDetailsAddress && typeof global.OrderDetailsAddress.loadOrderAddress === 'function') {
         await global.OrderDetailsAddress.loadOrderAddress(targetOrder, state.ORDER_ADDRESS_API);
-        try {
-          console.log('[OrderDetails] order.Address_ID=', targetOrder?.Address_ID, 'Delivery_Method=', targetOrder?.Delivery_Method);
-          console.log('[OrderDetails] address fetched obj=', global.OrderDetailsAddress.getCurrentOrderAddress?.());
-        } catch (_) {
-          // ignore
-        }
       }
 
       renderOrder(targetOrder);
@@ -249,16 +235,13 @@
 
   function renderOrder(order) {
     const isBuyer = order.type === 'buy';
-
-    maybeBuyerDisputeRedirect(order, isBuyer);
-
     const statusClass = getStatusClass(order.Orders_Status);
 
     // 1) images
     state.globalOrderImages = parseOrderImages(order);
     state.currentOrderImageIndex = 0;
 
-    // 2) Auto-confirm countdown (match old behavior + messages)
+    // 2) Auto-confirm countdown
     let autoConfirmHtml = '';
     const orderStatus = String(order.Orders_Status || '').toLowerCase();
 
@@ -296,22 +279,20 @@
       }
     }
 
-    // 3) refund / actions
+    // 3) Refund / Actions Logic (🔥核心修改处🔥)
     let actionButtons = '';
-
-    // 🔥🔥【关键修改】🔥🔥：只要有 Refund_Status 或者 Dispute_Status，就视为进入售后流程
     const hasRefundOrDispute = order.Refund_Status || (order.Dispute_Status && order.Dispute_Status !== 'None');
 
     if (hasRefundOrDispute && global.OrderDetailsRefund && typeof global.OrderDetailsRefund.renderRefundStatusCard === 'function') {
       actionButtons = global.OrderDetailsRefund.renderRefundStatusCard(order, isBuyer);
     } else if (isBuyer && orderStatus !== 'completed' && orderStatus !== 'cancelled') {
-      // 只有在完全没有售后状态时，才显示默认的 Action 按钮
+      // 🔥🔥🔥 这里改为调用 openRefundPreCheck 🔥🔥🔥
       actionButtons = `
         <div class="actions-box">
           <div style="font-weight:700; margin-bottom:10px;">⚡ Actions</div>
           <div class="btn-group">
             <button class="btn btn-confirm" onclick="openConfirmDialog(${Number(order.Orders_Order_ID)})">✅ Confirm Receipt</button>
-            <button class="btn btn-refund" onclick="openRefundModal(${Number(order.Orders_Order_ID)})">↩️ Request Refund</button>
+            <button class="btn btn-refund" onclick="if(window.openRefundPreCheck) window.openRefundPreCheck(${Number(order.Orders_Order_ID)}); else alert('Refund module not ready');">↩️ Request Refund</button>
           </div>
           ${autoConfirmHtml}
         </div>
@@ -320,7 +301,7 @@
       actionButtons = `<div class="status-badge status-completed" style="margin-top:20px; width:100%; text-align:center;">Order Completed</div>`;
     }
 
-    // 4) tracking / delivery html (restore seller ship input)
+    // 4) Tracking / Delivery UI
     const deliveryMethod = String(order.Delivery_Method || '').toLowerCase();
     const trackingNum = order.Tracking_Number || '';
 
@@ -348,7 +329,7 @@
       }
     }
 
-    // 5) spec fields
+    // 5) Render Details
     const condition = order.Product_Condition || order.Condition || order.condition || '-';
     const category = order.Category_Name || order.Category || '-';
     const otherPartyLabel = isBuyer ? 'Seller' : 'Buyer';
@@ -356,13 +337,11 @@
         ? order.Seller_Username || `ID: ${escapeHtml(order.Orders_Seller_ID)}`
         : order.Buyer_Username || `ID: ${escapeHtml(order.Orders_Buyer_ID)}`;
 
-    // 6) address block: delegate to address module but match old layout styles
     const addressBlockHtml =
         global.OrderDetailsAddress && typeof global.OrderDetailsAddress.renderAddressBlock === 'function'
             ? global.OrderDetailsAddress.renderAddressBlock(order)
             : '';
 
-    // 7) render old-style HTML template
     const createdAt = order.Orders_Created_AT ? new Date(order.Orders_Created_AT).toLocaleString() : '-';
     const amount = order.Orders_Total_Amount ? Number(order.Orders_Total_Amount) : Number(order.Total_Amount || 0);
     const amountText = !isNaN(amount) ? amount.toFixed(2) : escapeHtml(order.Orders_Total_Amount || order.Total_Amount || '-');
@@ -393,20 +372,10 @@
 
           <div class="specs-grid">
             <div class="spec-item"><span class="spec-key">Role</span><span class="spec-value">${isBuyer ? '🛒 Buying' : '🏷️ Selling'}</span></div>
-
-            <div class="spec-item">
-              <span class="spec-key">${escapeHtml(otherPartyLabel)}</span>
-              <span class="spec-value">${escapeHtml(otherPartyName)}</span>
-            </div>
-
+            <div class="spec-item"><span class="spec-key">${escapeHtml(otherPartyLabel)}</span><span class="spec-value">${escapeHtml(otherPartyName)}</span></div>
             <div class="spec-item"><span class="spec-key">Condition</span><span class="spec-value">${escapeHtml(capitalizeFirst(condition))}</span></div>
             <div class="spec-item"><span class="spec-key">Category</span><span class="spec-value">${escapeHtml(category)}</span></div>
-
-            <div class="spec-item">
-              <span class="spec-key">Tracking No.</span>
-              <span class="spec-value">${deliveryHtml}</span>
-            </div>
-
+            <div class="spec-item"><span class="spec-key">Tracking No.</span><span class="spec-value">${deliveryHtml}</span></div>
             <div class="spec-item"><span class="spec-key">Product ID</span><span class="spec-value">#${escapeHtml(order.Product_ID)}</span></div>
           </div>
 
@@ -425,7 +394,6 @@
     const el = document.getElementById('detailContent');
     if (el) el.innerHTML = html;
 
-    // Diagnostics + fallback
     try {
       const hasAddressSection = !!document.querySelector('#detailContent .info-section .address-item');
       const addrObj = global.OrderDetailsAddress?.getCurrentOrderAddress?.();
@@ -442,7 +410,8 @@
     updateGalleryDisplay();
   }
 
-  // Restore seller shipping feature
+  // --- Actions ---
+
   async function submitTracking(orderId) {
     const input = document.getElementById(`trackingInput_${Number(orderId)}`);
     const tracking = input ? String(input.value || '').trim() : '';
@@ -486,7 +455,6 @@
 
   async function processConfirmReceipt(orderId) {
     closeSecondaryModal();
-
     try {
       const response = await fetch('../api/Orders_Management.php?action=confirm_receipt', {
         method: 'POST',
@@ -501,47 +469,7 @@
     }
   }
 
-  // Refund reason modal - redirect to Refund_Request.html
-  let currentRefundOrderId = null;
-
-  function openRefundModal(orderId) {
-    currentRefundOrderId = orderId;
-    const modal = document.getElementById('refundReasonModal');
-    if (!modal) return;
-    modal.classList.add('active');
-
-    const btn = document.getElementById('submitRefundBtn');
-    if (btn) btn.onclick = () => processRefundSelection();
-  }
-
-  function closeRefundModal() {
-    const modal = document.getElementById('refundReasonModal');
-    if (modal) modal.classList.remove('active');
-
-    const select = document.getElementById('refundReasonSelect');
-    if (select) select.selectedIndex = 0;
-  }
-
-  function processRefundSelection() {
-    const reason = document.getElementById('refundReasonSelect')?.value;
-    if (!reason) return alert('Please select a refund reason.');
-
-    const targetUrl = `../../Module_After_Sales_Dispute/pages/Refund_Request.html?order_id=${encodeURIComponent(
-        currentRefundOrderId,
-    )}&reason=${encodeURIComponent(reason)}`;
-    window.location.href = targetUrl;
-  }
-
-  function bindSafetyNet() {
-    window.addEventListener('error', (event) => {
-      // ignore or log
-    });
-    window.addEventListener('unhandledrejection', (event) => {
-      // ignore
-    });
-  }
-
-  // Export (namespaced + legacy globals)
+  // Export
   global.OrderDetailsOrder = {
     init,
     renderOrder,
@@ -552,20 +480,14 @@
     changeOrderImage,
     openConfirmDialog,
     closeSecondaryModal,
-    openRefundModal,
-    closeRefundModal,
-    processRefundSelection,
     submitTracking,
-    bindSafetyNet,
   };
 
-  // Legacy globals referenced by injected HTML
+  // Legacy globals
   global.setOrderImage = setOrderImage;
   global.changeOrderImage = changeOrderImage;
   global.openConfirmDialog = openConfirmDialog;
   global.closeSecondaryModal = closeSecondaryModal;
-  global.openRefundModal = openRefundModal;
-  global.closeRefundModal = closeRefundModal;
-  global.processRefundSelection = processRefundSelection;
   global.submitTracking = submitTracking;
+
 })(window);

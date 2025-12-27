@@ -1,10 +1,30 @@
 /*
  * Order Details - Refund/After-sales module
- * Updated: Supports Admin Dispute Status (Open, In Review, Resolved) & Admin Replies
+ * Updated: Supports Admin Dispute Status (Open, In Review, Resolved) & Admin Replies & Pre-Refund Check Modal
  */
 
 (function (global) {
   'use strict';
+
+  // --- 🆕 弹窗逻辑变量 ---
+  let currentRefundOrderId = null;
+  let hasReceivedGoods = 0; // 0=No, 1=Yes
+
+  const reasonsNotReceived = [
+    {val: 'logistics_stuck', txt: 'Logistics stuck / Not moving'},
+    {val: 'not_received', txt: 'Did not receive package (Lost)'},
+    {val: 'wrong_address', txt: 'Seller sent to wrong address'},
+    {val: 'other', txt: 'Other'}
+  ];
+
+  const reasonsReceived = [
+    {val: 'damaged', txt: 'Item Damaged / Defective'},
+    {val: 'wrong_item', txt: 'Received Wrong Item'},
+    {val: 'not_described', txt: 'Item Not As Described'},
+    {val: 'missing_parts', txt: 'Missing Parts / Accessories'},
+    {val: 'fake', txt: 'Counterfeit / Fake Item'},
+    {val: 'other', txt: 'Other'}
+  ];
 
   function escapeHtml(value) {
     return global.OrderDetailsOrder?.escapeHtml ? global.OrderDetailsOrder.escapeHtml(value) : String(value ?? '');
@@ -270,6 +290,7 @@
         }
       }
 
+      // 🔥 改为调用 openRefundPreCheck
       return `
         <div class="refund-status-card status-closed">
           <div class="refund-status-header">
@@ -284,7 +305,7 @@
             </div>
             ${canResubmit ? `
             <div class="btn-group" style="margin-top:15px;">
-              <button class="btn btn-refund" onclick="openRefundModal(${Number(order.Orders_Order_ID)})">Resubmit</button>
+              <button class="btn btn-refund" onclick="openRefundPreCheck(${Number(order.Orders_Order_ID)})">Resubmit</button>
             </div>` : ''}
           </div>
         </div>
@@ -504,6 +525,60 @@
     }
   }
 
+  // =========================================
+  // 🆕🆕🆕 弹窗逻辑实现 (Pre-Check Modal)
+  // =========================================
+
+  function openRefundPreCheck(orderId) {
+    currentRefundOrderId = orderId;
+    // 重置状态
+    hasReceivedGoods = 0;
+    // 重置显示
+    document.getElementById('step1_received').style.display = 'block';
+    document.getElementById('step2_reason').style.display = 'none';
+    // 打开弹窗
+    document.getElementById('refundPreCheckModal').style.display = 'flex';
+  }
+
+  function handlePreCheckStep1(status) {
+    hasReceivedGoods = status; // 0 或 1
+    const select = document.getElementById('preSelectReason');
+    select.innerHTML = '<option value="" disabled selected>-- Select a Reason --</option>';
+
+    // 根据选择填充原因
+    const reasons = (status === 1) ? reasonsReceived : reasonsNotReceived;
+    reasons.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.val;
+      opt.innerText = r.txt;
+      select.appendChild(opt);
+    });
+
+    // 切换到第二步
+    document.getElementById('step1_received').style.display = 'none';
+    document.getElementById('step2_reason').style.display = 'block';
+  }
+
+  function resetRefundModal() {
+    document.getElementById('step1_received').style.display = 'block';
+    document.getElementById('step2_reason').style.display = 'none';
+  }
+
+  function submitPreCheck() {
+    const reason = document.getElementById('preSelectReason').value;
+    if (!reason) {
+      alert("Please select a reason first.");
+      return;
+    }
+    // 跳转到填写页面，带上参数
+    const url = `../../Module_After_Sales_Dispute/pages/Refund_Request.html?order_id=${currentRefundOrderId}&received=${hasReceivedGoods}&reason=${reason}`;
+    window.location.href = url;
+  }
+
+  function closeRefundModal() {
+    document.getElementById('refundPreCheckModal').style.display = 'none';
+  }
+
   // Exports
   global.OrderDetailsRefund = {
     renderRefundStatusCard,
@@ -515,7 +590,15 @@
     sellerRefuseReturnReceived,
     submitReturnTracking,
     confirmReturnHandover,
+    openRefundPreCheck // 🆕 导出新函数
   };
+
+  // 绑定全局以便 HTML onclick 调用
+  global.openRefundPreCheck = openRefundPreCheck;
+  global.handlePreCheckStep1 = handlePreCheckStep1;
+  global.resetRefundModal = resetRefundModal;
+  global.submitPreCheck = submitPreCheck;
+  global.closeRefundModal = closeRefundModal;
 
   // legacy globals support
   global.goToRefundDetail = goToRefundDetail;

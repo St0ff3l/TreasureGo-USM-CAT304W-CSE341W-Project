@@ -5,8 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Details - TreasureGO</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/Order_Details.css">
+
+  <style>
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* 简单的响应式调整 */
+    @media (max-width: 480px) {
+      #refundPreCheckModal > div { padding: 20px; width: 95%; }
+      .step1-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -60,30 +71,42 @@
   </div>
 </div>
 
-<div id="refundReasonModal" class="modal">
-  <div class="modal-content" style="max-width: 500px;">
-    <div class="refund-modal-header">
-      <h2>Request Refund</h2>
-      <p style="color:#6B7280; font-size:0.9rem; margin-top:5px;">Please tell us why you want to return this item.</p>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label for="refundReasonSelect">Reason for Refund</label>
-        <select id="refundReasonSelect" class="modal-select">
-          <option value="" disabled selected>Select a reason...</option>
-          <option value="damaged">Item Damaged / Defective</option>
-          <option value="wrong_item">Received Wrong Item</option>
-          <option value="not_described">Item Not As Described</option>
-          <option value="missing_parts">Missing Parts / Accessories</option>
-          <option value="fake">Counterfeit / Fake Item</option>
-          <option value="other">Other</option>
-        </select>
+<div id="refundPreCheckModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; width:90%; max-width:500px; padding:30px; border-radius:16px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; animation: slideUp 0.3s ease;">
+
+    <span onclick="closeRefundModal()" style="position:absolute; top:15px; right:20px; font-size:24px; cursor:pointer; color:#6B7280; z-index:10;">&times;</span>
+
+    <h3 id="refundModalTitle" style="margin-top:0; margin-bottom:20px; font-family:'Plus Jakarta Sans', sans-serif; color:#111827; font-size:1.5rem; font-weight:700;">Request Refund</h3>
+
+    <div id="step1_received">
+      <p style="margin-bottom:20px; font-size:1.1rem; color:#374151; font-weight:600; text-align:center;">
+        Did you receive the goods?
+      </p>
+      <div class="step1-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <button onclick="handlePreCheckStep1(0)" style="padding:20px; border:2px solid #FEE2E2; background:#FEF2F2; border-radius:12px; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;">
+          <span style="font-size:2rem;">📦❌</span>
+          <span style="color:#B91C1C; font-weight:700; font-size:0.95rem;">No, Not Received</span>
+        </button>
+        <button onclick="handlePreCheckStep1(1)" style="padding:20px; border:2px solid #D1FAE5; background:#ECFDF5; border-radius:12px; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:10px;">
+          <span style="font-size:2rem;">📦✅</span>
+          <span style="color:#047857; font-weight:700; font-size:0.95rem;">Yes, Received</span>
+        </button>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" onclick="closeRefundModal()">Cancel</button>
-      <button class="btn-modal-submit" id="submitRefundBtn">Next Step ➜</button>
+
+    <div id="step2_reason" style="display:none;">
+      <p style="margin-bottom:10px; font-size:1rem; color:#374151; font-weight:600;">
+        Reason for Refund:
+      </p>
+      <select id="preSelectReason" style="width:100%; padding:12px; border:1px solid #D1D5DB; border-radius:8px; font-size:1rem; margin-bottom:25px; background-color:#F9FAFB; outline:none;">
+      </select>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button onclick="resetRefundModal()" style="padding:10px 20px; border:1px solid #E5E7EB; background:white; border-radius:8px; cursor:pointer; color:#374151; font-weight:500;">Back</button>
+        <button onclick="submitPreCheck()" style="padding:10px 24px; border:none; background:#4F46E5; color:white; border-radius:8px; cursor:pointer; font-weight:600; box-shadow:0 4px 6px -1px rgba(79, 70, 229, 0.2);">Next Step ➜</button>
+      </div>
     </div>
+
   </div>
 </div>
 
