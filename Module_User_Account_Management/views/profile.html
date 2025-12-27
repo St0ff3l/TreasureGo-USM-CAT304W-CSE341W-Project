@@ -219,6 +219,33 @@
     .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
     .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; }
 
+    /* Review Modal Styles */
+    .review-modal-content {
+        background: white; width: 90%; max-width: 600px; border-radius: 20px; padding: 30px;
+        max-height: 90vh; overflow-y: auto;
+    }
+    .rating-criteria {
+        margin-bottom: 15px;
+    }
+    .criteria-label {
+        font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; display: block;
+    }
+    .star-rating {
+        display: flex; gap: 5px; font-size: 1.5rem; color: #D1D5DB; cursor: pointer;
+    }
+    .star-rating i.active {
+        color: #F59E0B;
+    }
+    .total-score-display {
+        text-align: center; font-size: 1.2rem; font-weight: 700; margin: 20px 0; color: var(--primary);
+    }
+
+    .review-criteria { margin-bottom: 15px; }
+    .review-criteria label { display: block; font-weight: 600; margin-bottom: 5px; }
+    .star-rating { display: flex; gap: 5px; font-size: 1.5rem; color: #D1D5DB; cursor: pointer; }
+    .star-rating .ri-star-fill.active { color: #F59E0B; }
+    .star-rating .ri-star-fill:hover { color: #FCD34D; }
+
     @media (max-width: 900px) { 
         .layout-container { 
             grid-template-columns: 1fr; 
@@ -410,6 +437,22 @@
     .product-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 5px; color: var(--text-dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .product-price { color: var(--primary); font-weight: 700; font-size: 1.1rem; margin-top: auto; }
     .product-status { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #EEF2FF; color: var(--primary); display: inline-block; margin-bottom: 5px; width: fit-content; }
+    
+    .btn-review {
+        margin-top: 10px;
+        width: 100%;
+        padding: 8px;
+        background-color: #F59E0B;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .btn-review:hover {
+        background-color: #D97706;
+    }
 
   </style>
 </head>
@@ -492,7 +535,7 @@
       <div class="tabs-container">
         <div class="tabs-header">
           <div class="tab-btn active" id="tab-btn-listings" onclick="switchProfileTab('listings')">Active Listings</div>
-          <div class="tab-btn" id="tab-btn-reviews" onclick="switchProfileTab('reviews')">Recent Reviews</div>
+          <div class="tab-btn" id="tab-btn-reviews" onclick="switchProfileTab('reviews')">Reviews</div>
         </div>
         
         <!-- Listings Content -->
@@ -511,9 +554,15 @@
 
         <!-- Reviews Content -->
         <div id="tab-content-reviews" style="display: none;">
-            <div class="mock-content">
-              <div class="mock-icon"><i class="ri-chat-smile-2-line"></i></div>
-              <p>No reviews yet.</p>
+            <div class="mock-content" id="reviews-loading">
+              <p>Loading sold items...</p>
+            </div>
+            <div id="reviews-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; display: none;">
+                <!-- Sold Items will be injected here -->
+            </div>
+            <div class="mock-content" id="reviews-empty" style="display: none;">
+              <div class="mock-icon"><i class="ri-shopping-bag-3-line"></i></div>
+              <p>No sold items found.</p>
             </div>
         </div>
       </div>
@@ -639,6 +688,61 @@
   </div>
 </div>
 
+<!-- Review Modal -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal-content">
+    <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
+      <h2>Write a Review</h2>
+      <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeReviewModal()"></i>
+    </div>
+    
+    <form onsubmit="handleReviewSubmit(event)">
+      <input type="hidden" id="review_order_id">
+      <input type="hidden" id="review_target_id">
+      
+      <div id="criteria-container">
+        <!-- 5 Criteria will be generated here -->
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label">Comment</label>
+        <textarea class="form-input" id="review_comment" rows="3" placeholder="Share your experience..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-save" style="width:100%;">Submit Review</button>
+    </form>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="review-modal">
+  <div class="review-modal-content">
+    <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
+      <h2>Write a Review</h2>
+      <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeReviewModal()"></i>
+    </div>
+
+    <div id="review-form-container">
+        <p style="color: #6B7280; margin-bottom: 20px; font-size: 0.9rem;">
+            Please rate the transaction based on the following 5 criteria. 
+            <br>Total Score: <span id="review-total-score">0</span>/25
+        </p>
+
+        <!-- 5 Criteria -->
+        <div id="criteria-list">
+            <!-- Injected by JS -->
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Comment (Optional)</label>
+            <textarea id="review-comment" class="form-input" rows="3" placeholder="Share your experience..."></textarea>
+        </div>
+
+        <button class="btn-save" style="width: 100%;" onclick="submitReview()">Submit Review</button>
+    </div>
+  </div>
+</div>
+
 <!-- Avatar Upload Modal -->
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-content" style="text-align: center;">
@@ -677,8 +781,11 @@
     
     // 3. 获取 Active Listings
     await fetchActiveListings();
+    
+    // 4. 获取 Sold Listings (Reviews Tab)
+    await fetchSoldListings();
 
-    // 4. 支持 hash 深链接（例如 profile.php#address）
+    // 5. 支持 hash 深链接（例如 profile.php#address）
     const hash = (window.location.hash || '').replace('#', '').trim();
     if (hash === 'address' || hash === 'personal' || hash === 'security' || hash === 'overview') {
       // 找到对应的 sidebar button 并触发 switchView
@@ -794,6 +901,239 @@
       }
   }
 
+  // --- Review Modal Logic ---
+  const reviewModalEl = document.getElementById('review-modal');
+  let currentReviewOrder = null;
+  let currentReviewTarget = null;
+  let reviewScores = [0, 0, 0, 0, 0]; // 5 criteria
+
+  const CRITERIA_NAMES = [
+      "Honesty / Accuracy",
+      "Item Condition / Quality",
+      "Communication & Responsiveness",
+      "Transaction Reliability",
+      "Delivery & Packaging"
+  ];
+
+  function openReviewModal(orderId, targetUserId, existingRating = null, existingComment = '') {
+      currentReviewOrder = orderId;
+      currentReviewTarget = targetUserId;
+      
+      if (existingRating !== null) {
+          // Edit Mode: Distribute total score (0-25) back to 5 criteria?
+          // Problem: We only stored the Total Score, not individual criteria scores.
+          // So we can't perfectly restore the 5 sliders.
+          // Workaround: Distribute evenly or just set all to average?
+          // Let's set all to Math.round(Total / 5).
+          const avg = Math.round(existingRating / 5);
+          reviewScores = [avg, avg, avg, avg, avg];
+          // Adjust last one to match total exactly? 
+          // If Total=23, Avg=5. 5*5=25 != 23.
+          // Better: Fill 5s until we run out?
+          // 23 -> 5, 5, 5, 5, 3.
+          let remaining = existingRating;
+          for(let i=0; i<5; i++) {
+              let val = Math.min(5, remaining);
+              reviewScores[i] = val;
+              remaining -= val;
+          }
+          
+          document.getElementById('review-comment').value = existingComment;
+          document.querySelector('#review-modal h2').innerText = "Edit Review";
+      } else {
+          // Create Mode
+          reviewScores = [0, 0, 0, 0, 0];
+          document.getElementById('review-comment').value = '';
+          document.querySelector('#review-modal h2').innerText = "Write a Review";
+      }
+
+      renderCriteria();
+      updateTotalScore();
+      reviewModalEl.classList.add('open');
+  }
+
+  function closeReviewModal() {
+      reviewModalEl.classList.remove('open');
+  }
+
+  function renderCriteria() {
+      const container = document.getElementById('criteria-list');
+      container.innerHTML = '';
+
+      CRITERIA_NAMES.forEach((name, index) => {
+          const div = document.createElement('div');
+          div.className = 'rating-criteria';
+          
+          let starsHtml = '';
+          for (let i = 1; i <= 5; i++) {
+              const activeClass = i <= reviewScores[index] ? 'active' : '';
+              starsHtml += `<i class="ri-star-fill ${activeClass}" onclick="setScore(${index}, ${i})"></i>`;
+          }
+
+          div.innerHTML = `
+              <span class="criteria-label">${index + 1}. ${name}</span>
+              <div class="star-rating">${starsHtml}</div>
+          `;
+          container.appendChild(div);
+      });
+  }
+
+  function setScore(criteriaIndex, score) {
+      reviewScores[criteriaIndex] = score;
+      renderCriteria(); // Re-render to update stars
+      updateTotalScore();
+  }
+
+  function updateTotalScore() {
+      const total = reviewScores.reduce((a, b) => a + b, 0);
+      document.getElementById('review-total-score').innerText = total;
+  }
+
+  async function submitReview() {
+      if (!currentReviewOrder || !currentReviewTarget) return;
+      
+      // Validate: All must be > 0? Or allow 0? Assuming 0 is allowed but maybe warn?
+      // Let's require at least 1 star total?
+      const total = reviewScores.reduce((a, b) => a + b, 0);
+      if (total === 0) {
+          StatusDialog.warning("Rating Required", "Please provide a rating before submitting.", "OK");
+          return;
+      }
+
+      const comment = document.getElementById('review-comment').value;
+
+      try {
+          const res = await fetch('../api/submit_review.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  order_id: currentReviewOrder,
+                  target_user_id: currentReviewTarget,
+                  scores: reviewScores,
+                  comment: comment
+              })
+          });
+
+          const json = await res.json();
+
+          if (json.success) {
+              closeReviewModal();
+              StatusDialog.success("Success", "Review submitted successfully!", "OK", () => {
+                  // Refresh list to hide button or show 'Reviewed'
+                  fetchSoldListings();
+              });
+          } else {
+              StatusDialog.fail("Submission Failed", json.message);
+          }
+      } catch (err) {
+          console.error(err);
+          StatusDialog.fail("Error", "Network error occurred.");
+      }
+  }
+
+  // --- Sold Listings Logic (Reviews Tab) ---
+  let soldListingsData = []; // Store data globally to avoid escaping issues
+
+  async function fetchSoldListings() {
+      const loadingEl = document.getElementById('reviews-loading');
+      const gridEl = document.getElementById('reviews-grid');
+      const emptyEl = document.getElementById('reviews-empty');
+
+      try {
+          // Add timestamp to prevent caching
+          const res = await fetch('../../Module_Product_Ecosystem/api/Get_User_Listings.php?t=' + new Date().getTime());
+          
+          if (!res.ok) {
+              const errText = await res.text();
+              throw new Error(`HTTP error! status: ${res.status}, body: ${errText}`);
+          }
+          
+          const text = await res.text();
+          let json;
+          try {
+              json = JSON.parse(text);
+          } catch (e) {
+              console.error("JSON Parse Error. Response text:", text);
+              throw new Error("Invalid JSON response from server");
+          }
+
+          loadingEl.style.display = 'none';
+
+          if (json.success && json.data && json.data.length > 0) {
+              // Filter for Sold listings only
+              const soldListings = json.data.filter(item => item.Product_Status === 'Sold');
+              soldListingsData = soldListings; // Save to global
+
+              if (soldListings.length > 0) {
+                  gridEl.innerHTML = '';
+                  soldListings.forEach((item, index) => {
+                      const card = document.createElement('div');
+                      card.className = 'product-card';
+                      // Clicking card goes to detail page
+                      card.onclick = (e) => {
+                          // Prevent click if clicking the button
+                          if(e.target.classList.contains('btn-review')) return;
+                          window.location.href = `../../Module_Product_Ecosystem/pages/Product_Detail.html?product_id=${item.Product_ID}`;
+                      };
+                      
+                      // Handle image path
+                      let imgUrl = item.Main_Image;
+                      if (imgUrl && !imgUrl.startsWith('http')) {
+                          imgUrl = '../../' + imgUrl;
+                      }
+                      if (!imgUrl) imgUrl = '../../Public_Assets/images/TreasureGo_Logo.png'; // Fallback
+
+                      card.innerHTML = `
+                          <img src="${imgUrl}" class="product-img" alt="${escapeHtml(item.Product_Title)}">
+                          <div class="product-info">
+                              <span class="product-status" style="background:#ECFDF5; color:#059669;">Sold</span>
+                              <div class="product-title">${escapeHtml(item.Product_Title)}</div>
+                              <div class="product-price">$${parseFloat(item.Product_Price).toFixed(2)}</div>
+                              ${item.Order_ID && item.Buyer_ID ? 
+                                  (item.Reviews_ID ? 
+                                      `<button class="btn-review" style="background:#9CA3AF; cursor:not-allowed;" disabled>Reviewed</button>` :
+                                      `<button class="btn-review" onclick="openReviewModalFromData(${index})">Write a Review</button>`
+                                  ) : 
+                                  `<button class="btn-review" style="background:#ccc;cursor:not-allowed;" disabled>No Order Info</button>`
+                              }
+                          </div>
+                      `;
+                      gridEl.appendChild(card);
+                  });
+                  gridEl.style.display = 'grid';
+                  emptyEl.style.display = 'none';
+              } else {
+                  gridEl.style.display = 'none';
+                  emptyEl.style.display = 'block';
+                  emptyEl.querySelector('p').innerText = "No sold items found.";
+              }
+          } else {
+              gridEl.style.display = 'none';
+              emptyEl.style.display = 'block';
+          }
+      } catch (err) {
+          console.error("Fetch Sold Listings Error:", err);
+          loadingEl.style.display = 'none';
+          emptyEl.style.display = 'block';
+          emptyEl.querySelector('p').innerText = "Failed to load sold items: " + err.message;
+      }
+  }
+
+  function openReviewModalFromData(index) {
+      const item = soldListingsData[index];
+      if (!item) return;
+      
+      console.log("Opening Review Modal for item:", item); // Debug
+
+      if (item.Reviews_ID) {
+          // Ensure rating is a number
+          const rating = item.Reviews_Rating !== null ? parseInt(item.Reviews_Rating) : null;
+          openReviewModal(item.Order_ID, item.Buyer_ID, rating, item.Reviews_Comment || '');
+      } else {
+          openReviewModal(item.Order_ID, item.Buyer_ID);
+      }
+  }
+
   // --- Membership Modal Logic ---
   const memModal = document.getElementById('membership-modal');
   let currentMemData = {};
@@ -870,6 +1210,17 @@
     setText('u_role', user.User_Role);
     setText('s_posted', user.posted_count || 0);
     setText('s_sold', user.sold_count || 0);
+    
+    // Rating Display Logic
+    const rawRating = parseFloat(user.User_Average_Rating || 0);
+    let displayRating = 0;
+    if (rawRating >= 4.4) {
+        displayRating = 5.0;
+    } else {
+        displayRating = Math.round(rawRating); // Standard rounding
+    }
+    setText('s_score', displayRating.toFixed(1));
+
     setText('s_membership', user.Memberships_tier || 'Free');
     
     // Store membership data for modal
@@ -960,6 +1311,91 @@
     StatusDialog.confirm("Log Out", "Are you sure you want to sign out?", "Log Out", "Cancel", () => {
       window.location.href = '../api/logout.php';
     }, true);
+  }
+
+  // --- Review Modal Logic ---
+  const reviewModal = document.getElementById('review-modal');
+  const criteriaNames = ['Communication', 'Payment Speed', 'Politeness', 'Responsiveness', 'Overall Experience'];
+  let currentScores = [0, 0, 0, 0, 0];
+
+  function openReviewModal(orderId, targetId) {
+      document.getElementById('review_order_id').value = orderId;
+      document.getElementById('review_target_id').value = targetId;
+      document.getElementById('review_comment').value = '';
+      currentScores = [0, 0, 0, 0, 0];
+      
+      const container = document.getElementById('criteria-container');
+      container.innerHTML = '';
+      
+      criteriaNames.forEach((name, index) => {
+          const div = document.createElement('div');
+          div.className = 'review-criteria';
+          div.innerHTML = `
+              <label>${name}</label>
+              <div class="star-rating" id="criteria-${index}">
+                  ${[1, 2, 3, 4, 5].map(star => `
+                      <i class="ri-star-fill" onclick="setRating(${index}, ${star})"></i>
+                  `).join('')}
+              </div>
+          `;
+          container.appendChild(div);
+      });
+      
+      reviewModal.classList.add('open');
+  }
+
+  function closeReviewModal() {
+      reviewModal.classList.remove('open');
+  }
+
+  function setRating(criteriaIndex, score) {
+      currentScores[criteriaIndex] = score;
+      const stars = document.querySelectorAll(`#criteria-${criteriaIndex} .ri-star-fill`);
+      stars.forEach((star, i) => {
+          if (i < score) {
+              star.classList.add('active');
+          } else {
+              star.classList.remove('active');
+          }
+      });
+  }
+
+  async function handleReviewSubmit(e) {
+      e.preventDefault();
+      const orderId = document.getElementById('review_order_id').value;
+      const targetId = document.getElementById('review_target_id').value;
+      const comment = document.getElementById('review_comment').value;
+
+      if (currentScores.some(s => s === 0)) {
+          StatusDialog.warning('Incomplete', 'Please rate all criteria.', 'OK');
+          return;
+      }
+
+      try {
+          const res = await fetch('../api/submit_review.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  order_id: orderId,
+                  target_user_id: targetId,
+                  scores: currentScores,
+                  comment: comment
+              })
+          });
+          const json = await res.json();
+
+          if (json.success) {
+              StatusDialog.success('Success', 'Review submitted!', 'OK', () => {
+                  closeReviewModal();
+                  fetchSoldListings(); // Refresh list
+              });
+          } else {
+              StatusDialog.fail('Error', json.message);
+          }
+      } catch (err) {
+          console.error(err);
+          StatusDialog.fail('Error', 'Network error.');
+      }
   }
 
   // --- Avatar Upload Logic ---

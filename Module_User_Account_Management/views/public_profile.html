@@ -28,15 +28,50 @@
 
     .profile-container {
       max-width: 800px;
-      margin: 40px auto;
+      margin: 20px auto 40px; /* 调整了顶部边距 */
       padding: 0 20px;
       width: 100%;
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
     }
+
+    /* --- 新增：顶部导航行 (用于 Back 按钮) --- */
+    .top-nav-row {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .back-btn {
+      color: var(--text-gray);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: var(--primary); }
+
+    /* --- 修改：Report 按钮样式 (适配卡片内显示) --- */
+    .report-btn {
+      color: #EF4444;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 5px;
+      margin-bottom: 25px; /* 与下方 Stats 保持距离 */
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .report-btn:hover { color: #DC2626; text-decoration: underline; }
 
     .profile-header-card {
       background: white;
@@ -86,7 +121,7 @@
     .user-meta {
       color: var(--text-gray);
       font-size: 0.95rem;
-      margin-bottom: 25px;
+      margin-bottom: 10px; /* 减小底部间距，让 Report 按钮紧凑些 */
       position: relative;
       z-index: 1;
       display: flex;
@@ -95,87 +130,171 @@
       gap: 15px;
     }
 
-    .user-meta span {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
+    .user-meta span { display: flex; align-items: center; gap: 5px; }
 
+    /* 统计区域 / Tab 按钮 */
     .stats-row {
       display: flex;
       justify-content: center;
       gap: 40px;
-      margin-top: 30px;
+      margin-top: 10px;
       padding-top: 30px;
       border-top: 1px solid #f3f4f6;
       position: relative;
       z-index: 1;
     }
 
-    .stat-item { text-align: center; }
-    .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: block; }
+    .stat-item {
+      text-align: center;
+      cursor: pointer;
+      padding: 10px 25px;
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    .stat-item:hover { background-color: #f9fafb; }
+
+    /* 选中状态 */
+    .stat-item.active {
+      background-color: #EEF2FF;
+      border-color: #EEF2FF;
+    }
+    .stat-item.active .stat-value { color: var(--primary); }
+    .stat-item.active .stat-label { color: var(--primary); }
+
+    .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); display: block; }
     .stat-label { font-size: 0.85rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .back-btn {
-        margin-top: 30px;
-        color: var(--text-gray);
-        text-decoration: none;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: color 0.2s;
-    }
-    .back-btn:hover { color: var(--primary); }
+    /* Product Grid Styles */
+    .products-section { margin-top: 30px; width: 100%; }
 
-    .report-btn {
-        margin-top: 30px;
-        color: #EF4444;
-        text-decoration: none;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: color 0.2s;
-        margin-left: 20px; /* Space between Back and Report */
-        cursor: pointer;
+    .section-title {
+      font-size: 1.2rem; font-weight: 700; margin-bottom: 20px;
+      color: var(--text-dark); display: flex; align-items: center; gap: 10px;
     }
-    .report-btn:hover { color: #DC2626; }
 
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+
+    .product-card {
+      background: white; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s;
+      cursor: pointer; text-decoration: none; color: inherit; display: block; text-align: left;
+      /* 必须相对定位，给印章做基准 */
+      position: relative;
+    }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+    /* --- 图片容器 (用于定位印章) --- */
+    .card-img-container {
+      width: 100%;
+      height: 180px;
+      position: relative;
+      background: #f3f4f6;
+      overflow: hidden;
+    }
+
+    .product-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+
+    .product-info { padding: 12px; }
+    .product-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dark); }
+    .product-price { color: var(--primary); font-weight: 700; font-size: 1.1rem; }
+
+    .product-status { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 600; }
+    .status-active { background: #ECFDF5; color: #10B981; }
+    .status-sold { background: #F3F4F6; color: #6B7280; }
+
+    /* --- 🔥 核心特效：已售出样式 (Sold Out Stamp) --- */
+    /* 1. 图片变灰变淡 */
+    .product-card.sold-item .product-img {
+      filter: grayscale(100%);
+      opacity: 0.6;
+    }
+
+    /* 2. 盖章伪元素 (添加在图片容器上) */
+    .product-card.sold-item .card-img-container::after {
+      content: 'SOLD OUT';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      border: 3px solid rgba(80, 80, 80, 0.7);
+      color: rgba(80, 80, 80, 0.9);
+      font-weight: 900;
+      font-size: 1.2rem;
+      padding: 5px 15px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.6);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .empty-state {
+      text-align: center; padding: 40px; color: var(--text-gray);
+      background: #F9FAFB; border-radius: 12px; grid-column: 1 / -1; width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
 
-<!-- Headerbar -->
 <script src="../../Public_Assets/js/headerbar.js"></script>
 <script>TreasureGoHeaderbar.mount({ basePath: '../../' });</script>
 
 <div class="profile-container">
+
+  <div class="top-nav-row">
+    <a href="javascript:history.back()" class="back-btn"><i class="ri-arrow-left-line"></i> Back</a>
+  </div>
+
   <div class="profile-header-card">
     <div class="large-avatar" id="u_avatar">?</div>
     <h1 class="user-name" id="u_name">Loading...</h1>
-    
+
     <div class="user-meta">
-        <span id="u_join_date"><i class="ri-calendar-line"></i> Joined ...</span>
-        <span id="u_rating"><i class="ri-star-fill" style="color: #F59E0B;"></i> ...</span>
+      <span id="u_join_date"><i class="ri-calendar-line"></i> Joined ...</span>
+      <span id="u_rating"><i class="ri-star-fill" style="color: #F59E0B;"></i> ...</span>
     </div>
 
+    <a href="javascript:void(0)" class="report-btn" id="reportUserBtn">
+      <i class="ri-flag-line"></i> Report User
+    </a>
+
     <div class="stats-row">
-      <div class="stat-item">
+      <div class="stat-item active" id="tab-active" onclick="switchTab('active')">
         <span class="stat-value" id="u_listings_count">-</span>
         <span class="stat-label">Listings</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" id="tab-sold" onclick="switchTab('sold')">
         <span class="stat-value" id="u_sold_count">-</span>
         <span class="stat-label">Sold</span>
       </div>
     </div>
+
+    <div class="products-section">
+      <h3 class="section-title" id="section-header">
+        <i class="ri-store-2-line"></i> Active Listings
+      </h3>
+      <div class="products-grid" id="productsGrid">
+        <div class="empty-state">Loading products...</div>
+      </div>
+    </div>
   </div>
 
-  <div style="display: flex; align-items: center;">
-      <a href="javascript:history.back()" class="back-btn"><i class="ri-arrow-left-line"></i> Back</a>
-      <a href="javascript:void(0)" class="report-btn" id="reportUserBtn"><i class="ri-flag-line"></i> Report User</a>
-  </div>
 </div>
 
 <script>
@@ -184,70 +303,190 @@
   const userId = urlParams.get('user_id');
 
   if (!userId) {
-      alert("User ID not provided");
-      window.location.href = '../../index.html';
+    alert("User ID not provided");
+    window.location.href = '../../index.html';
   }
 
+  // 全局变量
+  let allProducts = [];
+  let currentTab = 'active';
+
+  // --- 1. 加载主入口 ---
   async function loadPublicProfile() {
-      try {
-          // 1. Get Basic Info
-          const res = await fetch(`../api/get_user_public_info.php?user_id=${userId}`);
-          const json = await res.json();
+    try {
+      // A. 加载用户信息
+      const res = await fetch(`../api/get_user_public_info.php?user_id=${userId}`);
+      const json = await res.json();
 
-          if (json.status === 'success') {
-              const user = json.data;
-              
-              // Avatar
-              const avatarEl = document.getElementById('u_avatar');
-              if (user.User_Avatar_Url) {
-                  const src = user.User_Avatar_Url.startsWith('http') 
-                      ? user.User_Avatar_Url 
-                      : ('../../' + user.User_Avatar_Url);
-                  const fallbackInitial = (user.User_Username || '?').charAt(0).toUpperCase();
-                  avatarEl.innerHTML = `<img src="${src}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}';">`;
-                  avatarEl.style.background = 'transparent';
-              } else {
-                  avatarEl.innerText = (user.User_Username || '?').charAt(0).toUpperCase();
-              }
+      if (json.status === 'success') {
+        const user = json.data;
+        renderUserInfo(user);
 
-              // Name
-              document.getElementById('u_name').innerText = user.User_Username;
-
-              // Join Date
-              if (user.User_Created_At) {
-                  const date = new Date(user.User_Created_At);
-                  document.getElementById('u_join_date').innerHTML = `<i class="ri-calendar-line"></i> Joined ${date.toLocaleDateString()}`;
-              }
-
-              // Rating
-              const rating = user.User_Average_Rating ? parseFloat(user.User_Average_Rating).toFixed(1) : 'New';
-              document.getElementById('u_rating').innerHTML = `<i class="ri-star-fill" style="color: #F59E0B;"></i> ${rating}`;
-
-              // Stats (Now returned directly from API)
-              document.getElementById('u_listings_count').innerText = user.posted_count || 0;
-              document.getElementById('u_sold_count').innerText = user.sold_count || 0;
-              
-              // Setup Report Button
-              const reportBtn = document.getElementById('reportUserBtn');
-              if (reportBtn) {
-                  const reportUrl = `../../Module_Platform_Governance_AI_Services/pages/report_submit.html?type=user&reportedUserId=${user.User_ID}&reportedUserName=${encodeURIComponent(user.User_Username)}`;
-                  reportBtn.href = reportUrl;
-                  reportBtn.onclick = null; // Remove void(0) behavior
-              }
-
-              // Optional: If we want to show membership in public profile, we can add it. 
-              // For now, just syncing the existing ones.
-
-          } else {
-              alert("User not found");
-              window.location.href = '../../index.html';
-          }
-      } catch (err) {
-          console.error(err);
-          alert("Error loading profile");
+        // B. 加载用户商品 (调用正确的公共 API)
+        loadUserProducts(userId);
+      } else {
+        alert("User not found");
+        window.location.href = '../../index.html';
       }
+    } catch (err) {
+      console.error(err);
+      // alert("Error loading profile");
+    }
   }
 
+  // --- 2. 渲染用户信息 ---
+  function renderUserInfo(user) {
+    // Avatar
+    const avatarEl = document.getElementById('u_avatar');
+    if (user.User_Avatar_Url) {
+      const src = user.User_Avatar_Url.startsWith('http') ? user.User_Avatar_Url : ('../../' + user.User_Avatar_Url);
+      const fallbackInitial = (user.User_Username || '?').charAt(0).toUpperCase();
+      avatarEl.innerHTML = `<img src="${src}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}';">`;
+      avatarEl.style.background = 'transparent';
+    } else {
+      avatarEl.innerText = (user.User_Username || '?').charAt(0).toUpperCase();
+    }
+
+    // Name & Meta
+    document.getElementById('u_name').innerText = user.User_Username;
+    if (user.User_Created_At) {
+      const date = new Date(user.User_Created_At);
+      document.getElementById('u_join_date').innerHTML = `<i class="ri-calendar-line"></i> Joined ${date.toLocaleDateString()}`;
+    }
+    const rating = user.User_Average_Rating ? parseFloat(user.User_Average_Rating).toFixed(1) : 'New';
+    document.getElementById('u_rating').innerHTML = `<i class="ri-star-fill" style="color: #F59E0B;"></i> ${rating}`;
+
+    // Report Button Link
+    const reportBtn = document.getElementById('reportUserBtn');
+    if (reportBtn) {
+      const reportUrl = `../../Module_Platform_Governance_AI_Services/pages/report_submit.html?type=user&reportedUserId=${user.User_ID}&reportedUserName=${encodeURIComponent(user.User_Username)}`;
+      reportBtn.href = reportUrl;
+      reportBtn.onclick = null;
+    }
+  }
+
+  // --- 3. 加载商品数据 ---
+  async function loadUserProducts(targetUserId) {
+    const grid = document.getElementById('productsGrid');
+
+    try {
+      // 🔥 调用 get_public_user_products.php
+      const res = await fetch(`../../Module_Product_Ecosystem/api/get_public_user_products.php?user_id=${targetUserId}`);
+      const result = await res.json();
+
+      if (result.status === 'success' && result.data) {
+        allProducts = result.data;
+
+        // 更新统计数字
+        const activeCount = allProducts.filter(p => p.Status === 'Active').length;
+        const soldCount = allProducts.filter(p => p.Status === 'Sold').length;
+
+        document.getElementById('u_listings_count').innerText = activeCount;
+        document.getElementById('u_sold_count').innerText = soldCount;
+
+        // 立即渲染
+        renderProducts();
+      } else {
+        grid.innerHTML = `
+                  <div class="empty-state">
+                      <i class="ri-inbox-line" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                      No listings found for this user.
+                  </div>
+              `;
+        document.getElementById('u_listings_count').innerText = '0';
+        document.getElementById('u_sold_count').innerText = '0';
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      grid.innerHTML = '<div class="empty-state">Failed to load products.</div>';
+    }
+  }
+
+  // --- 4. 切换 Tab ---
+  function switchTab(tab) {
+    currentTab = tab;
+
+    // 样式切换
+    const tabActive = document.getElementById('tab-active');
+    const tabSold = document.getElementById('tab-sold');
+    const headerTitle = document.getElementById('section-header');
+
+    if (tab === 'active') {
+      tabActive.classList.add('active');
+      tabSold.classList.remove('active');
+      headerTitle.innerHTML = '<i class="ri-store-2-line"></i> Active Listings';
+    } else {
+      tabActive.classList.remove('active');
+      tabSold.classList.add('active');
+      headerTitle.innerHTML = '<i class="ri-history-line"></i> Sold Items';
+    }
+
+    renderProducts();
+  }
+
+  // --- 5. 渲染商品列表 (支持特效) ---
+  function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+
+    let filteredProducts = [];
+
+    // 根据 Status 字段过滤
+    if (currentTab === 'active') {
+      filteredProducts = allProducts.filter(p => p.Status === 'Active');
+    } else {
+      filteredProducts = allProducts.filter(p => p.Status === 'Sold');
+    }
+
+    if (filteredProducts.length > 0) {
+      grid.innerHTML = filteredProducts.map(product => {
+        // 字段映射
+        const price = parseFloat(product.Price).toFixed(2);
+
+        let imgUrl = product.Image_Url;
+        if (!imgUrl) {
+          imgUrl = '../../Public_Assets/images/placeholder.png';
+        } else if (!imgUrl.startsWith('http') && !imgUrl.startsWith('../')) {
+          imgUrl = '../../' + imgUrl;
+        }
+
+        const isSold = product.Status === 'Sold';
+
+        // 1. 设置 sold-item 类
+        const cardClass = isSold ? 'product-card sold-item' : 'product-card';
+
+        // 2. 状态 Badge
+        const statusBadge = isSold
+                ? '<span class="product-status status-sold">Sold</span>'
+                : '<span class="product-status status-active">Active</span>';
+
+        // 3. 结构：使用 card-img-container 包裹图片以支持盖章特效
+        return `
+            <a href="../../Module_Product_Ecosystem/pages/product_detail.html?id=${product.Product_ID}" class="${cardClass}">
+                <div class="card-img-container">
+                    <img src="${imgUrl}" alt="${product.Name}" class="product-img" loading="lazy" onerror="this.src='../../Public_Assets/images/placeholder.png'">
+                </div>
+                <div class="product-info">
+                    <div class="product-title">${product.Name}</div>
+                    <div class="product-price">
+                        RM ${price}
+                        ${statusBadge}
+                    </div>
+                </div>
+            </a>
+        `;
+      }).join('');
+    } else {
+      grid.innerHTML = `
+          <div class="empty-state">
+              <i class="ri-inbox-line" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+              No ${currentTab === 'active' ? 'active' : 'sold'} listings found.
+          </div>
+      `;
+    }
+  }
+
+  // 启动
   loadPublicProfile();
 </script>
 

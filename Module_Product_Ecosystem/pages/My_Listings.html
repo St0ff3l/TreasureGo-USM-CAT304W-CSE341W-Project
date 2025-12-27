@@ -251,7 +251,6 @@
     <button class="tab-btn" onclick="switchTab('sold', this)">Sold <span class="tab-count" id="count-sold">0</span></button>
   </div>
 
-  <!-- Tab Contents -->
   <div id="tab-active" class="tab-content active">
     <div class="product-grid" id="grid-active"></div>
     <div class="empty-state" id="empty-active">
@@ -381,7 +380,7 @@
   function renderGrid(containerId, emptyId, items, statusLabel) {
     const container = document.getElementById(containerId);
     const emptyState = document.getElementById(emptyId);
-    
+
     if (!container || !emptyState) return;
 
     container.innerHTML = '';
@@ -409,7 +408,8 @@
 
       const soldCssClass = (statusLabel === 'Sold') ? 'sold-item' : '';
 
-      const targetPage = (statusLabel === 'Sold') ? 'Product_Detail.html' : 'Seller_Product_Management.html';
+      // 🔥 修改处：现在无论是否卖出，都指向 Seller_Product_Management.html
+      const targetPage = 'Seller_Product_Management.html';
 
       const cardHtml = `
           <div class="product-card ${soldCssClass}" onclick="window.location.href='${targetPage}?id=${item.Product_ID}'">
