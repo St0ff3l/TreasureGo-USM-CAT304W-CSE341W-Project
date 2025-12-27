@@ -1,0 +1,128 @@
+/* Module_After_Sales_Dispute/assets/css/upload_images.css */
+
+:root {
+    --tg-primary: #4F46E5;
+    --tg-bg: #F8FAFC;
+    --tg-border: #CBD5E1;
+}
+
+.tg-upload-area {
+    border: 2px dashed var(--tg-border);
+    border-radius: 20px;
+    padding: 30px;
+    padding-bottom: 80px; /* 留给右下角按钮的空间 */
+    min-height: 250px;
+    background: var(--tg-bg);
+    transition: all 0.3s ease;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; cursor: default;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* 拖拽进入或悬停时的效果 */
+.tg-upload-area:hover, .tg-upload-area.drag-over {
+    border-color: var(--tg-primary);
+    background: #EEF2FF;
+}
+
+/* 占位符文字区域 - 核心修改点 */
+.tg-placeholder {
+    text-align: center;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    width: 100%; padding: 20px;
+
+    /* 新增：平衡底部的 padding-bottom: 80px */
+    margin-top: 35px;
+}
+.tg-upload-area:hover .tg-placeholder { transform: translateY(-5px); }
+
+/* 相机图标 */
+.tg-icon {
+    font-size: 3.5rem;
+    background: white;
+    width: 100px; height: 100px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    color: var(--tg-primary);
+    margin: 0 auto;
+}
+
+/* 预览区域容器 */
+.tg-preview {
+    display: none;
+    width: 100%; gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* 单个图片容器 */
+.tg-preview-wrapper {
+    position: relative;
+    width: 110px; height: 110px;
+    animation: tgPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 图片本体 */
+.tg-preview-item {
+    width: 100%; height: 100%;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.tg-preview-wrapper:hover .tg-preview-item {
+    transform: scale(1.05) rotate(2deg);
+}
+
+/* 删除按钮 */
+.tg-del-btn {
+    position: absolute; top: -10px; right: -10px;
+    width: 28px; height: 28px;
+    background: #EF4444; color: white;
+    border-radius: 50%; border: 2px solid white;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 14px; font-weight: bold;
+    opacity: 0; transform: scale(0.8);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+}
+.tg-preview-wrapper:hover .tg-del-btn { opacity: 1; transform: scale(1); }
+.tg-del-btn:hover { background: #DC2626; transform: scale(1.2); }
+
+/* 添加按钮 */
+.tg-add-btn {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--tg-primary); color: white; border: none;
+    font-size: 28px;
+    display: none; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+    position: absolute; bottom: 20px; right: 20px; z-index: 20;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tg-add-btn:hover {
+    background: #4338CA;
+    transform: scale(1.15) rotate(90deg);
+}
+
+/* 清空按钮 */
+.tg-clear-btn {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(239, 68, 68, 0.1); color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 6px 14px; border-radius: 30px;
+    font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    z-index: 10; display: none; transition: 0.2s;
+}
+.tg-clear-btn:hover { background: #EF4444; color: white; }
+
+@keyframes tgPopIn {
+    from { transform: scale(0.5) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}

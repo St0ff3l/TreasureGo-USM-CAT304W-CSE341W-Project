@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dispute - Refused Returned Package | TreasureGO</title>
 
+  <link href="../assets/css/upload_images.css" rel="stylesheet">
+
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
@@ -93,8 +95,6 @@
     textarea { min-height: 140px; resize: vertical; line-height: 1.6; }
     .help { font-size: 0.92rem; color: var(--text-gray); line-height: 1.6; margin-top: 8px; }
 
-    .evidence { border: 2px dashed #D1D5DB; border-radius: 16px; padding: 16px; background: #FAFAFB; }
-
     .actions { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
     .btn { border: none; border-radius: 14px; padding: 12px 18px; font-weight: 800; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
     .btn-primary { background: var(--primary); color: #fff; }
@@ -151,20 +151,9 @@
     </div>
 
     <div class="section-title">Evidence (optional)</div>
-    <div class="evidence">
-      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
-        <input id="evidenceFiles" type="file" multiple accept="image/*" />
-        <button type="button" id="btnUploadEvidence" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.9rem;">
-          <i class="ri-upload-cloud-line"></i> Upload Images
-        </button>
-      </div>
 
-      <div id="uploadStatus" class="help" style="color: #6B7280; margin-bottom: 8px;">
-        Select images and click "Upload Images" before submitting.
-      </div>
-
-      <div id="evidencePreview" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
-    </div>
+    <div id="evidence-container" style="margin-bottom: 20px;"></div>
+    <div id="uploadStatus" class="help" style="color: #6B7280; margin-bottom: 8px;"></div>
 
     <div class="actions">
       <button class="btn btn-primary" id="btnSubmit"><i class="ri-send-plane-2-line"></i>Submit Dispute</button>
@@ -177,18 +166,19 @@
   </div>
 </div>
 
+<script src="../assets/js/upload_images.js"></script>
+
 <script>
   const API_SESSION_STATUS = '../../Module_User_Account_Management/api/session_status.php';
   const API_GET_USER_ORDERS = '../../Module_Transaction_Fund/api/Get_User_Orders.php';
-  // 依然使用同一个 PHP 后端
   const API_SUBMIT_DISPUTE = '../api/dispute_buyer_submit.php';
 
-  // 全局变量：存储已上传成功的图片路径
-  let uploadedEvidenceUrls = [];
+  // 全局变量
+  let evidenceUploader = null;
+  let currentOrderId = null;
 
   function getQueryParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
+    return new URL(window.location.href).searchParams.get(name);
   }
 
   function safeText(v, fallback = 'N/A') {
@@ -293,63 +283,24 @@
     return found;
   }
 
-  // --- 新增：处理图片上传逻辑 ---
-  function setupEvidenceUpload() {
-    const btnUpload = document.getElementById('btnUploadEvidence');
-    const fileInput = document.getElementById('evidenceFiles');
+  // --- 图片上传辅助函数 ---
+  async function uploadImagesFirst(files, orderId) {
+    if (files.length === 0) return [];
     const statusDiv = document.getElementById('uploadStatus');
-    const previewDiv = document.getElementById('evidencePreview');
+    statusDiv.innerHTML = '<span style="color:blue"><i class="ri-loader-4-line ri-spin"></i> Uploading evidence images...</span>';
 
-    btnUpload.addEventListener('click', async () => {
-      if (fileInput.files.length === 0) {
-        alert('Please select files first.');
-        return;
-      }
+    const fd = new FormData();
+    fd.append('order_id', orderId);
+    Array.from(files).forEach(f => fd.append('evidence[]', f));
 
-      const fd = new FormData();
-      Array.from(fileInput.files).forEach(f => fd.append('evidence[]', f));
+    const res = await fetch(API_SUBMIT_DISPUTE, { method: 'POST', body: fd });
+    const data = await res.json();
 
-      btnUpload.disabled = true;
-      btnUpload.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Uploading...';
-      statusDiv.textContent = 'Uploading...';
-
-      try {
-        const res = await fetch(API_SUBMIT_DISPUTE, {
-          method: 'POST',
-          body: fd
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          const newUrls = data.files.map(f => f.url);
-          uploadedEvidenceUrls = [...uploadedEvidenceUrls, ...newUrls];
-
-          // 渲染预览
-          previewDiv.innerHTML = '';
-          uploadedEvidenceUrls.forEach((url, idx) => {
-            previewDiv.innerHTML += `
-                        <div style="position:relative; width:80px; height:80px;">
-                            <img src="../../${url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid #E5E7EB;">
-                            <span style="position:absolute; bottom:0; right:0; background:rgba(0,0,0,0.6); color:#fff; font-size:10px; padding:2px 4px; border-radius:4px;">#${idx+1}</span>
-                        </div>
-                    `;
-          });
-
-          statusDiv.innerHTML = `<span style="color:green;">Success! ${uploadedEvidenceUrls.length} images ready to submit.</span>`;
-          fileInput.value = '';
-        } else {
-          throw new Error(data.message || 'Upload failed');
-        }
-      } catch (e) {
-        statusDiv.innerHTML = `<span style="color:red;">Error: ${e.message}</span>`;
-        alert('Upload Error: ' + e.message);
-      } finally {
-        btnUpload.disabled = false;
-        btnUpload.innerHTML = '<i class="ri-upload-cloud-line"></i> Upload Images';
-      }
-    });
+    if (!data.success) throw new Error(data.message || 'Image upload failed');
+    return data.files.map(f => f.url);
   }
 
+  // --- 提交逻辑 ---
   function wireActions(orderId) {
     document.getElementById('btnBackToOrder').addEventListener('click', () => {
       window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?id=${encodeURIComponent(orderId)}`;
@@ -359,41 +310,38 @@
       const tracking = document.getElementById('trackingNumber').value.trim();
       const details = document.getElementById('disputeDetails').value.trim();
       const reason = document.getElementById('disputeReason').value;
+      const btnSubmit = document.getElementById('btnSubmit');
 
-      if (!tracking) {
-        return alert('Please enter the return tracking number.');
-      }
-
-      if (!details || details.length < 20) {
-        return alert('Please provide more details (at least 20 characters).');
-      }
-
-      // 检查：如果用户选了文件但没点上传按钮
-      const fileInput = document.getElementById('evidenceFiles');
-      if (fileInput.files.length > 0 && uploadedEvidenceUrls.length === 0) {
-        if(!confirm('You selected files but did NOT click "Upload Images". Submit without images?')) {
-          return;
-        }
-      }
+      if (!tracking) return alert('Please enter the return tracking number.');
+      if (!details || details.length < 20) return alert('Please provide more details (at least 20 characters).');
 
       if (!confirm('Submit dispute to platform for review?')) return;
 
-      const btnSubmit = document.getElementById('btnSubmit');
       btnSubmit.disabled = true;
-      btnSubmit.innerText = 'Submitting...';
+      btnSubmit.innerText = 'Processing...';
 
       try {
+        // 1. 获取组件内的文件
+        const files = evidenceUploader.getFiles();
+        let uploadedUrls = [];
+
+        // 2. 如果有文件，先上传
+        if (files.length > 0) {
+          uploadedUrls = await uploadImagesFirst(files, orderId);
+        }
+
+        // 3. 提交申诉 Payload
         const res = await fetch(API_SUBMIT_DISPUTE, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
             order_id: orderId,
-            dispute_type: 'refused_return_received', // 注意类型是这个
+            dispute_type: 'refused_return_received', // 保持原有类型
             dispute_reason: reason,
             dispute_details: details,
             return_tracking_number: tracking,
-            evidence_images: uploadedEvidenceUrls // --- 关键修改：带上图片 ---
+            evidence_images: uploadedUrls // 带上 URL
           })
         });
 
@@ -411,6 +359,7 @@
       } catch (e) {
         btnSubmit.disabled = false;
         btnSubmit.innerText = 'Submit Dispute';
+        document.getElementById('uploadStatus').innerText = ''; // 清除上传状态
         if (window.showStatusDialog) window.showStatusDialog(String(e.message || e), 'error');
         else alert(String(e.message || e));
       }
@@ -418,8 +367,8 @@
   }
 
   (async function init() {
-    const orderId = getQueryParam('order_id') || getQueryParam('id');
-    if (!orderId) {
+    currentOrderId = getQueryParam('order_id') || getQueryParam('id');
+    if (!currentOrderId) {
       renderBanner({
         title: 'Missing order_id',
         message: 'Open this page with ?order_id=YOUR_ORDER_ID'
@@ -430,11 +379,13 @@
     await ensureLogin();
 
     try {
-      const order = await fetchOrderById(orderId);
+      const order = await fetchOrderById(currentOrderId);
       renderOrder(order);
 
-      setupEvidenceUpload(); // 初始化上传监听
-      wireActions(orderId);
+      // --- 初始化上传组件 ---
+      evidenceUploader = new TreasureGoUploader('#evidence-container', { inputName: 'evidence[]' });
+
+      wireActions(currentOrderId);
     } catch (e) {
       renderBanner({ title: 'Unable to load order', message: safeText(e.message, 'Unknown error') });
     }
