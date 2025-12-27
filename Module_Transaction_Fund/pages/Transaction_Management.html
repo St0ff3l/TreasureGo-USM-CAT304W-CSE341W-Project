@@ -699,7 +699,7 @@
             // Update statistics cards
             document.getElementById('completedTransactions').textContent = stats.total_transactions || 0;
             if(document.getElementById('currentBalance')) {
-                document.getElementById('currentBalance').textContent = '$' + parseFloat(stats.balance || 0).toFixed(2);
+                document.getElementById('currentBalance').textContent = 'RM ' + parseFloat(stats.balance || 0).toFixed(2);
             }
         } catch (error) {
             console.error('Failed to load statistics:', error);
@@ -753,8 +753,8 @@
         row.innerHTML = `
             <td>#TXN${transaction.Log_ID}</td>
             <td style="font-weight: 500;">${transaction.Description || 'Transaction'}</td>
-            <td><strong style="color: ${amountColor};">${amountSign}$${Math.abs(amount).toFixed(2)}</strong></td>
-            <td>$${balance.toFixed(2)}</td> <td>${refHtml}</td>
+            <td><strong style="color: ${amountColor};">${amountSign}RM ${Math.abs(amount).toFixed(2)}</strong></td>
+                                <td>RM ${balance.toFixed(2)}</td> <td>${refHtml}</td>
             <td><span class="status-badge ${statusClass}">Completed</span></td>
             <td>${formatDateTime(transaction.Created_AT)}</td>
             <td>
@@ -849,11 +849,11 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Amount:</span>
-                    <span class="detail-value" style="color: ${amountColor}; font-weight: 700;">${amountSign}$${Math.abs(amount).toFixed(2)}</span>
+                    <span class="detail-value" style="color: ${amountColor}; font-weight: 700;">${amountSign}RM ${Math.abs(amount).toFixed(2)}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Balance After:</span>
-                    <span class="detail-value">$${balance.toFixed(2)}</span>
+                    <span class="detail-value">RM ${balance.toFixed(2)}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Reference Type:</span>

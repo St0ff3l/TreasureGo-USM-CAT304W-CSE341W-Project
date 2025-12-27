@@ -260,7 +260,7 @@
             </td>
             <td><div style="font-weight:600; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${order.Product_Title || 'Product Name Unavailable'}</div></td>
             <td>${roleBadge}</td>
-            <td><strong>$${parseFloat(order.Orders_Total_Amount).toFixed(2)}</strong></td>
+            <td><strong>RM ${parseFloat(order.Orders_Total_Amount).toFixed(2)}</strong></td>
             <td><span class="status-badge ${statusClass}">${capitalizeFirst(order.Orders_Status)}</span></td>
             <td>${formatDateTime(order.Orders_Created_AT)}</td>
             <td>
