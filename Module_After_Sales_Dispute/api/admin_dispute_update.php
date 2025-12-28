@@ -36,6 +36,15 @@ $refundAmount = $payload['Dispute_Refund_Amount'] ?? null; // decimal, may come 
 $replyBuyer = trim($payload['Dispute_Admin_Reply_To_Buyer'] ?? '');
 $replySeller = trim($payload['Dispute_Admin_Reply_To_Seller'] ?? '');
 
+// --- 新增：Action Required By 参数接收与校验 ---
+$actionBy = isset($payload['Action_Required_By']) ? trim($payload['Action_Required_By']) : null;
+$validActions = ['None', 'Buyer', 'Seller', 'Admin', 'Both'];
+if ($actionBy === '') $actionBy = null;
+if ($actionBy !== null && !in_array($actionBy, $validActions, true)) {
+    // 不接受未知值，保持为 null 以便 SQL 的 COALESCE 保留原值
+    $actionBy = null;
+}
+
 // Optional: create an Admin Action and link to dispute
 $actionType = trim($payload['Admin_Action_Type'] ?? '');
 $actionReason = trim($payload['Admin_Action_Reason'] ?? '');
@@ -143,6 +152,7 @@ try {
     if ($isResolving) {
         $sqlUp = 'UPDATE Dispute
                   SET Dispute_Status = ?,
+                      Action_Required_By = COALESCE(?, Action_Required_By),
                       Admin_Action_ID = COALESCE(?, Admin_Action_ID),
                       Dispute_Resolution_Outcome = ?,
                       Dispute_Refund_Amount = ?,
@@ -153,6 +163,7 @@ try {
                   WHERE Dispute_ID = ?';
         $pdo->prepare($sqlUp)->execute([
             $newStatus,
+            $actionBy,
             $adminActionId,
             $outcome,
             $refundAmount,
@@ -164,9 +175,9 @@ try {
     } else {
         // non-resolve updates
         if ($adminActionId !== null) {
-            $pdo->prepare('UPDATE Dispute SET Dispute_Status = ?, Admin_Action_ID = ? WHERE Dispute_ID = ?')->execute([$newStatus, $adminActionId, $disputeId]);
+            $pdo->prepare('UPDATE Dispute SET Dispute_Status = ?, Action_Required_By = COALESCE(?, Action_Required_By), Admin_Action_ID = ? WHERE Dispute_ID = ?')->execute([$newStatus, $actionBy, $adminActionId, $disputeId]);
         } else {
-            $pdo->prepare('UPDATE Dispute SET Dispute_Status = ? WHERE Dispute_ID = ?')->execute([$newStatus, $disputeId]);
+            $pdo->prepare('UPDATE Dispute SET Dispute_Status = ?, Action_Required_By = COALESCE(?, Action_Required_By) WHERE Dispute_ID = ?')->execute([$newStatus, $actionBy, $disputeId]);
         }
     }
 
@@ -227,7 +238,8 @@ try {
             'Dispute_Status' => $newStatus,
             'Admin_Action_ID' => $adminActionId,
             'Dispute_Resolution_Outcome' => $outcome,
-            'Dispute_Refund_Amount' => $refundAmount
+            'Dispute_Refund_Amount' => $refundAmount,
+            'Action_Required_By' => $actionBy
         ]
     ]);
 

@@ -135,6 +135,81 @@ function render(d) {
     // 10. 证据图片
     renderImgs(d.Dispute_Evidence_Image, 'buyerEvidence');
     renderImgs(d.Dispute_Seller_Evidence_Image, 'sellerEvidence');
+
+    // --- 新增：回显 Action Required By ---
+    const actionSelect = document.getElementById('actionRequiredBy');
+    if(actionSelect && d.Action_Required_By) {
+        actionSelect.value = d.Action_Required_By;
+    }
+
+    // --- 新增：加载时间线 ---
+    // 如果后端字段名字不同，请调整 d.Dispute_ID 或使用 disputeId
+    loadTimeline(d.Dispute_ID || disputeId);
+}
+
+// ================= Timeline 加载函数 =================
+async function loadTimeline(id) {
+    const container = document.getElementById('timelineContainer');
+    if(!container) return;
+    container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Loading history...</div>';
+
+    try {
+        const res = await fetch(`../api/get_dispute_timeline.php?order_id=${params.get('id') || ''}&dispute_id=${id}`);
+        const json = await res.json();
+
+        if(!json.success || !json.data || !json.data.timeline) {
+            container.innerHTML = '<div style="padding:15px; text-align:center;">No history records found.</div>';
+            return;
+        }
+
+        const list = json.data.timeline;
+        let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+
+        list.forEach(item => {
+            let bg = '#f1f5f9';
+            let align = 'flex-start';
+            let roleLabel = item.User_Role || item.role || 'User';
+            let icon = 'ri-user-line';
+
+            if (roleLabel === 'Admin' || roleLabel === 'System') {
+                bg = '#FEFCE8'; align = 'center'; icon = 'ri-customer-service-2-line';
+                roleLabel = 'System / Admin';
+            } else if (roleLabel === 'Seller') {
+                bg = '#EEF2FF'; align = 'flex-end'; icon = 'ri-store-2-line';
+            } else {
+                bg = '#FFFFFF'; align = 'flex-start'; icon = 'ri-user-smile-line';
+            }
+
+            // 图片处理
+            let imgs = '';
+            let imgArr = item.Evidence_Images || item.evidence_images || item.images || [];
+            if (typeof imgArr === 'string') {
+                 try { imgArr = JSON.parse(imgArr); } catch(e){ imgArr = []; }
+            }
+            if(Array.isArray(imgArr) && imgArr.length > 0) {
+                imgs = `<div style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;">` +
+                    imgArr.map(u => `<a href="${u.startsWith('http') ? u : '../../' + u}" target="_blank"><img src="${u.startsWith('http') ? u : '../../' + u}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #ccc;"></a>`).join('') +
+                    `</div>`;
+            }
+
+            html += `
+                <div style="align-self:${align}; max-width:85%; background:${bg}; padding:10px 14px; border-radius:12px; border:1px solid #e2e8f0; font-size:0.9rem;">
+                    <div style="font-weight:700; color:#475569; font-size:0.75rem; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                        <i class="${icon}"></i> ${roleLabel} <span style="font-weight:400; color:#94a3b8;">• ${item.Created_At || item.created_at || ''}</span>
+                    </div>
+                    <div style="color:#1e293b; line-height:1.5;">${item.Content || item.content || '<i>(Evidence only)</i>'}</div>
+                    ${imgs}
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+
+    } catch(e) {
+        console.error(e);
+        container.innerHTML = '<div style="color:red; padding:10px;">Failed to load timeline.</div>';
+    }
 }
 
 // ================= 辅助函数 =================
@@ -256,6 +331,8 @@ async function saveDisputeChanges() {
         const payload = {
             Dispute_ID: disputeId,
             Dispute_Status: status,
+            // --- 新增：Action Required By ---
+            Action_Required_By: (document.getElementById('actionRequiredBy') ? document.getElementById('actionRequiredBy').value : null),
             Dispute_Resolution_Outcome: outcome,
             Dispute_Refund_Amount: finalRefundAmount,
             Dispute_Admin_Reply_To_Buyer: document.getElementById('drReplyBuyer').value,

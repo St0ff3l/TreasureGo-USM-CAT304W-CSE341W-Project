@@ -27,12 +27,26 @@
       <div id="statusDisplay" class="status-badge st-Open">...</div>
 
       <div class="form-group">
-        <label class="label">Update Status</label>
+        <label class="label" for="updateStatus">Update Status</label>
         <select id="updateStatus">
           <option value="Open">Open</option>
           <option value="In Review">In Review</option>
           <option value="Resolved">Resolved</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="actionRequiredBy">Action Required From</label>
+        <select id="actionRequiredBy" style="border-color:#6366f1; background:#EEF2FF; font-weight:600;">
+          <option value="Admin">Admin (Processing)</option>
+          <option value="Buyer">Buyer (Waiting for Evidence)</option>
+          <option value="Seller">Seller (Waiting for Response)</option>
+          <option value="Both">Both Parties</option>
+          <option value="None">None (Dispute Closed)</option>
+        </select>
+        <div style="font-size:0.75rem; color:#64748B; margin-top:4px; line-height:1.4;">
+          Selected party will see a red alert to submit evidence.
+        </div>
       </div>
 
       <div class="line-dashed"></div>
@@ -41,7 +55,7 @@
       <input type="hidden" id="orderTotalHidden" value="0">
 
       <div class="form-group">
-        <label class="label">Outcome</label>
+        <label class="label" for="drOutcome">Outcome</label>
         <select id="drOutcome">
           <option value="">-- Select Outcome --</option>
           <option value="refund_buyer">Refund Buyer (Full Refund)</option>
@@ -52,7 +66,7 @@
 
       <div id="amountSection" style="display:none;">
         <div class="form-group">
-          <label class="label" id="amountLabel">Refund Amount to Buyer (MYR)</label>
+          <label class="label" id="amountLabel" for="drAmount">Refund Amount to Buyer (MYR)</label>
           <input type="number" id="drAmount" placeholder="0.00" step="0.01" min="0">
         </div>
 
@@ -122,6 +136,13 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Dispute Timeline & Logs</div>
+      <div id="timelineContainer" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+        <div style="text-align:center; padding:20px; color:#94a3b8;">Loading history...</div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Statements & Evidence</div>
       <div class="comparison-grid">
         <div class="party-col">
@@ -158,11 +179,11 @@
       <div class="card-title">Replies (Visible to users)</div>
       <div class="comparison-grid">
         <div>
-          <label class="label">Reply to Buyer</label>
+          <label class="label" for="drReplyBuyer">Reply to Buyer</label>
           <textarea id="drReplyBuyer" placeholder="Explain decision to buyer..."></textarea>
         </div>
         <div>
-          <label class="label">Reply to Seller</label>
+          <label class="label" for="drReplySeller">Reply to Seller</label>
           <textarea id="drReplySeller" placeholder="Explain decision to seller..."></textarea>
         </div>
       </div>

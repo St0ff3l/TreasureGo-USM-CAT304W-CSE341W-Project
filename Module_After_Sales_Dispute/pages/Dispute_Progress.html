@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dispute Progress | TreasureGO</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="../assets/css/upload_images.css" rel="stylesheet">
+
+  <style>
+    /* 简单的聊天室样式 */
+    body { background: #F3F4F6; font-family: 'Plus Jakarta Sans', sans-serif; padding-bottom: 100px; }
+    .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+
+    .status-header {
+      background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border-left: 5px solid #E5E7EB;
+    }
+    .status-header.action-needed { border-left-color: #DC2626; } /* 红色提示 */
+
+    .timeline-box { display: flex; flex-direction: column; gap: 20px; }
+
+    .msg-card {
+      background: white; padding: 15px; border-radius: 12px;
+      max-width: 85%; position: relative;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* 角色区分样式 */
+    .msg-left { align-self: flex-start; border-top-left-radius: 0; } /* 对方 */
+    .msg-right { align-self: flex-end; background: #EEF2FF; border-top-right-radius: 0; } /* 我 */
+    .msg-admin { align-self: center; max-width: 90%; background: #FEFCE8; border: 1px solid #FDE047; text-align: center; } /* 管理员 */
+
+    .msg-meta { font-size: 0.75rem; color: #6B7280; margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .msg-content { font-size: 0.95rem; color: #1F2937; line-height: 1.5; white-space: pre-wrap; }
+
+    .evidence-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .evidence-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #E5E7EB; }
+
+    /* 底部回复栏 (Sticky Bottom) */
+    .reply-dock {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white; border-top: 1px solid #E5E7EB;
+      padding: 15px 0; z-index: 100;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    }
+    .reply-inner { max-width: 800px; margin: 0 auto; padding: 0 15px; }
+
+    .locked-dock { text-align: center; color: #6B7280; font-size: 0.9rem; padding: 10px; background: #F9FAFB; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="statusHeader" class="status-header">
+    <h2 style="margin:0 0 5px 0; font-size:1.2rem;">Dispute Details</h2>
+    <div id="statusText" style="color:#6B7280;">Loading...</div>
+    <div id="urgentAlert" class="hidden" style="margin-top:10px; color:#DC2626; font-weight:700; display:flex; align-items:center; gap:5px;">
+      <i class="ri-alarm-warning-fill"></i> Action Required: Please provide evidence below!
+    </div>
+  </div>
+
+  <div id="timelineContainer" class="timeline-box">
+  </div>
+</div>
+
+<div class="reply-dock">
+  <div class="reply-inner">
+
+    <div id="activeReplyBox" class="hidden">
+      <div style="font-weight:700; margin-bottom:8px; color:#374151;">Submit Supplementary Evidence</div>
+      <textarea id="replyText" style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid #D1D5DB; margin-bottom:10px;" placeholder="Type your response here..."></textarea>
+
+      <div id="evidence-upload-container" style="margin-bottom:10px;"></div>
+
+      <button id="btnSubmit" class="btn btn-primary" style="width:100%; padding:12px; background:#4F46E5; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
+        Submit Response
+      </button>
+    </div>
+
+    <div id="lockedReplyBox" class="locked-dock hidden">
+      <i class="ri-lock-line"></i> Waiting for <span id="waitingForWho">...</span> to respond.
+    </div>
+
+  </div>
+</div>
+
+<script src="../assets/js/upload_images.js"></script>
+
+<script>
+  const API_GET_TIMELINE = '../api/get_dispute_timeline.php';
+  // 这里的提交接口，根据你的角色自动判断调用 buyer 还是 seller 的 PHP，或者统一一个
+  // 简单起见，我们根据角色动态决定 url
+  let API_SUBMIT = '';
+
+  let currentOrderId = new URLSearchParams(window.location.search).get('order_id');
+  let myRole = '';
+  let uploader = null;
+
+  async function init() {
+    if(!currentOrderId) return alert('Missing Order ID');
+
+    // 1. 加载数据
+    const res = await fetch(`${API_GET_TIMELINE}?order_id=${currentOrderId}`);
+    const json = await res.json();
+
+    if(!json.success) {
+      document.body.innerHTML = `<div style="padding:50px; text-align:center;">${json.message}</div>`;
+      return;
+    }
+
+    const { info, timeline, my_role } = json.data;
+    myRole = my_role; // 'Buyer' or 'Seller'
+
+    // 决定提交接口
+    API_SUBMIT = (myRole === 'Buyer')
+            ? '../api/dispute_buyer_submit.php'
+            : '../api/dispute_seller_submit.php';
+
+    renderHeader(info);
+    renderTimeline(timeline, myRole);
+    renderFooter(info, myRole);
+
+    // 初始化上传组件
+    uploader = new TreasureGoUploader('#evidence-upload-container', {
+      inputName: 'evidence[]',
+      maxFiles: 6
+    });
+
+    // 绑定提交事件
+    document.getElementById('btnSubmit').onclick = submitReply;
+  }
+
+  // 渲染顶部状态
+  function renderHeader(info) {
+    const statusText = document.getElementById('statusText');
+    statusText.innerText = `Status: ${info.Dispute_Status} | Reason: ${info.Dispute_Reason}`;
+
+    // 如果 Action_Required_By 是我，或者是 Both
+    const actionBy = info.Action_Required_By;
+    const isUrgent = (actionBy === myRole) || (actionBy === 'Both');
+
+    if (isUrgent) {
+      document.getElementById('statusHeader').classList.add('action-needed');
+      document.getElementById('urgentAlert').classList.remove('hidden');
+    }
+  }
+
+  // 渲染聊天记录
+  function renderTimeline(list, myRole) {
+    const container = document.getElementById('timelineContainer');
+    let html = '';
+
+    if (list.length === 0) {
+      html = '<div style="text-align:center; color:#9CA3AF; margin-top:30px;">No messages yet.</div>';
+    } else {
+      list.forEach(item => {
+        const isMe = (item.User_Role === myRole);
+        const isAdmin = (item.User_Role === 'Admin');
+
+        let cardClass = isMe ? 'msg-right' : 'msg-left';
+        if (isAdmin) cardClass = 'msg-admin';
+
+        // 头像/名字展示
+        let senderName = item.User_Role;
+        if (isMe) senderName = 'Me';
+
+        // 图片渲染
+        let imgsHtml = '';
+        if (item.Evidence_Images && item.Evidence_Images.length > 0) {
+          imgsHtml = '<div class="evidence-grid">' +
+                  item.Evidence_Images.map(url =>
+                          `<img src="../../${url}" class="evidence-img" onclick="window.open(this.src)">`
+                  ).join('') +
+                  '</div>';
+        }
+
+        html += `
+              <div class="msg-card ${cardClass}">
+                <div class="msg-meta">
+                  <strong>${senderName}</strong>
+                  <span>${item.Created_At}</span>
+                </div>
+                <div class="msg-content">${item.Content || '(No text content)'}</div>
+                ${imgsHtml}
+              </div>
+            `;
+      });
+    }
+    container.innerHTML = html;
+    // 滚动到底部
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+
+  // 渲染底部操作栏
+  function renderFooter(info, myRole) {
+    const actionBy = info.Action_Required_By;
+    const isMyTurn = (actionBy === myRole) || (actionBy === 'Both') || (info.Dispute_Status === 'Open'); // Open状态下也可以补充
+
+    // 如果争议结束了，隐藏所有
+    if (['Resolved', 'Closed', 'Cancelled'].includes(info.Dispute_Status)) {
+      document.querySelector('.reply-dock').style.display = 'none';
+      return;
+    }
+
+    if (isMyTurn) {
+      document.getElementById('activeReplyBox').classList.remove('hidden');
+    } else {
+      document.getElementById('lockedReplyBox').classList.remove('hidden');
+      document.getElementById('waitingForWho').innerText = (actionBy === 'Admin') ? 'Platform Admin' : 'the other party';
+    }
+  }
+
+  // 提交逻辑 (复用之前的逻辑)
+  async function submitReply() {
+    const text = document.getElementById('replyText').value.trim();
+    // 这里需要你自己实现先上传图片拿到 URL 的逻辑 (参考之前的 dispute_buyer_submit 前端代码)
+    // 简单起见，伪代码如下：
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true; btn.innerText = "Processing...";
+
+    try {
+      // 1. 上传图片 (使用 uploader 组件的方法)
+      const files = uploader.getFiles();
+      let uploadedUrls = [];
+      if (files.length > 0) {
+        // 这里要调用对应的 upload 接口，参考之前的代码
+        uploadedUrls = await uploadFilesFunction(files, currentOrderId);
+      }
+
+      if (!text && uploadedUrls.length === 0) throw new Error("Please enter text or upload image.");
+
+      // 2. 提交数据
+      const payload = {
+        order_id: currentOrderId,
+        dispute_details: text, // 注意：补充记录用这个字段
+        seller_response: text, // 卖家接口可能用这个字段名，建议统一一下，或者根据 role 判断
+        evidence_images: uploadedUrls
+      };
+
+      // 兼容字段名：因为你的 buyer 接口用 dispute_details，seller 用 seller_response
+      // 建议：修改 seller 接口也接受 dispute_details，或者在这里做判断
+      if (myRole === 'Seller') payload.seller_response = text;
+
+      const res = await fetch(API_SUBMIT, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        location.reload(); // 刷新页面看新消息
+      } else {
+        alert(json.message);
+        btn.disabled = false; btn.innerText = "Submit Response";
+      }
+    } catch (e) {
+      alert(e.message);
+      btn.disabled = false; btn.innerText = "Submit Response";
+    }
+  }
+
+  // 辅助：你需要把之前页面里的 uploadImagesFirst 函数复制过来改名为 uploadFilesFunction
+  async function uploadFilesFunction(files, orderId) {
+    const fd = new FormData();
+    fd.append('order_id', orderId);
+    files.forEach(f => fd.append('evidence[]', f));
+    // 注意：这里需要确保 API 支持 multipart 上传
+    const res = await fetch(API_SUBMIT, { method: 'POST', body: fd });
+    const d = await res.json();
+    if(!d.success) throw new Error(d.message);
+    return d.files.map(f => f.url);
+  }
+
+  init();
+</script>
+</body>
+</html>

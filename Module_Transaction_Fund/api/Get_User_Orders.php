@@ -77,6 +77,19 @@ try {
                     (SELECT Image_URL FROM Product_Images WHERE Product_ID = p.Product_ID AND Image_is_primary = 1 LIMIT 1) AS Main_Image,
                     GROUP_CONCAT(DISTINCT pi.Image_URL SEPARATOR ',') AS All_Images,
 
+                    /* ===== 🔥🔥 新增：争议状态与参与记录字段 🔥🔥 ===== */
+                    MAX(d.Dispute_ID) AS Dispute_ID,
+                    MAX(d.Dispute_Status) AS Dispute_Status,
+                    MAX(d.Action_Required_By) AS Action_Required_By,
+                    MAX(d.Reporting_User_ID) AS Reporting_User_ID,
+                    
+                    /* 用于判断买家/卖家是否已参与 */
+                    MAX(d.Buyer_Description) AS Buyer_Description,
+                    MAX(d.Seller_Description) AS Seller_Description,
+                    MAX(d.Dispute_Buyer_Evidence) AS Dispute_Buyer_Evidence,
+                    MAX(d.Dispute_Seller_Evidence) AS Dispute_Seller_Evidence,
+                    MAX(d.Dispute_Seller_Response) AS Dispute_Seller_Response,
+
                     /* ===== 新增：管理员争议处理结果 ===== */
                     MAX(d.Dispute_Resolution_Outcome) AS Dispute_Resolution_Outcome,
                     MAX(d.Dispute_Refund_Amount) AS Dispute_Refund_Amount,
@@ -171,6 +184,19 @@ try {
 
                     (SELECT Image_URL FROM Product_Images WHERE Product_ID = p.Product_ID AND Image_is_primary = 1 LIMIT 1) AS Main_Image,
                     GROUP_CONCAT(DISTINCT pi.Image_URL SEPARATOR ',') AS All_Images,
+
+                    /* ===== 🔥🔥 新增：争议状态与参与记录字段 🔥🔥 ===== */
+                    MAX(d.Dispute_ID) AS Dispute_ID,
+                    MAX(d.Dispute_Status) AS Dispute_Status,
+                    MAX(d.Action_Required_By) AS Action_Required_By,
+                    MAX(d.Reporting_User_ID) AS Reporting_User_ID,
+                    
+                    /* 用于判断买家/卖家是否已参与 */
+                    MAX(d.Buyer_Description) AS Buyer_Description,
+                    MAX(d.Seller_Description) AS Seller_Description,
+                    MAX(d.Dispute_Buyer_Evidence) AS Dispute_Buyer_Evidence,
+                    MAX(d.Dispute_Seller_Evidence) AS Dispute_Seller_Evidence,
+                    MAX(d.Dispute_Seller_Response) AS Dispute_Seller_Response,
 
                     /* ===== 新增：管理员争议处理结果 ===== */
                     MAX(d.Dispute_Resolution_Outcome) AS Dispute_Resolution_Outcome,

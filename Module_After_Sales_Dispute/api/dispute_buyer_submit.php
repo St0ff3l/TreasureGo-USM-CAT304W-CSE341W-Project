@@ -6,7 +6,6 @@ error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
 
-// 数据库配置文件路径
 require_once __DIR__ . '/../../Module_Transaction_Fund/api/config/treasurego_db_config.php';
 
 session_start();
@@ -26,20 +25,13 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = intval($_SESSION['user_id']);
 
-/**
- * 辅助函数：清理图片路径，确保安全
- */
 function normalize_evidence_urls($urls) {
     if (!is_array($urls)) return [];
     $clean = [];
-    // 允许的路径片段，防止保存恶意链接
     $validPathNeedle = 'assets/images/evidence_images/';
-
     foreach ($urls as $u) {
         $u = trim((string)$u);
         if ($u === '') continue;
-
-        // 简单校验：必须包含本模块图片目录，且是图片后缀
         if (strpos($u, $validPathNeedle) !== false && preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $u)) {
             $clean[] = $u;
         }
@@ -52,12 +44,12 @@ try {
     if (!$pdo) throw new Exception('Database connection failed');
 
     // ==========================================
-    // 逻辑分支 A: 上传图片 (处理 Multipart/form-data)
+    // 逻辑分支 A: 上传图片 (不变)
     // ==========================================
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['evidence'])) {
-
-        // 1. 简单验证订单权限 (可选，但推荐)
         $orderId = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
+
+        // 1. 简单验证
         if ($orderId > 0) {
             $stmtCheck = $pdo->prepare("SELECT Orders_Buyer_ID FROM Orders WHERE Orders_Order_ID = ?");
             $stmtCheck->execute([$orderId]);
@@ -67,12 +59,8 @@ try {
             }
         }
 
-        // 2. 准备目录
-        // 物理路径: api/../assets/images/evidence_images/
         $uploadDir = __DIR__ . '/../assets/images/evidence_images/';
-        if (!is_dir($uploadDir)) {
-            if (!mkdir($uploadDir, 0777, true)) throw new Exception('Failed to create upload directory');
-        }
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
         $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
         $files = $_FILES['evidence'];
@@ -81,116 +69,139 @@ try {
 
         for ($i = 0; $i < $count; $i++) {
             if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
-
             $tmpName = $files['tmp_name'][$i];
             $origName = $files['name'][$i];
             $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
-
             if (!in_array($ext, $allowed)) continue;
 
-            // 生成唯一文件名: DISPUTE_BUYER_{OrderId}_{Timestamp}_{Random}.ext
             $safeOrderId = $orderId > 0 ? $orderId : 'TEMP';
             $newFileName = sprintf('DISPUTE_BUYER_%s_%s_%s.%s', $safeOrderId, time(), uniqid(), $ext);
             $destination = $uploadDir . $newFileName;
 
             if (move_uploaded_file($tmpName, $destination)) {
-                // 返回给前端的 Web 路径 (存入数据库的路径)
                 $dbPath = 'Module_After_Sales_Dispute/assets/images/evidence_images/' . $newFileName;
-
-                $saved[] = [
-                    'url' => $dbPath,
-                    'type' => 'image',
-                    'original_name' => $origName
-                ];
+                $saved[] = ['url' => $dbPath, 'type' => 'image', 'original_name' => $origName];
             }
         }
-
-        if (empty($saved)) throw new Exception('No valid images uploaded (check format/size).');
-
-        // 返回成功 JSON
+        if (empty($saved)) throw new Exception('No valid images uploaded.');
         out(true, 'Uploaded successfully', ['files' => $saved]);
     }
 
     // ==========================================
-    // 逻辑分支 B: 提交申诉 (处理 JSON Payload)
+    // 逻辑分支 B: 提交申诉
     // ==========================================
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
 
-    if (is_array($data) && isset($data['dispute_reason'])) {
+    if (is_array($data) && (isset($data['dispute_reason']) || isset($data['dispute_details']))) {
 
-        // 1. 获取参数
         $orderId = intval($data['order_id'] ?? 0);
         $reason = trim($data['dispute_reason'] ?? '');
         $details = trim($data['dispute_details'] ?? '');
         $tracking = trim($data['return_tracking_number'] ?? '');
-        $evidenceImgs = $data['evidence_images'] ?? []; // 这是一个 URL 字符串数组
+        $evidenceImgs = $data['evidence_images'] ?? [];
 
-        // 2. 校验
         if ($orderId <= 0) out(false, 'Missing Order ID');
-        if (empty($reason)) out(false, 'Missing Reason');
-        if (mb_strlen($details) < 10) out(false, 'Details too short (min 10 chars).');
+        if (empty($details) && empty($evidenceImgs) && empty($reason)) {
+            out(false, 'Please provide details or evidence.');
+        }
 
         $pdo->beginTransaction();
 
-        // 3. 锁定订单并验证权限
         $stmtOrder = $pdo->prepare('SELECT Orders_Buyer_ID, Orders_Seller_ID FROM Orders WHERE Orders_Order_ID = ? FOR UPDATE');
         $stmtOrder->execute([$orderId]);
         $orderInfo = $stmtOrder->fetch(PDO::FETCH_ASSOC);
 
         if (!$orderInfo) throw new Exception('Order not found');
-        if (intval($orderInfo['Orders_Buyer_ID']) !== $userId) throw new Exception('Permission denied');
+        if (intval($orderInfo['Orders_Buyer_ID']) !== $userId) throw new Exception('Permission denied: Not the buyer.');
 
         $sellerId = intval($orderInfo['Orders_Seller_ID']);
 
-        // 4. 获取 Refund_ID (必须先有退款/退货申请才能申诉)
         $stmtRefund = $pdo->prepare('SELECT Refund_ID FROM Refund_Requests WHERE Order_ID = ? LIMIT 1');
         $stmtRefund->execute([$orderId]);
         $refundRow = $stmtRefund->fetch(PDO::FETCH_ASSOC);
-
-        if (!$refundRow) throw new Exception('No refund request found. You must request a return/refund before disputing.');
+        if (!$refundRow) throw new Exception('No refund request found.');
         $refundId = intval($refundRow['Refund_ID']);
 
-        // 5. 检查是否已有进行中的申诉
-        $stmtCheck = $pdo->prepare("SELECT Dispute_ID FROM Dispute WHERE Order_ID = ? AND Dispute_Status NOT IN ('Resolved', 'Closed', 'Cancelled')");
+        // 检查是否存在争议
+        $stmtCheck = $pdo->prepare("SELECT Dispute_ID, Action_Required_By FROM Dispute WHERE Order_ID = ? AND Dispute_Status NOT IN ('Resolved', 'Closed', 'Cancelled')");
         $stmtCheck->execute([$orderId]);
-        if ($stmtCheck->fetch()) throw new Exception('A dispute is already in progress for this order.');
+        $existingDispute = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-        // 6. 准备数据
         $cleanDetails = $details;
         if (!empty($tracking)) {
             $cleanDetails = "[Tracking: $tracking] " . $cleanDetails;
         }
+        $evidenceJson = json_encode(normalize_evidence_urls($evidenceImgs));
 
-        // 清理图片路径并转 JSON
-        $validEvidence = normalize_evidence_urls($evidenceImgs);
-        $evidenceJson = count($validEvidence) > 0 ? json_encode($validEvidence) : '[]';
+        if ($existingDispute) {
+            // ========================================================
+            // 场景 A: 争议已存在 -> 追加证据 (Supplement)
+            // ========================================================
+            $disputeId = $existingDispute['Dispute_ID'];
 
-        // 7. 插入申诉记录
-        // 注意：这里使用了 Dispute_Buyer_Evidence 字段
-        $sqlInsert = "INSERT INTO Dispute (
-            Order_ID, Refund_ID, Reporting_User_ID, Reported_User_ID,
-            Dispute_Reason, Dispute_Details, Dispute_Status, 
-            Dispute_Buyer_Evidence, Dispute_Creation_Date
-        ) VALUES (?, ?, ?, ?, ?, ?, 'Open', ?, NOW())";
+            // 1. 插入子表记录
+            $sqlSup = "INSERT INTO Dispute_Supplement_Record 
+                      (Dispute_ID, User_ID, User_Role, Content, Evidence_Images, Record_Type, Created_At)
+                      VALUES (?, ?, 'Buyer', ?, ?, 'Evidence', NOW())";
+            $pdo->prepare($sqlSup)->execute([$disputeId, $userId, $cleanDetails, $evidenceJson]);
 
-        $stmtIns = $pdo->prepare($sqlInsert);
-        $stmtIns->execute([
-            $orderId, $refundId, $userId, $sellerId,
-            $reason, $cleanDetails, $evidenceJson
-        ]);
+            // 2. 更新状态流转 & 尝试填充主表买家字段
+            $currentAction = $existingDispute['Action_Required_By'];
+            $newAction = 'Admin';
+            if ($currentAction === 'Both') $newAction = 'Seller';
+            else if ($currentAction === 'Buyer') $newAction = 'Admin';
 
-        $newDisputeId = $pdo->lastInsertId();
+            // 🔥 核心修改：使用 COALESCE(NULLIF(..., ''), ?)
+            // 如果主表字段是 NULL 或 空字符串，则填入当前内容；否则保持原样（不覆盖初始记录）。
+            // 证据字段如果之前是 '[]' 也视为无效，尝试填入新的。
 
-        // 8. 更新退款表状态
-        $stmtUpRefund = $pdo->prepare("UPDATE Refund_Requests SET Refund_Status = 'dispute_in_progress', Refund_Updated_At = NOW() WHERE Refund_ID = ?");
-        $stmtUpRefund->execute([$refundId]);
+            $sqlUp = "UPDATE Dispute SET 
+                        Action_Required_By = ?, 
+                        Dispute_Status = CASE WHEN Dispute_Status = 'Pending Info' THEN 'In Review' ELSE Dispute_Status END,
+                        Buyer_Description = COALESCE(NULLIF(Buyer_Description, ''), ?),
+                        Dispute_Buyer_Evidence = COALESCE(NULLIF(Dispute_Buyer_Evidence, '[]'), ?)
+                      WHERE Dispute_ID = ?";
 
-        $pdo->commit();
-        out(true, 'Dispute submitted successfully.', ['dispute_id' => $newDisputeId]);
+            $pdo->prepare($sqlUp)->execute([$newAction, $cleanDetails, $evidenceJson, $disputeId]);
+
+            $pdo->commit();
+            out(true, 'Additional evidence submitted.', ['dispute_id' => $disputeId]);
+
+        } else {
+            // ========================================================
+            // 场景 B: 首次提交争议 (Create)
+            // ========================================================
+            if (empty($reason)) out(false, 'Missing Dispute Reason');
+
+            // 🔥 核心修改：写入 Buyer_Description
+            $sqlInsert = "INSERT INTO Dispute (
+                Order_ID, Refund_ID, Reporting_User_ID, Reported_User_ID,
+                Dispute_Reason, Dispute_Status, Dispute_Creation_Date, Action_Required_By,
+                Buyer_Description, Dispute_Buyer_Evidence
+            ) VALUES (?, ?, ?, ?, ?, 'Open', NOW(), 'Admin', ?, ?)";
+
+            $stmtIns = $pdo->prepare($sqlInsert);
+            $stmtIns->execute([
+                $orderId, $refundId, $userId, $sellerId,
+                $reason,
+                $cleanDetails, $evidenceJson
+            ]);
+            $newDisputeId = $pdo->lastInsertId();
+
+            // 同步插入第一条记录
+            $sqlSup = "INSERT INTO Dispute_Supplement_Record 
+                      (Dispute_ID, User_ID, User_Role, Content, Evidence_Images, Record_Type, Created_At)
+                      VALUES (?, ?, 'Buyer', ?, ?, 'Evidence', NOW())";
+            $pdo->prepare($sqlSup)->execute([$newDisputeId, $userId, $cleanDetails, $evidenceJson]);
+
+            $pdo->prepare("UPDATE Refund_Requests SET Refund_Status = 'dispute_in_progress', Refund_Updated_At = NOW() WHERE Refund_ID = ?")->execute([$refundId]);
+
+            $pdo->commit();
+            out(true, 'Dispute submitted successfully.', ['dispute_id' => $newDisputeId]);
+        }
     }
 
-    // 如果既不是上传也不是提交 JSON
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         http_response_code(400);
         out(false, 'Invalid request parameters.');

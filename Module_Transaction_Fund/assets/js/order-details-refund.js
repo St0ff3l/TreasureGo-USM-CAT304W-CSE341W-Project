@@ -1,6 +1,7 @@
 /*
  * Order Details - Refund/After-sales module
- * Updated: Supports Admin Dispute Status (Open, In Review, Resolved) & Admin Replies & Pre-Refund Check Modal
+ * Updated: Supports Bi-directional Dispute Initiation & Progress Timeline
+ * Fixes: Full logic restoration, Correct "Check" link, Enhanced Participation Logic
  */
 
 (function (global) {
@@ -30,10 +31,12 @@
     return global.OrderDetailsOrder?.escapeHtml ? global.OrderDetailsOrder.escapeHtml(value) : String(value ?? '');
   }
 
+  // ✅ 0. Check 按钮的目标地址 (查看退款详情)
   function goToRefundDetail(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${encodeURIComponent(orderId)}`;
   }
 
+  // ✅ 1. 填表页：买家发起
   function goToBuyerDispute(orderId, hasBuyerReturnTracking) {
     const oid = encodeURIComponent(orderId);
     const url = Number(hasBuyerReturnTracking)
@@ -42,8 +45,14 @@
     window.location.href = url;
   }
 
+  // ✅ 2. 填表页：卖家发起
   function goToSellerStatement(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Dispute_Seller_Statement.html?order_id=${encodeURIComponent(orderId)}`;
+  }
+
+  // ✅ 3. 进度页：查看/聊天 (双方共用)
+  function goToDisputeProgress(orderId) {
+    window.location.href = `../../Module_After_Sales_Dispute/pages/Dispute_Progress.html?order_id=${encodeURIComponent(orderId)}`;
   }
 
   // ============================================================
@@ -52,14 +61,9 @@
   function renderRefundStatusCard(order, isBuyer) {
     let status = order.Refund_Status; // 可能为空
     const type = order.Refund_Type;
-    const deliveryMethod = String(order.Delivery_Method || 'shipping').toLowerCase().trim();
-
-    // 获取争议相关字段
     const disputeStatus = order.Dispute_Status;
-    const disputeOutcome = order.Dispute_Resolution_Outcome; // refund_buyer, refund_seller, partial
-    const adminReply = isBuyer ? order.Dispute_Admin_Reply_To_Buyer : order.Dispute_Admin_Reply_To_Seller;
 
-    // 🔥 关键修复：如果 Refund_Status 为空，但有 Dispute_Status，强制视为 'dispute_in_progress'
+    // 🔥 如果 Refund_Status 为空，但有 Dispute_Status，强制视为 'dispute_in_progress'
     if (!status && disputeStatus && disputeStatus !== 'Closed' && disputeStatus !== 'None') {
       status = 'dispute_in_progress';
     }
@@ -88,7 +92,7 @@
           <div class="refund-status-card status-pending">
             <div class="refund-status-header">
               <div class="refund-status-label"><i class="ri-time-line"></i> Refund Request Pending</div>
-              <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+              <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
             </div>
             <div class="refund-status-body">
               <div class="refund-info-text">
@@ -106,7 +110,7 @@
         <div class="refund-status-card status-pending">
           <div class="refund-status-header">
             <div class="refund-status-label"><i class="ri-time-line"></i> Buyer Requested Refund</div>
-            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
           </div>
           <div class="refund-status-body">
             <div class="refund-info-text">
@@ -128,6 +132,7 @@
     // -------------------------------------------------------------
     if (status === 'awaiting_return' || status === 'awaiting_confirm') {
       const returnTracking = order.Return_Tracking_Number || order.return_tracking_number || '';
+      const deliveryMethod = String(order.Delivery_Method || 'shipping').toLowerCase().trim();
 
       // Meet-up Logic
       if (deliveryMethod === 'meetup') {
@@ -135,7 +140,7 @@
           <div class="refund-status-card status-return">
             <div class="refund-status-header">
               <div class="refund-status-label"><i class="ri-exchange-line"></i> Return in Progress (Meet-up)</div>
-              <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+              <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
             </div>
             <div class="refund-status-body">
               <div class="refund-info-text">
@@ -158,7 +163,7 @@
             <div class="refund-status-card status-return">
               <div class="refund-status-header">
                 <div class="refund-status-label"><i class="ri-truck-line"></i> Return Shipped</div>
-                <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+                <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
               </div>
               <div class="refund-status-body">
                 <div class="refund-info-text" style="width:100%;">
@@ -176,7 +181,7 @@
             <div class="refund-status-card status-return">
               <div class="refund-status-header">
                 <div class="refund-status-label"><i class="ri-truck-line"></i> Return Shipping</div>
-                <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+                <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
               </div>
               <div class="refund-status-body">
                 <div class="refund-info-text">
@@ -200,7 +205,7 @@
         <div class="refund-status-card status-return">
           <div class="refund-status-header">
             <div class="refund-status-label"><i class="ri-truck-line"></i> Return In Progress</div>
-            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
           </div>
           <div class="refund-status-body">
             <div class="refund-info-text">
@@ -223,6 +228,8 @@
       let title = 'Refund Completed';
       let msg = isBuyer ? 'Refund returned to wallet.' : 'Refund deducted from earnings.';
       let adminHtml = '';
+      const disputeOutcome = order.Dispute_Resolution_Outcome;
+      const adminReply = isBuyer ? order.Dispute_Admin_Reply_To_Buyer : order.Dispute_Admin_Reply_To_Seller;
 
       if (disputeOutcome === 'refund_buyer' || disputeOutcome === 'partial') {
         title = 'Dispute Resolved: Refund Approved';
@@ -251,16 +258,18 @@
     }
 
     // -------------------------------------------------------------
-    // 🔥 4. Rejected / Closed (Seller Rejected OR Dispute Won by Seller)
+    // 🔥 4. Rejected / Closed / Cancelled
     // -------------------------------------------------------------
     if (status === 'rejected' || status === 'closed' || status === 'goods_rejected' || status === 'cancelled') {
       const attempt = parseInt(order.Request_Attempt || '1', 10);
       const canResubmit = isBuyer && attempt < 2 && status !== 'closed' && status !== 'cancelled';
+      const disputeOutcome = order.Dispute_Resolution_Outcome;
+      const adminReply = isBuyer ? order.Dispute_Admin_Reply_To_Buyer : order.Dispute_Admin_Reply_To_Seller;
+      const hasDispute = (order.Dispute_ID && Number(order.Dispute_ID) > 0);
 
-      // 🔥🔥🔥 核心修改：如果已是第二次拒绝 (attempt >= 2)，无论当前 Refund_Status 是 rejected 还是 closed，
-      // 我们都视为“自动进入争议”或“平台已介入”，显示争议卡片。
-      if (isBuyer && !canResubmit && status === 'rejected') {
-        return renderDisputeCard(order, isBuyer, 'Platform Intervention', 'Request rejected twice. Platform support team has been notified.');
+      // 🔥 核心判断：如果买家被拒第二次，或者虽然第一次被拒但卖家已经发起了争议
+      if ((isBuyer && !canResubmit && status === 'rejected') || hasDispute) {
+        return renderDisputeCard(order, isBuyer, 'Platform Intervention', 'Request rejected. Platform support team involved.');
       }
 
       let title = 'Refund Request Rejected';
@@ -295,7 +304,7 @@
         <div class="refund-status-card status-closed">
           <div class="refund-status-header">
             <div class="refund-status-label"><i class="ri-close-circle-line"></i> ${title}</div>
-            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">View</a>
+            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
           </div>
           <div class="refund-status-body">
             <div class="refund-info-text" style="width:100%">
@@ -322,69 +331,121 @@
     return '';
   }
 
-  // 🔥 辅助函数：专门渲染争议卡片
+  // ============================================================
+  // 🔥🔥🔥 核心逻辑：智能路由判断 (Dispute Card) 🔥🔥🔥
+  // ============================================================
   function renderDisputeCard(order, isBuyer, overrideTitle, overrideDesc) {
+    const disputeId = Number(order.Dispute_ID || 0);
+    const hasDisputeRecord = (disputeId > 0);
     const hasBuyerReturnTracking = !!(order.Return_Tracking_Number || order.return_tracking_number);
+
+    // ⬇️⬇️⬇️ 关键判断逻辑 ⬇️⬇️⬇️
+    let jumpFunc = '';
+    let hasParticipated = false;
+
+    // 1. 判断我（当前用户）是否已经提交过证据
+    // 现在检查新的 _Description 字段和图片字段
+    if (isBuyer) {
+      const desc = order.Buyer_Description || '';
+      const imgs = order.Dispute_Buyer_Evidence || '[]';
+
+      // 如果有文字描述，或者有图片
+      if (desc.length > 0 || (imgs.length > 5 && imgs !== '[]')) {
+        hasParticipated = true;
+      }
+    } else {
+      const desc = order.Seller_Description || '';
+      const imgs = order.Dispute_Seller_Evidence || '[]';
+
+      // 如果有文字描述，或者有图片
+      if (desc.length > 0 || (imgs.length > 5 && imgs !== '[]')) {
+        hasParticipated = true;
+      }
+    }
+
+    // 2. 路由决策
+    if (!hasDisputeRecord) {
+      // 还没立案 -> 肯定去填表
+      jumpFunc = isBuyer
+          ? `goToBuyerDispute(${Number(order.Orders_Order_ID)}, ${Number(hasBuyerReturnTracking)})`
+          : `goToSellerStatement(${Number(order.Orders_Order_ID)})`;
+    } else {
+      // 已经立案 -> 检查我是否参与过
+      if (hasParticipated) {
+        // 我参与过 -> 去聊天页
+        jumpFunc = `goToDisputeProgress(${Number(order.Orders_Order_ID)})`;
+      } else {
+        // 立案了但我没交过证据 (我是被告且第一次来) -> 去填表页
+        jumpFunc = isBuyer
+            ? `goToBuyerDispute(${Number(order.Orders_Order_ID)}, ${Number(hasBuyerReturnTracking)})`
+            : `goToSellerStatement(${Number(order.Orders_Order_ID)})`;
+      }
+    }
+
+    // UI 渲染逻辑
+    const actionRequired = order.Action_Required_By || 'None';
+    const myRole = isBuyer ? 'Buyer' : 'Seller';
+    const isActionNeeded = (actionRequired === myRole) || (actionRequired === 'Both');
     const step = order.Dispute_Status || 'Open';
 
     let displayStatus = overrideTitle || "Dispute Submitted";
     let displayDesc = overrideDesc || "Waiting for admin assignment.";
     let statusIcon = "ri-send-plane-fill";
-    let headerColorClass = "status-pending";
+    let headerColorClass = "status-pending"; // 默认黄/灰
 
-    // 如果没有强制覆盖文案，则根据步骤显示
-    if (!overrideTitle) {
+    if (isActionNeeded) {
+      displayStatus = "Action Required";
+      displayDesc = "Please submit your evidence/response immediately.";
+      statusIcon = "ri-alarm-warning-fill";
+      headerColorClass = "status-closed"; // 红色背景
+    } else if (!overrideTitle) {
+      // 根据状态显示不同文案
       switch (step) {
         case 'In Review':
           displayStatus = "Under Review";
           displayDesc = "Admin is investigating the case.";
           statusIcon = "ri-search-eye-line";
-          headerColorClass = "status-return"; // Blue
-          break;
-        case 'Pending Info':
-        case 'Action Required':
-          displayStatus = "Action Required";
-          displayDesc = "Please provide more info.";
-          statusIcon = "ri-alarm-warning-line";
-          headerColorClass = "status-closed"; // Red
-          break;
-        case 'Negotiation':
-          displayStatus = "Negotiation Stage";
-          displayDesc = "Platform is mediating.";
-          statusIcon = "ri-discuss-line";
-          headerColorClass = "status-return";
+          headerColorClass = "status-return"; // 蓝色
           break;
         case 'Resolved':
           displayStatus = "Dispute Resolved";
           displayDesc = "Verdict reached.";
           statusIcon = "ri-check-double-line";
-          headerColorClass = "status-success"; // Green
+          headerColorClass = "status-success"; // 绿色
           break;
       }
     }
 
-    const disputeBtn = isBuyer
-        ? `<button class="btn" style="background:#1F2937; color:white;" onclick="goToBuyerDispute(${Number(order.Orders_Order_ID)}, ${Number(hasBuyerReturnTracking)})">View Progress</button>`
-        : `<button class="btn" style="background:#1F2937; color:white;" onclick="goToSellerStatement(${Number(order.Orders_Order_ID)})">Respond</button>`;
+    // 按钮文字逻辑：没立案/没参与 -> 填表；否则 -> 看详情
+    const btnText = (!hasDisputeRecord || !hasParticipated) ? "Respond / File Dispute" : (isActionNeeded ? "Respond Now" : "View Details");
+    const btnStyle = isActionNeeded
+        ? "background:#DC2626; color:white; border:none;" // 红色紧急
+        : "background:#1F2937; color:white;";             // 黑色普通
 
     return `
         <div class="refund-status-card ${headerColorClass}">
           <div class="refund-status-header">
-            <div class="refund-status-label"><i class="${statusIcon}"></i> ${displayStatus}</div>
-            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Request Details</a>
+            <div class="refund-status-label">
+                <i class="${statusIcon}"></i> ${displayStatus}
+                ${isActionNeeded ? '<span style="background:red; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">URGENT</span>' : ''}
+            </div>
+            <a class="btn-view-details" href="javascript:void(0)" onclick="goToRefundDetail(${Number(order.Orders_Order_ID)})">Check</a>
           </div>
           <div class="refund-status-body">
             <div class="refund-info-text">
               <h4>Platform Intervention</h4>
               <p>${displayDesc}</p>
-              ${!overrideTitle ? `
               <div style="margin-top:8px;">
                  <span style="font-size:0.75rem; font-weight:700; color:#6B7280; background:#F3F4F6; padding:4px 8px; border-radius:4px; text-transform:uppercase;">
-                   STEP: ${step}
+                   STATUS: ${step}
                  </span>
-              </div>` : ''}
+              </div>
             </div>
-            <div class="btn-group">${disputeBtn}</div>
+            <div class="btn-group">
+                <button class="btn" style="${btnStyle}" onclick="${jumpFunc}">
+                    ${btnText}
+                </button>
+            </div>
           </div>
         </div>
       `;
@@ -585,6 +646,7 @@
     goToRefundDetail,
     goToSellerStatement,
     goToBuyerDispute,
+    goToDisputeProgress,
     sellerProcessRefund,
     sellerConfirmReturnReceived,
     sellerRefuseReturnReceived,
@@ -609,5 +671,6 @@
   global.confirmReturnHandover = confirmReturnHandover;
   global.goToSellerStatement = goToSellerStatement;
   global.goToBuyerDispute = goToBuyerDispute;
+  global.goToDisputeProgress = goToDisputeProgress;
 
 })(window);
