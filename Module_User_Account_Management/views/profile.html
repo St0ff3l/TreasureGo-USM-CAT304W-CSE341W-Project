@@ -630,7 +630,7 @@
     <a href="../../Module_Product_Ecosystem/pages/Publish_Page.html" class="action-btn btn-primary-action">
       <i class="ri-add-circle-line"></i> Publish Item
     </a>
-    <a href="#" class="action-btn"><i class="ri-message-3-line"></i> Messages</a>
+    <a href="#" class="action-btn"><i class="ri-star-line"></i> Reviews</a>
     <a href="#" class="action-btn"><i class="ri-customer-service-2-line"></i> Help Center</a>
     <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="action-btn">
       <i class="ri-alarm-warning-line"></i> Report
@@ -840,7 +840,8 @@
             card.className = 'product-card';
 
             // Active Listings: Link directly to detail page (Normal State)
-            card.onclick = () => window.location.href = `../../Module_Product_Ecosystem/pages/Product_Detail.html?product_id=${item.Product_ID}`;
+            // 🔥 MODIFIED: Now includes ID
+            card.onclick = () => window.location.href = `../../Module_Product_Ecosystem/pages/Seller_Product_Management.html?id=${item.Product_ID}&tab=active`;
 
             // Handle image path
             let imgUrl = item.Main_Image;
@@ -1051,10 +1052,11 @@
             card.className = 'product-card';
 
             // Reviews/Sold Listings: Link to detail page with 'Sold' status
+            // 🔥 MODIFIED: Now includes ID
             card.onclick = (e) => {
               // Prevent click if clicking the button
               if(e.target.classList.contains('btn-review')) return;
-              window.location.href = `../../Module_Product_Ecosystem/pages/Product_Detail.html?product_id=${item.Product_ID}&status=Sold`;
+              window.location.href = `../../Module_Product_Ecosystem/pages/Seller_Product_Management.html?id=${item.Product_ID}&tab=sold`;
             };
 
             // Handle image path
@@ -1468,7 +1470,7 @@
       }
     } catch (err) {
       console.error(err);
-      StatusDialog.fail('Error', 'Network error.');
+      StatusDialog.fail('Error', 'Network error occurred.');
     }
   }
 

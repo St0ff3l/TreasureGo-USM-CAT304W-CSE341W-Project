@@ -256,7 +256,7 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id') || urlParams.get('product_id'); // 兼容两种参数
+    const productId = urlParams.get('id');
     let globalImageList = [];
     let currentImageIndex = 0;
     let currentProductForReport = null;
@@ -316,10 +316,7 @@
         const buyBtn = document.querySelector('.btn-buy');
         const status = (item.Product_Status || '').toLowerCase(); // Normalize to lowercase
 
-        // 允许通过 URL 参数强制设置 Sold 状态 (方便 Profile 页跳转)
-        const urlStatus = urlParams.get('status');
-
-        if (status === 'sold' || urlStatus === 'Sold') {
+        if (status === 'sold') {
             // 🔥 Sold Out Logic
             buyBtn.innerText = "Sold Out";
             buyBtn.style.background = "#9CA3AF";
@@ -334,16 +331,16 @@
 
         } else if (status === 'unlisted' || status === 'inactive') {
             // 🔥🔥 Unlisted / Off Shelf Logic (已下架) 🔥🔥
-            buyBtn.innerText = "Item Unlisted";
-            buyBtn.style.background = "#9CA3AF";
+            buyBtn.innerText = "Item Unlisted"; // 界面显示 "Item Unlisted" 代表已下架
+            buyBtn.style.background = "#9CA3AF"; // 灰色按钮
             buyBtn.style.cursor = "not-allowed";
             buyBtn.style.boxShadow = "none";
             buyBtn.href = "javascript:void(0)";
             buyBtn.onclick = (e) => e.preventDefault();
 
-            conditionTag.innerText = "● OFF SHELF";
-            conditionTag.style.background = "#F3F4F6";
-            conditionTag.style.color = "#6B7280";
+            conditionTag.innerText = "● OFF SHELF"; // 灰色标签
+            conditionTag.style.background = "#F3F4F6"; // 灰色背景
+            conditionTag.style.color = "#6B7280"; // 灰色文字
 
         } else {
             // ✅ Active Logic
@@ -365,7 +362,7 @@
         const reportBtn = document.getElementById('reportBtn');
         if(reportBtn && reportUrl) reportBtn.href = reportUrl;
 
-        setupChatButton(item);
+        setupChatButton(item); // Handle Chat button visibility based on status
 
         // --- 5. Images ---
         handleImages(item);
@@ -393,10 +390,9 @@
     function setupChatButton(item) {
         const chatBtn = document.querySelector('.chat-btn-small');
         const status = (item.Product_Status || '').toLowerCase();
-        const urlStatus = urlParams.get('status');
 
-        // 🔥 如果是 Sold 或 Unlisted，直接隐藏 Chat 按钮
-        if (status === 'sold' || urlStatus === 'Sold' || status === 'unlisted' || status === 'inactive') {
+        // 🔥🔥🔥 核心修改：如果是 Sold 或 Unlisted，直接隐藏 Chat 按钮 🔥🔥🔥
+        if (status === 'sold' || status === 'unlisted' || status === 'inactive') {
             chatBtn.style.display = 'none';
             return;
         }
@@ -428,40 +424,19 @@
         return `${baseUrl}?${params.toString()}`;
     }
 
-    // --- 🔥 修复后的 handleImages 函数 (关键修改) 🔥 ---
     function handleImages(item) {
         globalImageList = [];
-
-        // 内部工具函数：统一处理路径
-        const processPath = (path) => {
-            if (!path) return '';
-            let cleanPath = path.replace(/\\/g, '/');
-
-            // 1. 查找 "Public_Product_Images" (正确的文件夹名)
-            if (cleanPath.includes('Public_Product_Images/')) {
-                // 截取路径，确保从 "Public_Product_Images/" 开始
-                cleanPath = cleanPath.substring(cleanPath.indexOf('Public_Product_Images/'));
-
-                // 2. 使用 '../' 回退一级
-                // 页面在: Module_Product_Ecosystem/pages/
-                // 图片在: Module_Product_Ecosystem/Public_Product_Images/
-                // 它们是兄弟文件夹，所以只需向上走一级
-                return `../${cleanPath}`;
-            }
-
-            // 兜底：如果是 http 开头，直接返回
-            if (cleanPath.startsWith('http')) return cleanPath;
-
-            // 如果路径没有 Public_Product_Images 标识，尝试直接加 ../
-            return `../${cleanPath}`;
-        };
-
         if (item.All_Images) {
-            globalImageList = item.All_Images.split(',').map(processPath);
+            globalImageList = item.All_Images.split(',').map(path => {
+                let cleanPath = path.replace(/\\/g, '/');
+                cleanPath = cleanPath.replace(/^.*?Public_Images\//, 'Public_Images/');
+                return `../../${cleanPath}`;
+            });
         } else if (item.Main_Image) {
-            globalImageList = [processPath(item.Main_Image)];
+            let cleanPath = item.Main_Image.replace(/\\/g, '/');
+            cleanPath = cleanPath.replace(/^.*?Public_Images\//, 'Public_Images/');
+            globalImageList = [`../../${cleanPath}`];
         }
-
         if (globalImageList.length === 0) {
             document.getElementById('mainImage').innerHTML = '<div style="font-size:5rem;">📦</div>';
             return;
@@ -479,13 +454,7 @@
         img.style.height = '100%';
         img.style.objectFit = 'contain';
         img.className = 'fade-anim';
-        // 错误处理：如果图片404，显示占位符
-        img.onerror = function() {
-            this.style.display = 'none';
-            mainImgBox.innerHTML = '<div style="font-size:3rem; color:#ccc;">Image Not Found</div>';
-        };
         mainImgBox.appendChild(img);
-
         if (globalImageList.length > 1) {
             const prevBtn = document.createElement('button');
             prevBtn.className = 'nav-arrow prev-btn';
@@ -511,8 +480,7 @@
         globalImageList.forEach((imgSrc, index) => {
             const thumb = document.createElement('div');
             thumb.className = index === currentImageIndex ? 'thumb active' : 'thumb';
-            // 缩略图也有 onerror 处理
-            thumb.innerHTML = `<img src="${imgSrc}" onerror="this.src='../../Public_Assets/images/TreasureGo_Logo.png'">`;
+            thumb.innerHTML = `<img src="${imgSrc}">`;
             thumb.onclick = () => {
                 currentImageIndex = index;
                 updateMainImageDisplay();
