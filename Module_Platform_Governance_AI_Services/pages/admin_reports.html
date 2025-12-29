@@ -419,16 +419,36 @@
       const iconChar = rType === 'product' ? '📦' : (rType === 'user' ? '👤' : '💬');
       const typeClass = 'type-' + rType;
 
+      // ===============================================
+      // 【核心修改】左侧图片/图标显示逻辑
+      // ===============================================
       let leftContentHtml = '';
+
+      // 1. 如果是商品举报，且有商品图 -> 显示商品图 (方形)
       if (rType === 'product' && r.productImage) {
         const imgPath = `../../${r.productImage}`;
         leftContentHtml = `
-            <img src="${imgPath}" class="report-product-img" alt="Product" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            <img src="${imgPath}" class="report-product-img" alt="Product"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
             <div class="report-icon-box ${typeClass}" style="display:none">${iconChar}</div>
           `;
-      } else {
+      }
+      // 2. 如果是用户举报，且有用户头像 -> 显示用户头像 (圆形)
+      else if (rType === 'user' && r.reportedUserImage) {
+        // 假设数据库存的是 "Public_Assets/..."，我们需要加 "../../" 回到根目录
+        const avatarPath = `../../${r.reportedUserImage}`;
+        leftContentHtml = `
+            <img src="${avatarPath}" class="report-product-img" alt="User"
+                 style="border-radius: 50%; object-fit: cover;"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            <div class="report-icon-box ${typeClass}" style="display:none">${iconChar}</div>
+        `;
+      }
+      // 3. 都没有 -> 显示默认图标
+      else {
         leftContentHtml = `<div class="report-icon-box ${typeClass}">${iconChar}</div>`;
       }
+      // ===============================================
 
       return `
         <div class="request-card">
@@ -468,11 +488,63 @@
   }
 
   function openDetailsModal(id) {
-    // 查找时使用 Report_ID
+    // 查找当前举报单数据
     const r = allReports.find(x => (x.Report_ID || x.id) == id);
     if (!r) return;
 
-    // 显示详情，包括 Contact Email
+    // 1. 获取 ID (兼容不同字段名)
+    const reporterId = r.reporterId || r.Reporting_User_ID;
+
+    // 2. 定义跳转的基础路径
+    const profileBasePath = '../../Module_User_Account_Management/views/public_profile.html';
+
+    // 3. 构建证据图片的 HTML
+    let evidenceHtml = '';
+    if (r.evidence && Array.isArray(r.evidence) && r.evidence.length > 0) {
+      const images = r.evidence.map(img => `
+            <a href="${img}" target="_blank" class="evidence-link">
+                <img src="${img}"
+                     alt="Evidence"
+                     onerror="this.src='https://placehold.co/80x80?text=Error'; this.style.opacity=0.5;"
+                     style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #E5E7EB; transition:transform 0.2s;">
+            </a>
+        `).join('');
+
+      evidenceHtml = `
+            <div class="detail-row">
+                <div class="detail-label">Evidence Images</div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    ${images}
+                </div>
+            </div>
+        `;
+    }
+
+    // 4. 构建 Target 部分的 HTML (根据类型区分)
+    let targetInfoHtml = '';
+    if (r.Report_Type === 'product') {
+      // --- 商品举报：显示商品名 + 卖家信息 ---
+      targetInfoHtml = `
+            <div style="font-size:1.05rem; font-weight:700; margin-bottom:6px; color:var(--text-dark);">
+                ${r.targetName}
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                 <i class="fa-solid fa-store" style="color:#9CA3AF; font-size:0.85rem;"></i>
+                 <strong>${r.reportedUserName}</strong>
+                 <span style="color:#9CA3AF; font-size:0.9rem;">(ID: ${r.reportedUserId})</span>
+            </div>
+        `;
+    } else {
+      // --- 用户举报：完全模仿 Reporter 的格式 (简单干净) ---
+      targetInfoHtml = `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                 <strong>${r.reportedUserName}</strong>
+                 <span style="color:#9CA3AF; font-size:0.9rem;">(ID: ${r.reportedUserId})</span>
+            </div>
+        `;
+    }
+
+    // 5. 渲染模态框内容
     document.getElementById('details-content').innerHTML = `
       <div class="detail-row">
         <div class="detail-label">Report ID</div>
@@ -482,9 +554,9 @@
       <div class="detail-row">
         <div class="detail-label">Reporter</div>
         <div class="detail-value">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
              <strong>${r.reporter || 'Unknown'}</strong>
-             <span style="color:#9CA3AF; font-size:0.9rem;">(ID: ${r.reporterId || r.Reporting_User_ID})</span>
+             <span style="color:#9CA3AF; font-size:0.9rem;">(ID: ${reporterId})</span>
           </div>
 
           ${r.contactEmail || r.Report_Contact_Email ? `
@@ -494,7 +566,7 @@
           </div>` : ''}
 
           <div>
-             <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reporterId}'">View Profile</button>
+             <button class="btn-action-view" onclick="window.location.href='${profileBasePath}?user_id=${reporterId}'">View Profile</button>
           </div>
         </div>
       </div>
@@ -502,13 +574,13 @@
       <div class="detail-row">
         <div class="detail-label">Target</div>
         <div class="detail-value">
-          <div style="font-size:1.05rem; font-weight:700; margin-bottom:8px;">${r.targetName}</div>
-          <div style="padding:12px; background:#F9FAFB; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:10px;">
-            <div style="margin-bottom:4px;">👤 User: <strong>${r.reportedUserName}</strong> (ID: ${r.reportedUserId})</div>
-          </div>
+
+          ${targetInfoHtml}
+
           <div style="display:flex; gap:10px;">
-            <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reportedUserId}'">Target Profile</button>
-            ${r.reportedItemId ? `<button class="btn-action-view" style="background:#EEF2FF; color:var(--primary);" onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${r.reportedItemId}'">Product Page</button>` : ''}
+            <button class="btn-action-view" onclick="window.location.href='${profileBasePath}?user_id=${r.reportedUserId}'">Target Profile</button>
+
+            ${r.reportedItemId ? `<button class="btn-action-view" style="background:#EEF2FF; color:var(--primary);" onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?product_id=${r.reportedItemId}'">Product Page</button>` : ''}
           </div>
         </div>
       </div>
@@ -522,7 +594,10 @@
           </div>
         </div>
       </div>
+
+      ${evidenceHtml}
     `;
+
     document.getElementById('details-modal').classList.add('active');
   }
 
