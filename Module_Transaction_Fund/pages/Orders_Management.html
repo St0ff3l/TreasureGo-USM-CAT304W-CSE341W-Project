@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Management - TreasureGO</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
     <style>
-        /* --- 保持原有的 CSS 样式完全不变 --- */
+        /* --- 原有 CSS --- */
         :root {
             --bg-color: #F3F6F9;
             --primary: #4F46E5;
@@ -33,9 +35,6 @@
                     radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
-
-        /* ...此处省略了未改动的 CSS (Floating items, Navbar, etc.) 保持原样即可... */
-        /* 为了节省篇幅，请保留你原始代码中的所有 CSS */
 
         #floating-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .floating-item { position: absolute; font-size: 4rem; opacity: 0.6; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); animation: floatUp 15s linear infinite; }
@@ -66,21 +65,29 @@
         th { padding: 15px; text-align: left; font-weight: 700; font-size: 0.9rem; color: var(--text-dark); border-bottom: 2px solid #E5E7EB; }
         td { padding: 15px; border-bottom: 1px solid #F3F4F6; font-size: 0.95rem; }
         tr:hover { background: #F9FAFB; }
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; }
-        .status-paid { background: #FFEFD5; color: #8B4513; }
-        .status-pending { background: #FEF3C7; color: #92400E; }
-        .status-approved { background: #D1FAE5; color: #065F46; }
-        .status-processing { background: #DBEAFE; color: #1E40AF; }
-        .status-completed { background: #D1FAE5; color: #065F46; }
-        .status-rejected { background: #FEE2E2; color: #991B1B; }
-        .status-cancelled { background: #F3F4F6; color: #6B7280; }
+
+        /* 🔥 更新后的状态徽章样式 (根据截图调整) */
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; white-space: nowrap;}
+
+        .status-paid { background: #FFEFD5; color: #8B4513; } /* 浅橙/棕色 */
+        .status-shipped { background: #DBEAFE; color: #1E40AF; } /* 浅蓝/深蓝 */
+        .status-after-sales { background: #FEF3C7; color: #92400E; } /* 浅黄/深橙 */
+        .status-completed { background: #D1FAE5; color: #065F46; } /* 浅绿/深绿 */
+        .status-cancelled { background: #F3F4F6; color: #6B7280; } /* 浅灰/深灰 */
+
+        /* 默认样式 */
+        .status-default { background: #F3F4F6; color: #374151; }
+
         .action-btns { display: flex; gap: 8px; }
-        .btn-small { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
-        .btn-view { background: #EFF6FF; color: #1E40AF; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-small { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-view { background: #EFF6FF; color: #1E40AF; }
         .btn-view:hover { background: #DBEAFE; }
+
+        .btn-review { background: #FFFBEB; color: #D97706; border: 1px solid #FCD34D; }
+        .btn-review:hover { background: #FEF3C7; transform: translateY(-1px); }
+
         .filter-select-small { padding: 4px 8px; border-radius: 8px; border: 1px solid #E5E7EB; background-color: white; color: var(--text-dark); font-size: 0.85rem; cursor: pointer; outline: none; transition: all 0.2s; }
 
-        /* Menu & Avatar Styles */
         .menu-container { position: relative; display: inline-block; }
         .avatar-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: white; font-weight: bold; transition: all 0.3s; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); border: 2px solid #fff; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
         .dropdown-content { display: none; position: absolute; right: 0; top: 100%; margin-top: 10px; background-color: white; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 16px; z-index: 1001; padding: 8px; animation: fadeIn 0.2s ease; }
@@ -95,6 +102,48 @@
             table { font-size: 0.85rem; }
             th, td { padding: 10px 8px; }
         }
+
+        /* Review Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(4px);
+            animation: fadeInOverlay 0.2s ease-out;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 500px;
+            border-radius: 20px; padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            transform: scale(0.95);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-gray); }
+
+        .review-criteria { margin-bottom: 15px; }
+        .criteria-label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-dark); }
+        .star-rating { display: flex; gap: 5px; font-size: 1.5rem; color: #D1D5DB; cursor: pointer; }
+        .star-rating i.active { color: #F59E0B; }
+        .star-rating i:hover { color: #FCD34D; }
+
+        .review-textarea {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #E5E7EB;
+            font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 100px;
+            margin-top: 10px; margin-bottom: 20px; outline: none;
+        }
+        .review-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        .modal-footer { display: flex; gap: 10px; }
+        .btn-modal-submit { flex: 1; background: var(--primary); color: white; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-modal-submit:hover { background: var(--primary-hover); }
+        .btn-modal-cancel { flex: 1; background: white; color: var(--text-dark); border: 1px solid #E5E7EB; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-modal-cancel:hover { background: #F9FAFB; }
+
+        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -102,6 +151,7 @@
 <div id="floating-container"></div>
 
 <script src="../../Public_Assets/js/headerbar.js"></script>
+<script src="../../Public_Assets/js/status_dialog.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         TreasureGoHeaderbar.mount({
@@ -141,8 +191,8 @@
                         <select id="statusFilter" class="filter-select-small" onchange="filterOrders()" title="Filter by Status">
                             <option value="all">All</option>
                             <option value="paid">Paid</option>
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="after sales processing">After Sales Processing</option>
                             <option value="completed">Completed</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
@@ -159,8 +209,33 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="reviewModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Write a Review</h3>
+            <button class="close-btn" onclick="closeReviewModal()">&times;</button>
+        </div>
+
+        <form id="reviewForm" onsubmit="submitReview(event)">
+            <input type="hidden" id="review_order_id">
+            <input type="hidden" id="review_target_id">
+
+            <div id="criteria-list"></div>
+
+            <div class="form-group">
+                <label class="criteria-label">Comment</label>
+                <textarea id="review_comment" class="review-textarea" placeholder="Share your experience..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeReviewModal()">Cancel</button>
+                <button type="submit" class="btn-modal-submit">Submit Review</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    // 登录检查逻辑 (保持不变)
     const AuthModal = {
         htmlContent: `<dialog id="globalLoginDialog" class="tg-auth-modal"><div style="font-size: 40px; margin-bottom: 10px;">🔒</div><h3 style="margin-bottom:10px; color: #1F2937;">Login Required</h3><p style="margin-bottom:25px; color:#6B7280;">You need to log in to access this feature.</p><div style="display:flex; gap:10px; justify-content:center;"><button onclick="AuthModal.close()" style="padding:10px 20px; border:1px solid #E5E7EB; background:white; color: #374151; border-radius:12px; cursor:pointer;">Cancel</button><button onclick="window.location.href='../../Module_User_Account_Management/pages/login.php'" style="padding:10px 20px; border:none; background:#4F46E5; color:white; border-radius:12px; cursor:pointer;">Go to Login</button></div></dialog>`,
         init: function() { if (document.getElementById('globalLoginDialog')) return; const style = document.createElement('style'); style.innerHTML = `.tg-auth-modal::backdrop { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); } .tg-auth-modal { position: fixed; top: 30%; border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); text-align: center; width: 320px; border: none; outline: none; margin: 0 auto; }`; document.head.appendChild(style); document.body.insertAdjacentHTML('beforeend', this.htmlContent); },
@@ -247,7 +322,15 @@
             : `<span style="background:#FEF3C7; color:#92400E; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">SELLING</span>`;
         const imgUrl = order.Main_Image ? `../../${order.Main_Image}` : '../../Public_Assets/images/placeholder.png';
 
-        // 核心修改：View 按钮不再打开弹窗，而是跳转到新页面
+        const targetUserId = isBuyer ? order.Orders_Seller_ID : order.Orders_Buyer_ID;
+
+        // Review 按钮仅在 Completed 状态下显示 (可选逻辑，目前全部显示)
+        const reviewButtonHtml = `
+            <button class="btn-small btn-review" onclick="openReviewModal(${order.Orders_Order_ID}, ${targetUserId})">
+                <i class="ri-star-line"></i> Review
+            </button>
+        `;
+
         row.innerHTML = `
             <td>
                 <div style="display:flex; align-items:center; gap:12px;">
@@ -266,31 +349,132 @@
             <td>
                 <div class="action-btns">
                     <button class="btn-small btn-view" onclick="navigateToDetails(${order.Orders_Order_ID})">View</button>
+                    ${reviewButtonHtml}
                 </div>
             </td>
         `;
         return row;
     }
 
-    // 新的跳转函数
     function navigateToDetails(orderId) {
         window.location.href = `Order_Details.html?id=${orderId}`;
     }
 
+    // 🔥 核心修改：状态样式映射
     function getStatusClass(status) {
         const statusLower = status ? status.toLowerCase() : 'pending';
-        const map = { 'paid': 'status-paid', 'completed': 'status-completed', 'approved': 'status-completed', 'processing': 'status-processing', 'shipped': 'status-processing', 'cancelled': 'status-cancelled', 'rejected': 'status-cancelled' };
-        return map[statusLower] || 'status-pending';
+        const map = {
+            'paid': 'status-paid',
+            'shipped': 'status-shipped',
+            'after sales processing': 'status-after-sales',
+            'completed': 'status-completed',
+            'cancelled': 'status-cancelled'
+        };
+        return map[statusLower] || 'status-default';
     }
 
-    function capitalizeFirst(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
+    function capitalizeFirst(str) {
+        if (!str) return '';
+        // 处理特殊的 After Sales Processing 大小写
+        if (str.toLowerCase() === 'after sales processing') return 'After Sales Processing';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     function formatDateTime(dateStr) { if (!dateStr) return '-'; return new Date(dateStr).toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }); }
 
-    // 背景浮动动画
     const container = document.getElementById('floating-container');
     const items = ['💳', '💰', '💸', '🏦', '💵', '📊', '📈', '🔒'];
     for (let i = 0; i < 12; i++) {
         const el = document.createElement('div'); el.classList.add('floating-item'); el.innerText = items[Math.floor(Math.random() * items.length)]; el.style.left = Math.random() * 100 + 'vw'; el.style.fontSize = (Math.random() * 3 + 3) + 'rem'; el.style.animationDuration = (Math.random() * 10 + 15) + 's'; el.style.animationDelay = '-' + (Math.random() * 15) + 's'; container.appendChild(el);
+    }
+
+    // Review Modal Logic
+    const reviewModal = document.getElementById('reviewModal');
+    // 🔥 核心修改：评价维度更新
+    const CRITERIA_NAMES = [
+        "Honesty / Accuracy",
+        "Item Condition / Quality",
+        "Communication & Responsiveness",
+        "Transaction Reliability",
+        "Delivery & Packaging"
+    ];
+    let reviewScores = [0, 0, 0, 0, 0];
+
+    function openReviewModal(orderId, targetUserId) {
+        document.getElementById('review_order_id').value = orderId;
+        document.getElementById('review_target_id').value = targetUserId;
+        document.getElementById('review_comment').value = '';
+        reviewScores = [0, 0, 0, 0, 0];
+        renderCriteria();
+        reviewModal.style.display = 'flex';
+    }
+
+    function closeReviewModal() {
+        reviewModal.style.display = 'none';
+    }
+
+    function renderCriteria() {
+        const container = document.getElementById('criteria-list');
+        container.innerHTML = '';
+        CRITERIA_NAMES.forEach((name, index) => {
+            const div = document.createElement('div');
+            div.className = 'review-criteria';
+            let starsHtml = '';
+            for(let i=1; i<=5; i++) {
+                const activeClass = i <= reviewScores[index] ? 'active' : '';
+                starsHtml += `<i class="ri-star-fill ${activeClass}" onclick="setRating(${index}, ${i})"></i>`;
+            }
+            div.innerHTML = `<span class="criteria-label">${name}</span><div class="star-rating">${starsHtml}</div>`;
+            container.appendChild(div);
+        });
+    }
+
+    function setRating(criteriaIndex, score) {
+        reviewScores[criteriaIndex] = score;
+        renderCriteria();
+    }
+
+    async function submitReview(e) {
+        e.preventDefault();
+        const totalScore = reviewScores.reduce((a,b)=>a+b, 0);
+        if(totalScore === 0) {
+            StatusDialog.warning("Rating Required", "Please provide a rating.", "OK");
+            return;
+        }
+
+        const payload = {
+            order_id: document.getElementById('review_order_id').value,
+            target_user_id: document.getElementById('review_target_id').value,
+            scores: reviewScores,
+            comment: document.getElementById('review_comment').value
+        };
+
+        try {
+            // Replace with actual API call
+            // 请确保这一行路径指向正确的后端 API
+            const res = await fetch('../../Module_User_Account_Management/api/submit_review.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json();
+
+            if (json.success) {
+                closeReviewModal();
+                StatusDialog.success("Success", "Review submitted!", "OK");
+            } else {
+                StatusDialog.fail("Error", json.message);
+            }
+        } catch (err) {
+            console.error(err);
+            StatusDialog.fail("Error", "Failed to submit review.");
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target == reviewModal) {
+            closeReviewModal();
+        }
     }
 </script>
 </body>
