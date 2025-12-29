@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reviews - TreasureGo</title>
+
+  <script src="../../Public_Assets/js/headerbar.js"></script>
+  <script src="../../Public_Assets/js/status_dialog.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <style>
+    /* --- 1. 核心变量 --- */
+    :root {
+      --bg-color: #F3F6F9;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --card-radius: 20px;
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      --warning: #F59E0B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      min-height: 100vh;
+      background-image: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%);
+    }
+
+    /* --- 布局 --- */
+    .layout-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* 返回按钮 */
+    .back-btn-row { margin-bottom: 20px; }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 5px;
+      color: var(--text-gray); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      transition: 0.2s; cursor: pointer;
+    }
+    .btn-back:hover { color: var(--primary); transform: translateX(-5px); }
+
+    /* --- 顶部统计卡片 --- */
+    .summary-card {
+      background: white; border-radius: var(--card-radius);
+      padding: 30px; box-shadow: var(--card-shadow);
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 25px;
+      background-image: linear-gradient(to right, #4F46E5, #818CF8);
+      color: white;
+    }
+    .summary-left h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 5px; }
+    .summary-left p { opacity: 0.9; font-size: 0.9rem; }
+    .summary-right { text-align: right; }
+    .rating-big { font-size: 3rem; font-weight: 800; line-height: 1; }
+    .rating-stars { color: #FCD34D; font-size: 1.2rem; margin-top: 5px; }
+
+    /* --- 评价列表容器 --- */
+    .reviews-container {
+      background: white; border-radius: var(--card-radius);
+      padding: 25px; box-shadow: var(--card-shadow);
+      min-height: 500px;
+    }
+
+    /* Tabs */
+    .tabs-header { display: flex; border-bottom: 1px solid #E5E7EB; margin-bottom: 25px; }
+    .tab-btn {
+      padding: 12px 20px; cursor: pointer; font-weight: 600; color: var(--text-gray);
+      border-bottom: 3px solid transparent; transition: 0.2s; font-size: 0.95rem; flex: 1; text-align: center;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #EEF2FF; border-radius: 10px 10px 0 0; }
+    .tab-btn:hover { color: var(--text-dark); }
+
+    /* Review Item */
+    .review-item {
+      display: flex; gap: 20px;
+      padding: 20px; border: 1px solid #F3F4F6; border-radius: 16px;
+      margin-bottom: 15px; transition: all 0.2s;
+      background: #FAFAFA;
+    }
+
+    .review-item:hover {
+      background: white; border-color: var(--primary);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05); transform: translateY(-2px);
+    }
+
+    .review-product-img {
+      width: 80px; height: 80px; border-radius: 12px;
+      object-fit: cover; background: #eee;
+      cursor: default; /* 图片不可点击 */
+    }
+
+    .review-content { flex: 1; }
+    .reviewer-info { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .reviewer-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: #ddd;
+      display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+    }
+    .reviewer-name { font-weight: 600; font-size: 0.95rem; color: var(--text-dark); }
+    .role-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 8px; }
+    .role-buyer { background: #ECFDF5; color: #059669; } /* 对方是买家 */
+    .role-seller { background: #FFF7ED; color: #EA580C; } /* 对方是卖家 */
+
+    .review-text { color: var(--text-dark); font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px; }
+
+    /* 🔥 修改：商品标签样式调整为纯展示，不可点击 */
+    .product-link {
+      font-size: 0.8rem; color: var(--text-gray); text-decoration: none;
+      background: #F3F4F6; padding: 4px 10px; border-radius: 6px; display: inline-block;
+      cursor: default; /* 鼠标变为默认指针 */
+    }
+    /* 移除变色效果，只保留背景微调证明是标签 */
+    .product-link:hover { background: #EEF2FF; }
+
+    .review-meta { text-align: right; min-width: 100px; display: flex; flex-direction: column; align-items: flex-end; }
+    .star-row { color: var(--warning); font-size: 1rem; margin-bottom: 5px; }
+    .review-date { font-size: 0.8rem; color: #9CA3AF; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: var(--text-gray); display: none; }
+
+    @media (max-width: 600px) {
+      .review-item { flex-direction: column; }
+      .review-meta { text-align: left; align-items: flex-start; margin-top: 10px; flex-direction: row; justify-content: space-between; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout-container">
+
+  <div class="back-btn-row">
+    <div class="btn-back" onclick="history.back()">
+      <i class="ri-arrow-left-line"></i> Back to Profile
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-left">
+      <h2>My Reputation</h2>
+      <p>Total Reviews: <span id="total-count">...</span></p>
+    </div>
+    <div class="summary-right">
+      <div class="rating-big" id="avg-rating">...</div>
+      <div class="rating-stars" id="avg-stars">
+      </div>
+    </div>
+  </div>
+
+  <div class="reviews-container">
+    <div class="tabs-header">
+      <div class="tab-btn active" onclick="switchTab('as_seller')" id="tab-as_seller">
+        <i class="ri-store-2-line"></i> From Buyers<br><span style="font-size:0.75rem; font-weight:400;">(I sold items)</span>
+      </div>
+      <div class="tab-btn" onclick="switchTab('as_buyer')" id="tab-as_buyer">
+        <i class="ri-shopping-bag-3-line"></i> From Sellers<br><span style="font-size:0.75rem; font-weight:400;">(I bought items)</span>
+      </div>
+    </div>
+
+    <div id="loading-spinner" style="text-align: center; padding: 40px; color: var(--text-gray);">
+      <i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i>
+      <p>Loading reviews...</p>
+    </div>
+
+    <div id="reviews-list"></div>
+
+    <div id="empty-view" class="empty-state">
+      <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+      <p>No reviews found in this category.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  if (typeof TreasureGoHeaderbar !== 'undefined') {
+    TreasureGoHeaderbar.mount({ basePath: '../../' });
+  }
+
+  // 全局变量存储数据
+  let allReviews = [];
+  let currentTab = 'as_seller';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchReviewsFromApi();
+  });
+
+  async function fetchReviewsFromApi() {
+    const spinner = document.getElementById('loading-spinner');
+    const list = document.getElementById('reviews-list');
+
+    spinner.style.display = 'block';
+    list.innerHTML = '';
+
+    try {
+      const response = await fetch('../api/Get_User_Reviews.php');
+      const text = await response.text();
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        throw new Error("API returned invalid JSON: " + text.substring(0, 100));
+      }
+
+      if (result.success) {
+        allReviews = result.data;
+
+        const stats = result.user_stats || { User_Average_Rating: 0, User_Review_Count: 0 };
+        renderTopStats(stats);
+
+        switchTab('as_seller');
+      } else {
+        if(result.message === 'Please login first') {
+          window.location.href = 'login.php';
+        } else {
+          if(result.data && result.data.length === 0) {
+            allReviews = [];
+            renderTopStats({ User_Average_Rating: 0, User_Review_Count: 0 });
+            switchTab('as_seller');
+          } else {
+            alert("Error: " + result.message);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Network Error:", error);
+      list.innerHTML = `<div style="text-align:center;color:red;padding:20px;">
+        Failed to load reviews.<br><small>${error.message}</small>
+      </div>`;
+    } finally {
+      spinner.style.display = 'none';
+    }
+  }
+
+  function renderTopStats(stats) {
+    const rating = parseFloat(stats.User_Average_Rating || 0).toFixed(1);
+    const count = stats.User_Review_Count || 0;
+
+    document.getElementById('total-count').innerText = count;
+    document.getElementById('avg-rating').innerText = rating;
+    document.getElementById('avg-stars').innerHTML = generateStars(Math.round(rating));
+  }
+
+  function switchTab(type) {
+    currentTab = type;
+
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab-' + type).classList.add('active');
+
+    const filterRole = (type === 'as_seller') ? 'Buyer' : 'Seller';
+
+    if (!Array.isArray(allReviews)) {
+      renderReviews([]);
+      return;
+    }
+
+    const filteredData = allReviews.filter(r => r.Reviewer_Role === filterRole);
+    renderReviews(filteredData);
+  }
+
+  function renderReviews(data) {
+    const container = document.getElementById('reviews-list');
+    const emptyView = document.getElementById('empty-view');
+
+    container.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      emptyView.style.display = 'block';
+      return;
+    }
+
+    emptyView.style.display = 'none';
+
+    data.forEach(review => {
+      let avatarHtml = '';
+      if (review.Reviewer_Avatar) {
+        const src = review.Reviewer_Avatar.startsWith('http') ? review.Reviewer_Avatar : '../../' + review.Reviewer_Avatar;
+        avatarHtml = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        const name = review.Reviewer_Name || '?';
+        avatarHtml = name.charAt(0).toUpperCase();
+      }
+
+      let productImg = '../../Public_Assets/images/TreasureGo_Logo.png';
+      if (review.Main_Image) {
+        productImg = review.Main_Image.startsWith('http') ? review.Main_Image : '../../' + review.Main_Image;
+      }
+
+      const starsHtml = generateStars(parseInt(review.Reviews_Rating) || 0);
+      const roleBadgeClass = review.Reviewer_Role === 'Buyer' ? 'role-buyer' : 'role-seller';
+
+      const card = document.createElement('div');
+      card.className = 'review-item';
+
+      // 🔥 修改：将 a 标签改为 span，移除 onclick 事件，确保不可点击
+      card.innerHTML = `
+        <img src="${productImg}" class="review-product-img" alt="Product">
+
+        <div class="review-content">
+          <div class="reviewer-info">
+            <div class="reviewer-avatar">${avatarHtml}</div>
+            <div>
+              <div class="reviewer-name">
+                ${review.Reviewer_Name || 'Unknown'}
+                <span class="role-badge ${roleBadgeClass}">${review.Reviewer_Role}</span>
+              </div>
+            </div>
+          </div>
+          <div class="review-text">"${review.Reviews_Comment || 'No comment provided.'}"</div>
+
+          <span class="product-link">
+            Item: ${review.Product_Title || 'Unknown Item'}
+          </span>
+        </div>
+
+        <div class="review-meta">
+          <div class="star-row">${starsHtml}</div>
+          <div class="review-date">${new Date(review.Reviews_Created_At).toLocaleDateString()}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function generateStars(count) {
+    let html = '';
+    for(let i=0; i<5; i++) {
+      html += i < count
+              ? '<i class="ri-star-fill"></i>'
+              : '<i class="ri-star-line" style="color:#D1D5DB"></i>';
+    }
+    return html;
+  }
+
+  // function goToProduct(id) { ... } // 此函数已删除，不再需要
+</script>
+
+</body>
+</html>

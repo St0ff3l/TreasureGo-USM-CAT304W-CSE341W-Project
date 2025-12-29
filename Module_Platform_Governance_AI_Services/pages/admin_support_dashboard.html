@@ -451,11 +451,24 @@
     document.getElementById('emptyState').style.display = 'none';
     document.getElementById('chatContent').style.display = 'flex';
 
-    document.getElementById('chatHeaderName').innerText = username;
+    const profileUrl = `../../Module_User_Account_Management/views/public_profile.html?user_id=${userId}`;
+
+    const nameEl = document.getElementById('chatHeaderName');
+    nameEl.innerText = username;
+    nameEl.style.cursor = 'pointer';
+    nameEl.title = "View Profile";
+    nameEl.onclick = function() {
+      window.location.href = profileUrl;
+    };
+
     const headerAvatar = document.getElementById('chatHeaderAvatar');
     if (avatar && avatar !== 'undefined') {
       headerAvatar.src = avatar;
       headerAvatar.style.display = 'block';
+      headerAvatar.style.cursor = 'pointer';
+      headerAvatar.onclick = function() {
+        window.location.href = profileUrl;
+      };
     } else {
       headerAvatar.style.display = 'none';
     }

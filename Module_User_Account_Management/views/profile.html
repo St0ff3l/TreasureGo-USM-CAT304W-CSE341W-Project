@@ -97,10 +97,10 @@
     }
     .large-avatar:hover { transform: scale(1.05); }
     .large-avatar::after {
-        content: '📷'; position: absolute; bottom: 0; right: 0;
-        font-size: 1.2rem; background: white; border-radius: 50%;
-        width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      content: '📷'; position: absolute; bottom: 0; right: 0;
+      font-size: 1.2rem; background: white; border-radius: 50%;
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
     .user-name { font-size: 1.8rem; font-weight: 800; margin-bottom: 5px; }
     .user-meta { color: var(--text-gray); font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -221,23 +221,23 @@
 
     /* Review Modal Styles */
     .review-modal-content {
-        background: white; width: 90%; max-width: 600px; border-radius: 20px; padding: 30px;
-        max-height: 90vh; overflow-y: auto;
+      background: white; width: 90%; max-width: 600px; border-radius: 20px; padding: 30px;
+      max-height: 90vh; overflow-y: auto;
     }
     .rating-criteria {
-        margin-bottom: 15px;
+      margin-bottom: 15px;
     }
     .criteria-label {
-        font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; display: block;
+      font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; display: block;
     }
     .star-rating {
-        display: flex; gap: 5px; font-size: 1.5rem; color: #D1D5DB; cursor: pointer;
+      display: flex; gap: 5px; font-size: 1.5rem; color: #D1D5DB; cursor: pointer;
     }
     .star-rating i.active {
-        color: #F59E0B;
+      color: #F59E0B;
     }
     .total-score-display {
-        text-align: center; font-size: 1.2rem; font-weight: 700; margin: 20px 0; color: var(--primary);
+      text-align: center; font-size: 1.2rem; font-weight: 700; margin: 20px 0; color: var(--primary);
     }
 
     .review-criteria { margin-bottom: 15px; }
@@ -246,150 +246,150 @@
     .star-rating .ri-star-fill.active { color: #F59E0B; }
     .star-rating .ri-star-fill:hover { color: #FCD34D; }
 
-    @media (max-width: 900px) { 
-        .layout-container { 
-            grid-template-columns: 1fr; 
-            margin-top: 10px;
-            padding-bottom: 80px; /* Space for bottom action bar */
-        } 
-        
-        /* Mobile Sidebar (Top Navigation) */
-        .sidebar-card { 
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            position: static; 
-            width: 100%; 
-            max-height: none; 
-            padding: 10px;
-            gap: 10px;
-            margin-bottom: 15px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
-        .menu-title { display: none; }
-        
-        .menu-item {
-            display: none; /* Hide all by default */
-            width: auto;
-            padding: 10px 12px;
-            font-size: 0.8rem;
-            margin-bottom: 0;
-            border: 1px solid #eee;
-            flex-direction: row; /* 🔥 Changed to row */
-            align-items: center;
-            justify-content: center;
-            text-align: left;
-            height: 50px;
-            gap: 8px; /* Space between icon and text */
-        }
-        
-        .menu-item i { font-size: 1.1rem; margin-bottom: 0; }
+    @media (max-width: 900px) {
+      .layout-container {
+        grid-template-columns: 1fr;
+        margin-top: 10px;
+        padding-bottom: 80px; /* Space for bottom action bar */
+      }
 
-        /* Priority Items: Always Visible */
-        #menu-overview, #menu-address, #menu-security {
-            display: flex;
-            order: -1;
-        }
+      /* Mobile Sidebar (Top Navigation) */
+      .sidebar-card {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        position: static;
+        width: 100%;
+        max-height: none;
+        padding: 10px;
+        gap: 10px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        overflow: hidden;
+      }
 
-        /* Expanded State */
-        .sidebar-card.expanded .menu-item {
-            display: flex;
-            order: 0; /* Reset order */
-        }
-        /* Keep priority items at top */
-        .sidebar-card.expanded #menu-overview { order: -10; }
-        .sidebar-card.expanded #menu-address { order: -9; }
-        .sidebar-card.expanded #menu-security { order: -8; }
+      .menu-title { display: none; }
 
-        /* Expand Button */
-        .mobile-expand-btn {
-            grid-column: 1 / -1; /* Span full width */
-            text-align: center;
-            padding: 5px;
-            cursor: pointer;
-            color: var(--text-gray);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #f9fafb;
-            border-radius: 8px;
-            margin-top: 5px;
-        }
-        .mobile-expand-btn:hover { background: #eee; }
-        .mobile-expand-btn i { font-size: 1.5rem; transition: transform 0.3s; }
-        
-        .sidebar-card.expanded .mobile-expand-btn i {
-            transform: rotate(180deg);
-        }
+      .menu-item {
+        display: none; /* Hide all by default */
+        width: auto;
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 0;
+        border: 1px solid #eee;
+        flex-direction: row; /* 🔥 Changed to row */
+        align-items: center;
+        justify-content: center;
+        text-align: left;
+        height: 50px;
+        gap: 8px; /* Space between icon and text */
+      }
 
-        /* Mobile Action Card (Bottom Floating Bar) */
-        .action-card { 
-            display: flex;
-            flex-direction: row;
-            position: fixed;
-            top: auto; /* 🔥 Fix: Override desktop 'top: 110px' to prevent stretching */
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            max-height: none;
-            border-radius: 20px 20px 0 0;
-            padding: 10px 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            z-index: 100;
-            justify-content: space-around;
-            background: white;
-            gap: 5px;
-        }
-        
-        .action-btn {
-            flex-direction: column;
-            gap: 4px;
-            font-size: 0.7rem;
-            padding: 5px;
-            text-align: center;
-            flex: 1;
-        }
-        
-        .action-btn i {
-            font-size: 1.4rem;
-        }
-        
-        .btn-primary-action {
-            margin-bottom: 0;
-            background: var(--primary);
-            color: white;
-            border-radius: 12px;
-        }
-        .btn-primary-action:hover {
-            background: var(--primary-hover);
-            transform: none;
-        }
+      .menu-item i { font-size: 1.1rem; margin-bottom: 0; }
 
-        /* Adjust Profile Header for Mobile */
-        .profile-header-card {
-            padding: 20px;
-        }
-        .large-avatar {
-            width: 80px; height: 80px;
-            font-size: 2.5rem;
-        }
-        .user-name { font-size: 1.4rem; }
-        
-        .stats-row {
-            gap: 15px;
-        }
-        .stat-item { min-width: auto; flex: 1; }
-        .stat-num { font-size: 1rem; }
-        .stat-label { font-size: 0.75rem; }
-        
-        /* Adjust Listings Grid */
-        #listings-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 10px !important;
-        }
-        .product-img { height: 120px; }
-    } 
+      /* Priority Items: Always Visible */
+      #menu-overview, #menu-address, #menu-security {
+        display: flex;
+        order: -1;
+      }
+
+      /* Expanded State */
+      .sidebar-card.expanded .menu-item {
+        display: flex;
+        order: 0; /* Reset order */
+      }
+      /* Keep priority items at top */
+      .sidebar-card.expanded #menu-overview { order: -10; }
+      .sidebar-card.expanded #menu-address { order: -9; }
+      .sidebar-card.expanded #menu-security { order: -8; }
+
+      /* Expand Button */
+      .mobile-expand-btn {
+        grid-column: 1 / -1; /* Span full width */
+        text-align: center;
+        padding: 5px;
+        cursor: pointer;
+        color: var(--text-gray);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-top: 5px;
+      }
+      .mobile-expand-btn:hover { background: #eee; }
+      .mobile-expand-btn i { font-size: 1.5rem; transition: transform 0.3s; }
+
+      .sidebar-card.expanded .mobile-expand-btn i {
+        transform: rotate(180deg);
+      }
+
+      /* Mobile Action Card (Bottom Floating Bar) */
+      .action-card {
+        display: flex;
+        flex-direction: row;
+        position: fixed;
+        top: auto; /* 🔥 Fix: Override desktop 'top: 110px' to prevent stretching */
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: none;
+        border-radius: 20px 20px 0 0;
+        padding: 10px 20px;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        z-index: 100;
+        justify-content: space-around;
+        background: white;
+        gap: 5px;
+      }
+
+      .action-btn {
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.7rem;
+        padding: 5px;
+        text-align: center;
+        flex: 1;
+      }
+
+      .action-btn i {
+        font-size: 1.4rem;
+      }
+
+      .btn-primary-action {
+        margin-bottom: 0;
+        background: var(--primary);
+        color: white;
+        border-radius: 12px;
+      }
+      .btn-primary-action:hover {
+        background: var(--primary-hover);
+        transform: none;
+      }
+
+      /* Adjust Profile Header for Mobile */
+      .profile-header-card {
+        padding: 20px;
+      }
+      .large-avatar {
+        width: 80px; height: 80px;
+        font-size: 2.5rem;
+      }
+      .user-name { font-size: 1.4rem; }
+
+      .stats-row {
+        gap: 15px;
+      }
+      .stat-item { min-width: auto; flex: 1; }
+      .stat-num { font-size: 1rem; }
+      .stat-label { font-size: 0.75rem; }
+
+      /* Adjust Listings Grid */
+      #listings-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+      }
+      .product-img { height: 120px; }
+    }
 
 
 
@@ -437,21 +437,21 @@
     .product-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 5px; color: var(--text-dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .product-price { color: var(--primary); font-weight: 700; font-size: 1.1rem; margin-top: auto; }
     .product-status { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #EEF2FF; color: var(--primary); display: inline-block; margin-bottom: 5px; width: fit-content; }
-    
+
     .btn-review {
-        margin-top: 10px;
-        width: 100%;
-        padding: 8px;
-        background-color: #F59E0B;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s;
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px;
+      background-color: #F59E0B;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
     }
     .btn-review:hover {
-        background-color: #D97706;
+      background-color: #D97706;
     }
 
   </style>
@@ -504,9 +504,8 @@
       <i class="ri-logout-box-r-line"></i> Log Out
     </a>
 
-    <!-- Mobile Expand Button -->
     <div class="mobile-expand-btn" onclick="toggleMobileMenu()">
-        <i class="ri-arrow-down-s-line" id="expand-icon"></i>
+      <i class="ri-arrow-down-s-line" id="expand-icon"></i>
     </div>
   </aside>
 
@@ -537,33 +536,29 @@
           <div class="tab-btn active" id="tab-btn-listings" onclick="switchProfileTab('listings')">Active Listings</div>
           <div class="tab-btn" id="tab-btn-reviews" onclick="switchProfileTab('reviews')">Reviews</div>
         </div>
-        
-        <!-- Listings Content -->
+
         <div id="tab-content-listings">
-            <div class="mock-content" id="listings-loading">
-              <p>Loading listings...</p>
-            </div>
-            <div id="listings-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; display: none;">
-                <!-- Items will be injected here -->
-            </div>
-            <div class="mock-content" id="listings-empty" style="display: none;">
-              <div class="mock-icon"><i class="ri-inbox-line"></i></div>
-              <p>No active listings found.</p>
-            </div>
+          <div class="mock-content" id="listings-loading">
+            <p>Loading listings...</p>
+          </div>
+          <div id="listings-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; display: none;">
+          </div>
+          <div class="mock-content" id="listings-empty" style="display: none;">
+            <div class="mock-icon"><i class="ri-inbox-line"></i></div>
+            <p>No active listings found.</p>
+          </div>
         </div>
 
-        <!-- Reviews Content -->
         <div id="tab-content-reviews" style="display: none;">
-            <div class="mock-content" id="reviews-loading">
-              <p>Loading sold items...</p>
-            </div>
-            <div id="reviews-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; display: none;">
-                <!-- Sold Items will be injected here -->
-            </div>
-            <div class="mock-content" id="reviews-empty" style="display: none;">
-              <div class="mock-icon"><i class="ri-shopping-bag-3-line"></i></div>
-              <p>No sold items found.</p>
-            </div>
+          <div class="mock-content" id="reviews-loading">
+            <p>Loading sold items...</p>
+          </div>
+          <div id="reviews-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; display: none;">
+          </div>
+          <div class="mock-content" id="reviews-empty" style="display: none;">
+            <div class="mock-icon"><i class="ri-shopping-bag-3-line"></i></div>
+            <p>No sold items found.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -582,18 +577,17 @@
             <div class="form-group full-width">
               <label class="form-label">Email</label>
               <div style="display: flex; gap: 10px;">
-                  <input type="email" class="form-input" id="input_email" placeholder="Enter email" oninput="handleEmailChange()">
-                  <button type="button" id="btn-verify-email" class="btn-save" style="background: #10B981; display: none;" onclick="sendEmailVerification()">Verify</button>
+                <input type="email" class="form-input" id="input_email" placeholder="Enter email" oninput="handleEmailChange()">
+                <button type="button" id="btn-verify-email" class="btn-save" style="background: #10B981; display: none;" onclick="sendEmailVerification()">Verify</button>
               </div>
             </div>
-            
-            <!-- Verification Code Input (Hidden by default) -->
+
             <div class="form-group full-width" id="group-verify-code" style="display: none;">
-                <label class="form-label">Verification Code</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" class="form-input" id="input_verify_code" placeholder="Enter 6-digit code">
-                    <span style="font-size: 0.85rem; color: #6B7280; align-self: center;">Code sent to new email</span>
-                </div>
+              <label class="form-label">Verification Code</label>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" class="form-input" id="input_verify_code" placeholder="Enter 6-digit code">
+                <span style="font-size: 0.85rem; color: #6B7280; align-self: center;">Code sent to new email</span>
+              </div>
             </div>
 
           </div>
@@ -636,8 +630,10 @@
     <a href="../../Module_Product_Ecosystem/pages/Publish_Page.html" class="action-btn btn-primary-action">
       <i class="ri-add-circle-line"></i> Publish Item
     </a>
-    <a href="#" class="action-btn"><i class="ri-message-3-line"></i> Messages</a>
-    <a href="#" class="action-btn"><i class="ri-customer-service-2-line"></i> Help Center</a>
+    <a href="../views/My_Reviews.html" class="action-btn">
+      <i class="ri-star-line"></i> My Reviews
+    </a>
+    <a href="#" class="action-btn"><i class="ri-customer-service-2-line"></i> Support</a>
     <a href="../../Module_Platform_Governance_AI_Services/pages/report.html" class="action-btn">
       <i class="ri-alarm-warning-line"></i> Report
     </a>
@@ -646,55 +642,50 @@
 
 </div>
 
-<!-- Address modal is now provided by the injected subview fragment -->
-
-<!-- Membership Details Modal -->
 <div class="modal-overlay" id="membership-modal">
   <div class="modal-content">
     <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
       <h2>Membership Details</h2>
       <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeMembershipModal()"></i>
     </div>
-    
+
     <div style="text-align: center; margin-bottom: 20px;">
-        <div id="modal_mem_icon" style="font-size: 3rem; margin-bottom: 10px;">👑</div>
-        <h3 id="modal_mem_tier" style="font-size: 1.5rem; color: #F59E0B; margin-bottom: 5px;">Free</h3>
-        <p id="modal_mem_desc" style="color: #6B7280; font-size: 0.95rem;">Standard free account.</p>
+      <div id="modal_mem_icon" style="font-size: 3rem; margin-bottom: 10px;">👑</div>
+      <h3 id="modal_mem_tier" style="font-size: 1.5rem; color: #F59E0B; margin-bottom: 5px;">Free</h3>
+      <p id="modal_mem_desc" style="color: #6B7280; font-size: 0.95rem;">Standard free account.</p>
     </div>
 
     <div style="background: #F9FAFB; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="color: #6B7280;">Start Date:</span>
-            <span id="modal_mem_start" style="font-weight: 600;">-</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="color: #6B7280;">End Date:</span>
-            <span id="modal_mem_end" style="font-weight: 600;">-</span>
-        </div>
-        <div id="modal_mem_countdown_row" style="display: flex; justify-content: space-between; color: #EF4444; font-weight: 700; display: none;">
-            <span>Expires in:</span>
-            <span id="modal_mem_countdown"></span>
-        </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <span style="color: #6B7280;">Start Date:</span>
+        <span id="modal_mem_start" style="font-weight: 600;">-</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <span style="color: #6B7280;">End Date:</span>
+        <span id="modal_mem_end" style="font-weight: 600;">-</span>
+      </div>
+      <div id="modal_mem_countdown_row" style="display: flex; justify-content: space-between; color: #EF4444; font-weight: 700; display: none;">
+        <span>Expires in:</span>
+        <span id="modal_mem_countdown"></span>
+      </div>
     </div>
 
     <button onclick="window.location.href='../../Module_Product_Ecosystem/pages/Membership.html'" class="btn-save" style="width:100%;">Upgrade / Renew</button>
   </div>
 </div>
 
-<!-- Review Modal -->
 <div class="modal-overlay" id="review-modal">
   <div class="modal-content">
     <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
       <h2>Write a Review</h2>
       <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeReviewModal()"></i>
     </div>
-    
+
     <form onsubmit="handleReviewSubmit(event)">
       <input type="hidden" id="review_order_id">
       <input type="hidden" id="review_target_id">
-      
+
       <div id="criteria-container">
-        <!-- 5 Criteria will be generated here -->
       </div>
 
       <div class="form-group full-width">
@@ -707,7 +698,6 @@
   </div>
 </div>
 
-<!-- Review Modal -->
 <div class="modal-overlay" id="review-modal">
   <div class="review-modal-content">
     <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
@@ -716,34 +706,31 @@
     </div>
 
     <div id="review-form-container">
-        <p style="color: #6B7280; margin-bottom: 20px; font-size: 0.9rem;">
-            Please rate the transaction based on the following 5 criteria. 
-            <br>Total Score: <span id="review-total-score">0</span>/25
-        </p>
+      <p style="color: #6B7280; margin-bottom: 20px; font-size: 0.9rem;">
+        Please rate the transaction based on the following 5 criteria.
+        <br>Total Score: <span id="review-total-score">0</span>/25
+      </p>
 
-        <!-- 5 Criteria -->
-        <div id="criteria-list">
-            <!-- Injected by JS -->
-        </div>
+      <div id="criteria-list">
+      </div>
 
-        <div class="form-group">
-            <label class="form-label">Comment (Optional)</label>
-            <textarea id="review-comment" class="form-input" rows="3" placeholder="Share your experience..."></textarea>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Comment (Optional)</label>
+        <textarea id="review-comment" class="form-input" rows="3" placeholder="Share your experience..."></textarea>
+      </div>
 
-        <button class="btn-save" style="width: 100%;" onclick="submitReview()">Submit Review</button>
+      <button class="btn-save" style="width: 100%;" onclick="submitReview()">Submit Review</button>
     </div>
   </div>
 </div>
 
-<!-- Avatar Upload Modal -->
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-content" style="text-align: center;">
     <div class="settings-header" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
       <h2>Change Avatar</h2>
       <i class="ri-close-line" style="font-size:1.5rem; cursor:pointer;" onclick="closeAvatarModal()"></i>
     </div>
-    
+
     <div style="margin-bottom: 20px;">
       <div id="avatar-preview" style="width: 120px; height: 120px; border-radius: 50%; background: #f3f4f6; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed #ccc;">
         <span style="color: #999;">Preview</span>
@@ -771,10 +758,10 @@
 
     // 2. 获取个人资料数据
     await fetchProfileData();
-    
+
     // 3. 获取 Active Listings
     await fetchActiveListings();
-    
+
     // 4. 获取 Sold Listings (Reviews Tab)
     await fetchSoldListings();
 
@@ -789,80 +776,83 @@
 
   // --- Mobile Menu Toggle ---
   function toggleMobileMenu() {
-      const sidebar = document.getElementById('mobile-sidebar');
-      sidebar.classList.toggle('expanded');
+    const sidebar = document.getElementById('mobile-sidebar');
+    sidebar.classList.toggle('expanded');
   }
 
   // --- Tab Switching Logic ---
   function switchProfileTab(tabName) {
-      // Update buttons
-      document.querySelectorAll('.tabs-header .tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('tab-btn-' + tabName).classList.add('active');
+    // Update buttons
+    document.querySelectorAll('.tabs-header .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab-btn-' + tabName).classList.add('active');
 
-      // Update content
-      document.getElementById('tab-content-listings').style.display = 'none';
-      document.getElementById('tab-content-reviews').style.display = 'none';
-      
-      document.getElementById('tab-content-' + tabName).style.display = 'block';
+    // Update content
+    document.getElementById('tab-content-listings').style.display = 'none';
+    document.getElementById('tab-content-reviews').style.display = 'none';
+
+    document.getElementById('tab-content-' + tabName).style.display = 'block';
   }
 
   // --- Helper: Escape HTML ---
   function escapeHtml(text) {
-      if (!text) return '';
-      return text
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
+    if (!text) return '';
+    return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
   }
 
   // --- Active Listings Logic ---
   async function fetchActiveListings() {
-      const loadingEl = document.getElementById('listings-loading');
-      const gridEl = document.getElementById('listings-grid');
-      const emptyEl = document.getElementById('listings-empty');
+    const loadingEl = document.getElementById('listings-loading');
+    const gridEl = document.getElementById('listings-grid');
+    const emptyEl = document.getElementById('listings-empty');
 
+    try {
+      // 🔥 Fix: Use correct relative path to API
+      const res = await fetch('../../Module_Product_Ecosystem/api/Get_User_Listings.php');
+
+      // Check if response is OK
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP error! status: ${res.status}, body: ${errText}`);
+      }
+
+      const text = await res.text();
+      let json;
       try {
-          // 🔥 Fix: Use correct relative path to API
-          const res = await fetch('../../Module_Product_Ecosystem/api/Get_User_Listings.php');
-          
-          // Check if response is OK
-          if (!res.ok) {
-              const errText = await res.text();
-              throw new Error(`HTTP error! status: ${res.status}, body: ${errText}`);
-          }
-          
-          const text = await res.text();
-          let json;
-          try {
-              json = JSON.parse(text);
-          } catch (e) {
-              console.error("JSON Parse Error. Response text:", text);
-              throw new Error("Invalid JSON response from server");
-          }
+        json = JSON.parse(text);
+      } catch (e) {
+        console.error("JSON Parse Error. Response text:", text);
+        throw new Error("Invalid JSON response from server");
+      }
 
-          loadingEl.style.display = 'none';
+      loadingEl.style.display = 'none';
 
-          if (json.success && json.data && json.data.length > 0) {
-              // Filter for Active listings only
-              const activeListings = json.data.filter(item => item.Product_Status === 'Active');
+      if (json.success && json.data && json.data.length > 0) {
+        // Filter for Active listings only
+        const activeListings = json.data.filter(item => item.Product_Status === 'Active');
 
-              if (activeListings.length > 0) {
-                  gridEl.innerHTML = '';
-                  activeListings.forEach(item => {
-                      const card = document.createElement('div');
-                      card.className = 'product-card';
-                      card.onclick = () => window.location.href = `../../Module_Product_Ecosystem/pages/Product_Detail.html?product_id=${item.Product_ID}`;
-                      
-                      // Handle image path
-                      let imgUrl = item.Main_Image;
-                      if (imgUrl && !imgUrl.startsWith('http')) {
-                          imgUrl = '../../' + imgUrl;
-                      }
-                      if (!imgUrl) imgUrl = '../../Public_Assets/images/TreasureGo_Logo.png'; // Fallback
+        if (activeListings.length > 0) {
+          gridEl.innerHTML = '';
+          activeListings.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
 
-                      card.innerHTML = `
+            // Active Listings: Link directly to detail page (Normal State)
+            // 🔥 MODIFIED: Now includes ID
+            card.onclick = () => window.location.href = `../../Module_Product_Ecosystem/pages/Seller_Product_Management.html?id=${item.Product_ID}&tab=active`;
+
+            // Handle image path
+            let imgUrl = item.Main_Image;
+            if (imgUrl && !imgUrl.startsWith('http')) {
+              imgUrl = '../../' + imgUrl;
+            }
+            if (!imgUrl) imgUrl = '../../Public_Assets/images/TreasureGo_Logo.png'; // Fallback
+
+            card.innerHTML = `
                           <img src="${imgUrl}" class="product-img" alt="${escapeHtml(item.Product_Title)}">
                           <div class="product-info">
                               <span class="product-status">${item.Product_Status}</span>
@@ -870,28 +860,28 @@
                               <div class="product-price">$${parseFloat(item.Product_Price).toFixed(2)}</div>
                           </div>
                       `;
-                      gridEl.appendChild(card);
-                  });
-                  gridEl.style.display = 'grid';
-                  emptyEl.style.display = 'none';
-              } else {
-                  gridEl.style.display = 'none';
-                  emptyEl.style.display = 'block';
-                  emptyEl.querySelector('p').innerText = "No active listings found.";
-              }
-          } else {
-              gridEl.style.display = 'none';
-              emptyEl.style.display = 'block';
-              if (json.message) {
-                  console.warn("API Message:", json.message);
-              }
-          }
-      } catch (err) {
-          console.error("Fetch Listings Error:", err);
-          loadingEl.style.display = 'none';
+            gridEl.appendChild(card);
+          });
+          gridEl.style.display = 'grid';
+          emptyEl.style.display = 'none';
+        } else {
+          gridEl.style.display = 'none';
           emptyEl.style.display = 'block';
-          emptyEl.querySelector('p').innerText = "Failed to load listings: " + err.message;
+          emptyEl.querySelector('p').innerText = "No active listings found.";
+        }
+      } else {
+        gridEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+        if (json.message) {
+          console.warn("API Message:", json.message);
+        }
       }
+    } catch (err) {
+      console.error("Fetch Listings Error:", err);
+      loadingEl.style.display = 'none';
+      emptyEl.style.display = 'block';
+      emptyEl.querySelector('p').innerText = "Failed to load listings: " + err.message;
+    }
   }
 
   // --- Review Modal Logic ---
@@ -901,230 +891,232 @@
   let reviewScores = [0, 0, 0, 0, 0]; // 5 criteria
 
   const CRITERIA_NAMES = [
-      "Honesty / Accuracy",
-      "Item Condition / Quality",
-      "Communication & Responsiveness",
-      "Transaction Reliability",
-      "Delivery & Packaging"
+    "Honesty / Accuracy",
+    "Item Condition / Quality",
+    "Communication & Responsiveness",
+    "Transaction Reliability",
+    "Delivery & Packaging"
   ];
 
   function openReviewModal(orderId, targetUserId, existingRating = null, existingComment = '') {
-      currentReviewOrder = orderId;
-      currentReviewTarget = targetUserId;
-      
-      if (existingRating !== null) {
-          // Edit Mode: Distribute total score (0-25) back to 5 criteria?
-          // Problem: We only stored the Total Score, not individual criteria scores.
-          // So we can't perfectly restore the 5 sliders.
-          // Workaround: Distribute evenly or just set all to average?
-          // Let's set all to Math.round(Total / 5).
-          const avg = Math.round(existingRating / 5);
-          reviewScores = [avg, avg, avg, avg, avg];
-          // Adjust last one to match total exactly? 
-          // If Total=23, Avg=5. 5*5=25 != 23.
-          // Better: Fill 5s until we run out?
-          // 23 -> 5, 5, 5, 5, 3.
-          let remaining = existingRating;
-          for(let i=0; i<5; i++) {
-              let val = Math.min(5, remaining);
-              reviewScores[i] = val;
-              remaining -= val;
-          }
-          
-          document.getElementById('review-comment').value = existingComment;
-          document.querySelector('#review-modal h2').innerText = "Edit Review";
-      } else {
-          // Create Mode
-          reviewScores = [0, 0, 0, 0, 0];
-          document.getElementById('review-comment').value = '';
-          document.querySelector('#review-modal h2').innerText = "Write a Review";
+    currentReviewOrder = orderId;
+    currentReviewTarget = targetUserId;
+
+    if (existingRating !== null) {
+      // Edit Mode: Distribute total score (0-25) back to 5 criteria?
+      // Problem: We only stored the Total Score, not individual criteria scores.
+      // So we can't perfectly restore the 5 sliders.
+      // Workaround: Distribute evenly or just set all to average?
+      // Let's set all to Math.round(Total / 5).
+      const avg = Math.round(existingRating / 5);
+      reviewScores = [avg, avg, avg, avg, avg];
+      // Adjust last one to match total exactly?
+      // If Total=23, Avg=5. 5*5=25 != 23.
+      // Better: Fill 5s until we run out?
+      // 23 -> 5, 5, 5, 5, 3.
+      let remaining = existingRating;
+      for(let i=0; i<5; i++) {
+        let val = Math.min(5, remaining);
+        reviewScores[i] = val;
+        remaining -= val;
       }
 
-      renderCriteria();
-      updateTotalScore();
-      reviewModalEl.classList.add('open');
+      document.getElementById('review-comment').value = existingComment;
+      document.querySelector('#review-modal h2').innerText = "Edit Review";
+    } else {
+      // Create Mode
+      reviewScores = [0, 0, 0, 0, 0];
+      document.getElementById('review-comment').value = '';
+      document.querySelector('#review-modal h2').innerText = "Write a Review";
+    }
+
+    renderCriteria();
+    updateTotalScore();
+    reviewModalEl.classList.add('open');
   }
 
   function closeReviewModal() {
-      reviewModalEl.classList.remove('open');
+    reviewModalEl.classList.remove('open');
   }
 
   function renderCriteria() {
-      const container = document.getElementById('criteria-list');
-      container.innerHTML = '';
+    const container = document.getElementById('criteria-list');
+    container.innerHTML = '';
 
-      CRITERIA_NAMES.forEach((name, index) => {
-          const div = document.createElement('div');
-          div.className = 'rating-criteria';
-          
-          let starsHtml = '';
-          for (let i = 1; i <= 5; i++) {
-              const activeClass = i <= reviewScores[index] ? 'active' : '';
-              starsHtml += `<i class="ri-star-fill ${activeClass}" onclick="setScore(${index}, ${i})"></i>`;
-          }
+    CRITERIA_NAMES.forEach((name, index) => {
+      const div = document.createElement('div');
+      div.className = 'rating-criteria';
 
-          div.innerHTML = `
+      let starsHtml = '';
+      for (let i = 1; i <= 5; i++) {
+        const activeClass = i <= reviewScores[index] ? 'active' : '';
+        starsHtml += `<i class="ri-star-fill ${activeClass}" onclick="setScore(${index}, ${i})"></i>`;
+      }
+
+      div.innerHTML = `
               <span class="criteria-label">${index + 1}. ${name}</span>
               <div class="star-rating">${starsHtml}</div>
           `;
-          container.appendChild(div);
-      });
+      container.appendChild(div);
+    });
   }
 
   function setScore(criteriaIndex, score) {
-      reviewScores[criteriaIndex] = score;
-      renderCriteria(); // Re-render to update stars
-      updateTotalScore();
+    reviewScores[criteriaIndex] = score;
+    renderCriteria(); // Re-render to update stars
+    updateTotalScore();
   }
 
   function updateTotalScore() {
-      const total = reviewScores.reduce((a, b) => a + b, 0);
-      document.getElementById('review-total-score').innerText = total;
+    const total = reviewScores.reduce((a, b) => a + b, 0);
+    document.getElementById('review-total-score').innerText = total;
   }
 
   async function submitReview() {
-      if (!currentReviewOrder || !currentReviewTarget) return;
-      
-      // Validate: All must be > 0? Or allow 0? Assuming 0 is allowed but maybe warn?
-      // Let's require at least 1 star total?
-      const total = reviewScores.reduce((a, b) => a + b, 0);
-      if (total === 0) {
-          StatusDialog.warning("Rating Required", "Please provide a rating before submitting.", "OK");
-          return;
+    if (!currentReviewOrder || !currentReviewTarget) return;
+
+    // Validate: All must be > 0? Or allow 0? Assuming 0 is allowed but maybe warn?
+    // Let's require at least 1 star total?
+    const total = reviewScores.reduce((a, b) => a + b, 0);
+    if (total === 0) {
+      StatusDialog.warning("Rating Required", "Please provide a rating before submitting.", "OK");
+      return;
+    }
+
+    const comment = document.getElementById('review-comment').value;
+
+    try {
+      const res = await fetch('../api/submit_review.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: currentReviewOrder,
+          target_user_id: currentReviewTarget,
+          scores: reviewScores,
+          comment: comment
+        })
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        closeReviewModal();
+        StatusDialog.success("Success", "Review submitted successfully!", "OK", () => {
+          // Refresh list to hide button or show 'Reviewed'
+          fetchSoldListings();
+        });
+      } else {
+        StatusDialog.fail("Submission Failed", json.message);
       }
-
-      const comment = document.getElementById('review-comment').value;
-
-      try {
-          const res = await fetch('../api/submit_review.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  order_id: currentReviewOrder,
-                  target_user_id: currentReviewTarget,
-                  scores: reviewScores,
-                  comment: comment
-              })
-          });
-
-          const json = await res.json();
-
-          if (json.success) {
-              closeReviewModal();
-              StatusDialog.success("Success", "Review submitted successfully!", "OK", () => {
-                  // Refresh list to hide button or show 'Reviewed'
-                  fetchSoldListings();
-              });
-          } else {
-              StatusDialog.fail("Submission Failed", json.message);
-          }
-      } catch (err) {
-          console.error(err);
-          StatusDialog.fail("Error", "Network error occurred.");
-      }
+    } catch (err) {
+      console.error(err);
+      StatusDialog.fail("Error", "Network error occurred.");
+    }
   }
 
   // --- Sold Listings Logic (Reviews Tab) ---
   let soldListingsData = []; // Store data globally to avoid escaping issues
 
   async function fetchSoldListings() {
-      const loadingEl = document.getElementById('reviews-loading');
-      const gridEl = document.getElementById('reviews-grid');
-      const emptyEl = document.getElementById('reviews-empty');
+    const loadingEl = document.getElementById('reviews-loading');
+    const gridEl = document.getElementById('reviews-grid');
+    const emptyEl = document.getElementById('reviews-empty');
 
+    try {
+      // Add timestamp to prevent caching
+      const res = await fetch('../../Module_Product_Ecosystem/api/Get_User_Listings.php?t=' + new Date().getTime());
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP error! status: ${res.status}, body: ${errText}`);
+      }
+
+      const text = await res.text();
+      let json;
       try {
-          // Add timestamp to prevent caching
-          const res = await fetch('../../Module_Product_Ecosystem/api/Get_User_Listings.php?t=' + new Date().getTime());
-          
-          if (!res.ok) {
-              const errText = await res.text();
-              throw new Error(`HTTP error! status: ${res.status}, body: ${errText}`);
-          }
-          
-          const text = await res.text();
-          let json;
-          try {
-              json = JSON.parse(text);
-          } catch (e) {
-              console.error("JSON Parse Error. Response text:", text);
-              throw new Error("Invalid JSON response from server");
-          }
+        json = JSON.parse(text);
+      } catch (e) {
+        console.error("JSON Parse Error. Response text:", text);
+        throw new Error("Invalid JSON response from server");
+      }
 
-          loadingEl.style.display = 'none';
+      loadingEl.style.display = 'none';
 
-          if (json.success && json.data && json.data.length > 0) {
-              // Filter for Sold listings only
-              const soldListings = json.data.filter(item => item.Product_Status === 'Sold');
-              soldListingsData = soldListings; // Save to global
+      if (json.success && json.data && json.data.length > 0) {
+        // Filter for Sold listings only
+        const soldListings = json.data.filter(item => item.Product_Status === 'Sold');
+        soldListingsData = soldListings; // Save to global
 
-              if (soldListings.length > 0) {
-                  gridEl.innerHTML = '';
-                  soldListings.forEach((item, index) => {
-                      const card = document.createElement('div');
-                      card.className = 'product-card';
-                      // Clicking card goes to detail page
-                      card.onclick = (e) => {
-                          // Prevent click if clicking the button
-                          if(e.target.classList.contains('btn-review')) return;
-                          window.location.href = `../../Module_Product_Ecosystem/pages/Product_Detail.html?product_id=${item.Product_ID}`;
-                      };
-                      
-                      // Handle image path
-                      let imgUrl = item.Main_Image;
-                      if (imgUrl && !imgUrl.startsWith('http')) {
-                          imgUrl = '../../' + imgUrl;
-                      }
-                      if (!imgUrl) imgUrl = '../../Public_Assets/images/TreasureGo_Logo.png'; // Fallback
+        if (soldListings.length > 0) {
+          gridEl.innerHTML = '';
+          soldListings.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
 
-                      card.innerHTML = `
+            // Reviews/Sold Listings: Link to detail page with 'Sold' status
+            // 🔥 MODIFIED: Now includes ID
+            card.onclick = (e) => {
+              // Prevent click if clicking the button
+              if(e.target.classList.contains('btn-review')) return;
+              window.location.href = `../../Module_Product_Ecosystem/pages/Seller_Product_Management.html?id=${item.Product_ID}&tab=sold`;
+            };
+
+            // Handle image path
+            let imgUrl = item.Main_Image;
+            if (imgUrl && !imgUrl.startsWith('http')) {
+              imgUrl = '../../' + imgUrl;
+            }
+            if (!imgUrl) imgUrl = '../../Public_Assets/images/TreasureGo_Logo.png'; // Fallback
+
+            card.innerHTML = `
                           <img src="${imgUrl}" class="product-img" alt="${escapeHtml(item.Product_Title)}">
                           <div class="product-info">
                               <span class="product-status" style="background:#ECFDF5; color:#059669;">Sold</span>
                               <div class="product-title">${escapeHtml(item.Product_Title)}</div>
                               <div class="product-price">$${parseFloat(item.Product_Price).toFixed(2)}</div>
-                              ${item.Order_ID && item.Buyer_ID ? 
-                                  (item.Reviews_ID ? 
-                                      `<button class="btn-review" style="background:#9CA3AF; cursor:not-allowed;" disabled>Reviewed</button>` :
-                                      `<button class="btn-review" onclick="openReviewModalFromData(${index})">Write a Review</button>`
-                                  ) : 
-                                  `<button class="btn-review" style="background:#ccc;cursor:not-allowed;" disabled>No Order Info</button>`
-                              }
+                              ${item.Order_ID && item.Buyer_ID ?
+                    (item.Reviews_ID ?
+                                    `<button class="btn-review" style="background:#9CA3AF; cursor:not-allowed;" disabled>Reviewed</button>` :
+                                    `<button class="btn-review" onclick="openReviewModalFromData(${index})">Write a Review</button>`
+                    ) :
+                    `<button class="btn-review" style="background:#ccc;cursor:not-allowed;" disabled>No Order Info</button>`
+            }
                           </div>
                       `;
-                      gridEl.appendChild(card);
-                  });
-                  gridEl.style.display = 'grid';
-                  emptyEl.style.display = 'none';
-              } else {
-                  gridEl.style.display = 'none';
-                  emptyEl.style.display = 'block';
-                  emptyEl.querySelector('p').innerText = "No sold items found.";
-              }
-          } else {
-              gridEl.style.display = 'none';
-              emptyEl.style.display = 'block';
-          }
-      } catch (err) {
-          console.error("Fetch Sold Listings Error:", err);
-          loadingEl.style.display = 'none';
+            gridEl.appendChild(card);
+          });
+          gridEl.style.display = 'grid';
+          emptyEl.style.display = 'none';
+        } else {
+          gridEl.style.display = 'none';
           emptyEl.style.display = 'block';
-          emptyEl.querySelector('p').innerText = "Failed to load sold items: " + err.message;
+          emptyEl.querySelector('p').innerText = "No sold items found.";
+        }
+      } else {
+        gridEl.style.display = 'none';
+        emptyEl.style.display = 'block';
       }
+    } catch (err) {
+      console.error("Fetch Sold Listings Error:", err);
+      loadingEl.style.display = 'none';
+      emptyEl.style.display = 'block';
+      emptyEl.querySelector('p').innerText = "Failed to load sold items: " + err.message;
+    }
   }
 
   function openReviewModalFromData(index) {
-      const item = soldListingsData[index];
-      if (!item) return;
-      
-      console.log("Opening Review Modal for item:", item); // Debug
+    const item = soldListingsData[index];
+    if (!item) return;
 
-      if (item.Reviews_ID) {
-          // Ensure rating is a number
-          const rating = item.Reviews_Rating !== null ? parseInt(item.Reviews_Rating) : null;
-          openReviewModal(item.Order_ID, item.Buyer_ID, rating, item.Reviews_Comment || '');
-      } else {
-          openReviewModal(item.Order_ID, item.Buyer_ID);
-      }
+    console.log("Opening Review Modal for item:", item); // Debug
+
+    if (item.Reviews_ID) {
+      // Ensure rating is a number
+      const rating = item.Reviews_Rating !== null ? parseInt(item.Reviews_Rating) : null;
+      openReviewModal(item.Order_ID, item.Buyer_ID, rating, item.Reviews_Comment || '');
+    } else {
+      openReviewModal(item.Order_ID, item.Buyer_ID);
+    }
   }
 
   // --- Membership Modal Logic ---
@@ -1132,56 +1124,56 @@
   let currentMemData = {};
 
   function openMembershipModal() {
-      if (!memModal) return;
-      
-      const tier = currentMemData.tier || 'Free';
-      
-      // 1. Set Icon based on Tier (from Membership.html)
-      // VIP: 💎 (#4F46E5)
-      // SVIP: 👑 (#F59E0B)
-      let icon = '👤';
-      let color = '#6B7280';
-      
-      if (tier.includes('SVIP')) {
-          icon = '👑';
-          color = '#F59E0B';
-      } else if (tier.includes('VIP')) {
-          icon = '💎';
-          color = '#4F46E5';
-      }
-      
-      document.getElementById('modal_mem_icon').innerText = icon;
-      document.getElementById('modal_mem_tier').innerText = tier;
-      document.getElementById('modal_mem_tier').style.color = color;
-      
-      setText('modal_mem_desc', currentMemData.desc || 'Standard free account.');
-      setText('modal_mem_start', currentMemData.start ? new Date(currentMemData.start).toLocaleDateString() : '-');
-      setText('modal_mem_end', currentMemData.end ? new Date(currentMemData.end).toLocaleDateString() : '-');
-      
-      // 2. Calculate Countdown
-      const countdownRow = document.getElementById('modal_mem_countdown_row');
-      if (currentMemData.end) {
-          const endDate = new Date(currentMemData.end);
-          const now = new Date();
-          const diffTime = endDate - now;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-          
-          if (diffDays > 0) {
-              setText('modal_mem_countdown', diffDays + (diffDays === 1 ? ' day' : ' days'));
-              countdownRow.style.display = 'flex';
-          } else {
-              setText('modal_mem_countdown', 'Expired');
-              countdownRow.style.display = 'flex';
-          }
+    if (!memModal) return;
+
+    const tier = currentMemData.tier || 'Free';
+
+    // 1. Set Icon based on Tier (from Membership.html)
+    // VIP: 💎 (#4F46E5)
+    // SVIP: 👑 (#F59E0B)
+    let icon = '👤';
+    let color = '#6B7280';
+
+    if (tier.includes('SVIP')) {
+      icon = '👑';
+      color = '#F59E0B';
+    } else if (tier.includes('VIP')) {
+      icon = '💎';
+      color = '#4F46E5';
+    }
+
+    document.getElementById('modal_mem_icon').innerText = icon;
+    document.getElementById('modal_mem_tier').innerText = tier;
+    document.getElementById('modal_mem_tier').style.color = color;
+
+    setText('modal_mem_desc', currentMemData.desc || 'Standard free account.');
+    setText('modal_mem_start', currentMemData.start ? new Date(currentMemData.start).toLocaleDateString() : '-');
+    setText('modal_mem_end', currentMemData.end ? new Date(currentMemData.end).toLocaleDateString() : '-');
+
+    // 2. Calculate Countdown
+    const countdownRow = document.getElementById('modal_mem_countdown_row');
+    if (currentMemData.end) {
+      const endDate = new Date(currentMemData.end);
+      const now = new Date();
+      const diffTime = endDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 0) {
+        setText('modal_mem_countdown', diffDays + (diffDays === 1 ? ' day' : ' days'));
+        countdownRow.style.display = 'flex';
       } else {
-          countdownRow.style.display = 'none';
+        setText('modal_mem_countdown', 'Expired');
+        countdownRow.style.display = 'flex';
       }
-      
-      memModal.classList.add('open');
+    } else {
+      countdownRow.style.display = 'none';
+    }
+
+    memModal.classList.add('open');
   }
 
   function closeMembershipModal() {
-      if (memModal) memModal.classList.remove('open');
+    if (memModal) memModal.classList.remove('open');
   }
 
   // --- Profile Logic (Old) ---
@@ -1206,41 +1198,41 @@
     setText('u_role', user.User_Role);
     setText('s_posted', user.posted_count || 0);
     setText('s_sold', user.sold_count || 0);
-    
+
     // Rating Display Logic
     const rawRating = parseFloat(user.User_Average_Rating || 0);
     let displayRating = 0;
     if (rawRating >= 4.4) {
-        displayRating = 5.0;
+      displayRating = 5.0;
     } else {
-        displayRating = Math.round(rawRating); // Standard rounding
+      displayRating = Math.round(rawRating); // Standard rounding
     }
     setText('s_score', displayRating.toFixed(1));
 
     setText('s_membership', user.Memberships_tier || 'Free');
-    
+
     // Store membership data for modal
     currentMemData = {
-        tier: user.Memberships_tier,
-        start: user.Memberships_Start_Date,
-        end: user.Memberships_End_Date,
-        desc: user.Membership_Description
+      tier: user.Memberships_tier,
+      start: user.Memberships_Start_Date,
+      end: user.Memberships_End_Date,
+      desc: user.Membership_Description
     };
 
     const inputUser = document.getElementById('input_username');
     const inputEmail = document.getElementById('input_email');
     if(inputUser) inputUser.value = user.User_Username;
     if(inputEmail) {
-        inputEmail.value = user.User_Email;
-        originalEmail = user.User_Email; // Store original email
+      inputEmail.value = user.User_Email;
+      originalEmail = user.User_Email; // Store original email
     }
 
     const avatarEl = document.getElementById('u_avatar');
     if (user.User_Profile_image) {
       // Handle relative path for profile page (depth 2)
-      const src = user.User_Profile_image.startsWith('http') 
-          ? user.User_Profile_image 
-          : ('../../' + user.User_Profile_image);
+      const src = user.User_Profile_image.startsWith('http')
+              ? user.User_Profile_image
+              : ('../../' + user.User_Profile_image);
       const fallbackInitial = (user.User_Username || '?').charAt(0).toUpperCase();
       avatarEl.innerHTML = `<img src="${src}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}';">`;
     } else if (user.User_Username) {
@@ -1249,90 +1241,90 @@
   }
 
   function handleEmailChange() {
-      const currentEmail = document.getElementById('input_email').value.trim();
-      const btnVerify = document.getElementById('btn-verify-email');
-      const groupVerify = document.getElementById('group-verify-code');
-      
-      if (currentEmail !== originalEmail && currentEmail.length > 0) {
-          btnVerify.style.display = 'block';
-      } else {
-          btnVerify.style.display = 'none';
-          groupVerify.style.display = 'none';
-      }
+    const currentEmail = document.getElementById('input_email').value.trim();
+    const btnVerify = document.getElementById('btn-verify-email');
+    const groupVerify = document.getElementById('group-verify-code');
+
+    if (currentEmail !== originalEmail && currentEmail.length > 0) {
+      btnVerify.style.display = 'block';
+    } else {
+      btnVerify.style.display = 'none';
+      groupVerify.style.display = 'none';
+    }
   }
 
   async function sendEmailVerification() {
-      const email = document.getElementById('input_email').value.trim();
-      if (!email) return;
-      
-      // Basic email validation
-      if (!email.includes('@')) {
-          StatusDialog.warning('Invalid Email', 'Please enter a valid email address.', 'OK');
-          return;
-      }
+    const email = document.getElementById('input_email').value.trim();
+    if (!email) return;
 
-      try {
-          const res = await fetch('../api/send_verify_code.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: email, purpose: 'update_email' })
-          });
-          const json = await res.json();
-          
-          if (json.success) {
-              StatusDialog.success('Code Sent', 'Verification code sent to ' + email, 'OK');
-              document.getElementById('group-verify-code').style.display = 'block';
-          } else {
-              StatusDialog.fail('Error', json.message);
-          }
-      } catch (err) {
-          console.error(err);
-          StatusDialog.fail('Error', 'Network error.');
+    // Basic email validation
+    if (!email.includes('@')) {
+      StatusDialog.warning('Invalid Email', 'Please enter a valid email address.', 'OK');
+      return;
+    }
+
+    try {
+      const res = await fetch('../api/send_verify_code.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, purpose: 'update_email' })
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        StatusDialog.success('Code Sent', 'Verification code sent to ' + email, 'OK');
+        document.getElementById('group-verify-code').style.display = 'block';
+      } else {
+        StatusDialog.fail('Error', json.message);
       }
+    } catch (err) {
+      console.error(err);
+      StatusDialog.fail('Error', 'Network error.');
+    }
   }
 
   async function handlePersonalSave(e) {
-      e.preventDefault();
-      const username = document.getElementById('input_username').value.trim();
-      const email = document.getElementById('input_email').value.trim();
-      const code = document.getElementById('input_verify_code').value.trim();
-      
-      if (!username) {
-          StatusDialog.warning('Required', 'Username cannot be empty.', 'OK');
-          return;
-      }
+    e.preventDefault();
+    const username = document.getElementById('input_username').value.trim();
+    const email = document.getElementById('input_email').value.trim();
+    const code = document.getElementById('input_verify_code').value.trim();
 
-      const payload = { username: username };
-      
-      if (email !== originalEmail) {
-          if (!code) {
-              StatusDialog.warning('Verification Required', 'Please verify your new email address.', 'OK');
-              return;
-          }
-          payload.email = email;
-          payload.verification_code = code;
-      }
+    if (!username) {
+      StatusDialog.warning('Required', 'Username cannot be empty.', 'OK');
+      return;
+    }
 
-      try {
-          const res = await fetch('../api/update_profile.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-          });
-          const json = await res.json();
-          
-          if (json.success) {
-              StatusDialog.success('Success', 'Profile updated successfully!', 'OK', () => {
-                  // Reload page to reflect changes (especially if email changed)
-                  window.location.reload();
-              });
-          } else {
-              StatusDialog.fail('Update Failed', json.message);
-          }
-      } catch (err) {
-          console.error(err);
-          StatusDialog.fail('Error', 'Network error.');
+    const payload = { username: username };
+
+    if (email !== originalEmail) {
+      if (!code) {
+        StatusDialog.warning('Verification Required', 'Please verify your new email address.', 'OK');
+        return;
       }
+      payload.email = email;
+      payload.verification_code = code;
+    }
+
+    try {
+      const res = await fetch('../api/update_profile.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        StatusDialog.success('Success', 'Profile updated successfully!', 'OK', () => {
+          // Reload page to reflect changes (especially if email changed)
+          window.location.reload();
+        });
+      } else {
+        StatusDialog.fail('Update Failed', json.message);
+      }
+    } catch (err) {
+      console.error(err);
+      StatusDialog.fail('Error', 'Network error.');
+    }
   }
 
   // --- View Switching Logic ---
@@ -1405,18 +1397,18 @@
   let currentScores = [0, 0, 0, 0, 0];
 
   function openReviewModal(orderId, targetId) {
-      document.getElementById('review_order_id').value = orderId;
-      document.getElementById('review_target_id').value = targetId;
-      document.getElementById('review_comment').value = '';
-      currentScores = [0, 0, 0, 0, 0];
-      
-      const container = document.getElementById('criteria-container');
-      container.innerHTML = '';
-      
-      criteriaNames.forEach((name, index) => {
-          const div = document.createElement('div');
-          div.className = 'review-criteria';
-          div.innerHTML = `
+    document.getElementById('review_order_id').value = orderId;
+    document.getElementById('review_target_id').value = targetId;
+    document.getElementById('review_comment').value = '';
+    currentScores = [0, 0, 0, 0, 0];
+
+    const container = document.getElementById('criteria-container');
+    container.innerHTML = '';
+
+    criteriaNames.forEach((name, index) => {
+      const div = document.createElement('div');
+      div.className = 'review-criteria';
+      div.innerHTML = `
               <label>${name}</label>
               <div class="star-rating" id="criteria-${index}">
                   ${[1, 2, 3, 4, 5].map(star => `
@@ -1424,80 +1416,80 @@
                   `).join('')}
               </div>
           `;
-          container.appendChild(div);
-      });
-      
-      reviewModal.classList.add('open');
+      container.appendChild(div);
+    });
+
+    reviewModal.classList.add('open');
   }
 
   function closeReviewModal() {
-      reviewModal.classList.remove('open');
+    reviewModal.classList.remove('open');
   }
 
   function setRating(criteriaIndex, score) {
-      currentScores[criteriaIndex] = score;
-      const stars = document.querySelectorAll(`#criteria-${criteriaIndex} .ri-star-fill`);
-      stars.forEach((star, i) => {
-          if (i < score) {
-              star.classList.add('active');
-          } else {
-              star.classList.remove('active');
-          }
-      });
+    currentScores[criteriaIndex] = score;
+    const stars = document.querySelectorAll(`#criteria-${criteriaIndex} .ri-star-fill`);
+    stars.forEach((star, i) => {
+      if (i < score) {
+        star.classList.add('active');
+      } else {
+        star.classList.remove('active');
+      }
+    });
   }
 
   async function handleReviewSubmit(e) {
-      e.preventDefault();
-      const orderId = document.getElementById('review_order_id').value;
-      const targetId = document.getElementById('review_target_id').value;
-      const comment = document.getElementById('review_comment').value;
+    e.preventDefault();
+    const orderId = document.getElementById('review_order_id').value;
+    const targetId = document.getElementById('review_target_id').value;
+    const comment = document.getElementById('review_comment').value;
 
-      if (currentScores.some(s => s === 0)) {
-          StatusDialog.warning('Incomplete', 'Please rate all criteria.', 'OK');
-          return;
+    if (currentScores.some(s => s === 0)) {
+      StatusDialog.warning('Incomplete', 'Please rate all criteria.', 'OK');
+      return;
+    }
+
+    try {
+      const res = await fetch('../api/submit_review.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: orderId,
+          target_user_id: targetId,
+          scores: currentScores,
+          comment: comment
+        })
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        StatusDialog.success('Success', 'Review submitted!', 'OK', () => {
+          closeReviewModal();
+          fetchSoldListings(); // Refresh list
+        });
+      } else {
+        StatusDialog.fail('Error', json.message);
       }
-
-      try {
-          const res = await fetch('../api/submit_review.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  order_id: orderId,
-                  target_user_id: targetId,
-                  scores: currentScores,
-                  comment: comment
-              })
-          });
-          const json = await res.json();
-
-          if (json.success) {
-              StatusDialog.success('Success', 'Review submitted!', 'OK', () => {
-                  closeReviewModal();
-                  fetchSoldListings(); // Refresh list
-              });
-          } else {
-              StatusDialog.fail('Error', json.message);
-          }
-      } catch (err) {
-          console.error(err);
-          StatusDialog.fail('Error', 'Network error.');
-      }
+    } catch (err) {
+      console.error(err);
+      StatusDialog.fail('Error', 'Network error occurred.');
+    }
   }
 
   // --- Avatar Upload Logic ---
   const avatarModal = document.getElementById('avatar-modal');
-  
+
   function openAvatarModal() {
     avatarModal.classList.add('open');
     // Reset form
     document.getElementById('avatar_file').value = '';
     document.getElementById('avatar-preview').innerHTML = '<span style="color: #999;">Preview</span>';
   }
-  
+
   function closeAvatarModal() {
     avatarModal.classList.remove('open');
   }
-  
+
   function previewAvatar(input) {
     if (input.files && input.files[0]) {
       const reader = new FileReader();
@@ -1507,48 +1499,48 @@
       reader.readAsDataURL(input.files[0]);
     }
   }
-  
+
   async function handleAvatarSubmit(e) {
     e.preventDefault();
     const fileInput = document.getElementById('avatar_file');
     if (!fileInput.files || !fileInput.files[0]) return;
-    
+
     const formData = new FormData();
     formData.append('avatar', fileInput.files[0]);
-    
+
     try {
       const res = await fetch('../api/upload_avatar.php', {
         method: 'POST',
         body: formData
       });
       const json = await res.json();
-      
+
       if (json.status === 'success') {
         closeAvatarModal();
         StatusDialog.success('Success', 'Avatar updated successfully!', 'OK', () => {
-            // Update profile page avatar
-            const avatarEl = document.getElementById('u_avatar');
-            const fallbackInitial = document.getElementById('u_name').innerText.charAt(0).toUpperCase();
-            avatarEl.innerHTML = `<img src="${json.url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}';">`;
-            
-            // Update Headerbar avatar (if possible)
-            // Try to update headerbar DOM directly if it exists
-            const headerAvatar = document.querySelector('#nav-avatar img');
-            if (headerAvatar) {
-                headerAvatar.src = json.url;
-                headerAvatar.onerror = function() {
-                    this.style.display='none'; 
-                    this.parentNode.innerText = fallbackInitial;
-                    this.parentNode.style.background='#EEF2FF';
-                };
-            } else {
-                // If it was text before, we might need to replace the content
-                const headerAvatarBtn = document.getElementById('nav-avatar');
-                if (headerAvatarBtn) {
-                     headerAvatarBtn.innerHTML = `<img src="${json.url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}'; this.parentNode.style.background='#EEF2FF';">`;
-                     headerAvatarBtn.style.background = 'transparent';
-                }
+          // Update profile page avatar
+          const avatarEl = document.getElementById('u_avatar');
+          const fallbackInitial = document.getElementById('u_name').innerText.charAt(0).toUpperCase();
+          avatarEl.innerHTML = `<img src="${json.url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}';">`;
+
+          // Update Headerbar avatar (if possible)
+          // Try to update headerbar DOM directly if it exists
+          const headerAvatar = document.querySelector('#nav-avatar img');
+          if (headerAvatar) {
+            headerAvatar.src = json.url;
+            headerAvatar.onerror = function() {
+              this.style.display='none';
+              this.parentNode.innerText = fallbackInitial;
+              this.parentNode.style.background='#EEF2FF';
+            };
+          } else {
+            // If it was text before, we might need to replace the content
+            const headerAvatarBtn = document.getElementById('nav-avatar');
+            if (headerAvatarBtn) {
+              headerAvatarBtn.innerHTML = `<img src="${json.url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}'; this.parentNode.style.background='#EEF2FF';">`;
+              headerAvatarBtn.style.background = 'transparent';
             }
+          }
         });
       } else {
         StatusDialog.fail('Upload Failed', json.message);
@@ -1562,5 +1554,3 @@
 
 </body>
 </html>
-
-

@@ -221,6 +221,7 @@
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const productId = urlParams.get('id');
+  const urlTab = urlParams.get('tab') || urlParams.get('status'); // 获取 active 或 sold
   let currentProduct = {};
   let productImages = [];
   let currentImageIndex = 0;
@@ -266,39 +267,43 @@
     const pendingStatusBtn = document.getElementById('btnPendingStatus');
     const priceEditBtn = document.getElementById('btnEdit');
     const deleteBtn = document.getElementById('btnDelete');
-    const soldBtn = document.getElementById('btnSold'); // 新增
+    const soldBtn = document.getElementById('btnSold');
     const proTipBox = document.getElementById('proTipBox');
 
-    // 获取状态
+    // 获取状态 (数据库状态)
     const reviewStatus = (item.Product_Review_Status || 'pending').toLowerCase();
-    const sellerStatus = (item.Product_Status || 'active').toLowerCase();
+    let sellerStatus = (item.Product_Status || 'active').toLowerCase();
 
-    // 默认重置所有按钮为隐藏，除了删除和返回，下面根据状态打开
+    // 🔥 强制状态覆盖：如果 URL 参数是 sold，强制显示为 Sold 状态
+    // (这确保了从 Profile 的 Reviews 标签页点进来时，UI 是一致的)
+    if (urlTab === 'sold') {
+      sellerStatus = 'sold';
+    }
+
+    // 默认重置所有按钮为隐藏
     fullEditBtn.style.display = 'none';
     pendingStatusBtn.style.display = 'none';
     priceEditBtn.style.display = 'none';
     unlistBtn.style.display = 'none';
-    deleteBtn.style.display = 'none'; // 默认先隐藏，后面根据逻辑开启
+    deleteBtn.style.display = 'none';
     soldBtn.style.display = 'none';
 
     // 默认样式
     let badgeText = '● On Sale';
     statusBadge.className = 'status-badge status-active';
 
-    // 🔥🔥🔥 核心：状态判断逻辑 🔥🔥🔥
+    // 🔥🔥🔥 状态展示逻辑 🔥🔥🔥
 
     if (sellerStatus === 'sold') {
       // --- 1. 已售出 (Sold) ---
       badgeText = '● Sold Out';
       statusBadge.className = 'status-badge status-sold'; // 红色标签
 
-      // 显示 "Sold Out" 按钮
+      // 显示 "Item Sold" 按钮，隐藏其他编辑按钮
       soldBtn.style.display = 'flex';
 
       // 隐藏 Pro Tip
-      proTipBox.style.display = 'none';
-
-      // 所有的编辑、删除、下架按钮保持隐藏 (只显示 Sold 和 Cancel)
+      if(proTipBox) proTipBox.style.display = 'none';
 
     } else if (reviewStatus === 'rejected') {
       // --- 2. 被拒绝 (Rejected) ---
@@ -366,7 +371,7 @@
 
     statusBadge.innerText = badgeText;
 
-    // 图片渲染逻辑 (保持不变)
+    // 图片渲染逻辑
     productImages = [];
     if (item.All_Images) {
       productImages = item.All_Images.split(',').map(path => {
