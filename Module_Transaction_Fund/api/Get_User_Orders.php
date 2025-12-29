@@ -35,6 +35,9 @@ try {
                     MAX(s.Shipments_Tracking_Number) AS Tracking_Number,
                     MAX(u.User_Username) AS Seller_Username,
 
+                    /* 🔥 是否已评价 (1=是, 0=否) */
+                    MAX(CASE WHEN rev.Reviews_ID IS NOT NULL THEN 1 ELSE 0 END) AS has_reviewed,
+
                     /* 🔥 退款信息 (关联 Refund_Requests) */
                     MAX(rr.Refund_Status) AS Refund_Status,
                     MAX(rr.Refund_Type) AS Refund_Type,
@@ -119,6 +122,9 @@ try {
                /* 关联争议表 */
                LEFT JOIN Dispute d ON o.Orders_Order_ID = d.Order_ID
                
+               /* 🔥 关联评价表 (检查作为买家是否已评价) */
+               LEFT JOIN Review rev ON o.Orders_Order_ID = rev.Order_ID AND rev.User_ID = o.Orders_Buyer_ID
+
                WHERE o.Orders_Buyer_ID = :uid
                GROUP BY o.Orders_Order_ID
                ORDER BY Orders_Created_AT DESC";
@@ -142,6 +148,9 @@ try {
                     MAX(s.Shipments_Shipped_Time) AS Orders_Shipped_At,
                     MAX(s.Shipments_Tracking_Number) AS Tracking_Number,
                     MAX(u.User_Username) AS Buyer_Username,
+
+                    /* 🔥 是否已评价 (1=是, 0=否) */
+                    MAX(CASE WHEN rev.Reviews_ID IS NOT NULL THEN 1 ELSE 0 END) AS has_reviewed,
 
                     /* 🔥 退款信息 */
                     MAX(rr.Refund_Status) AS Refund_Status,
@@ -225,6 +234,9 @@ try {
 
                /* 关联争议表 */
                LEFT JOIN Dispute d ON o.Orders_Order_ID = d.Order_ID
+
+               /* 🔥 关联评价表 (检查作为卖家是否已评价) */
+               LEFT JOIN Review rev ON o.Orders_Order_ID = rev.Order_ID AND rev.User_ID = o.Orders_Seller_ID
 
                WHERE o.Orders_Seller_ID = :uid
                GROUP BY o.Orders_Order_ID

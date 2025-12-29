@@ -59,27 +59,24 @@ try {
     // =========================================================
     // 第二步：处理封号逻辑
     // =========================================================
-    if ($status === 'Resolved' && $shouldBan) {
+    if ($shouldBan && $targetUserId) {
+        // Calculate end date
         $endDate = null;
+        $banDuration = strtolower($banDuration);
 
-        // 统一转小写处理
-        $durationStr = strtolower($banDuration);
-
-        if ($durationStr === 'forever' || $durationStr === 'permanent') {
-            // 永久封禁：EndDate 设为 NULL (或者一个极其遥远的未来，取决于你的数据库设计，通常 NULL 表示永久)
-            $endDate = null;
+        if ($banDuration === 'forever' || $banDuration === 'permanent') {
+            $endDate = null; // Permanent
         } else {
-            // 处理具体天数
-            // intval 会自动把 "3d" 转成 3，把 "365d" 转成 365，把纯数字 "15" 转成 15
-            $days = intval($durationStr);
-
-            // 安全保底：如果解析出来是0 (比如误传了空字符)，默认封3天
-            if ($days <= 0) $days = 3;
-
+            // Support "3d", "7d", "30d" or just number
+            $days = intval($banDuration);
+            if ($days <= 0) $days = 3; // Default to 3 days if invalid
             $endDate = date('Y-m-d H:i:s', strtotime("+$days days"));
         }
 
-        // 插入 Admin Action
+        // Insert into Administrative_Action
+        // Using correct columns from schema:
+        // Admin_Action_Type, Admin_Action_Reason, Admin_Action_Start_Date, Admin_Action_End_Date, 
+        // Admin_Action_Final_Resolution, Admin_ID, Target_User_ID, Admin_Action_Source
         $sqlAction = "INSERT INTO Administrative_Action 
                       (Admin_Action_Type, Admin_Action_Reason, Admin_Action_Start_Date, Admin_Action_End_Date,
                        Admin_Action_Final_Resolution, Admin_ID, Target_User_ID, Admin_Action_Source) 
@@ -89,9 +86,9 @@ try {
 
         $actionId = $pdo->lastInsertId();
 
-        // 更新 User 状态
-        $sqlUser = "UPDATE User SET User_Status = 'banned' WHERE User_ID = ?";
-        $pdo->prepare($sqlUser)->execute([$targetUserId]);
+        // Update User status to banned
+        $stmt = $pdo->prepare("UPDATE User SET User_Status = 'banned' WHERE User_ID = ?");
+        $stmt->execute([$targetUserId]);
     }
 
     // =========================================================

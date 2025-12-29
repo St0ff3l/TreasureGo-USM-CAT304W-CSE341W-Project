@@ -66,7 +66,7 @@
         td { padding: 15px; border-bottom: 1px solid #F3F4F6; font-size: 0.95rem; }
         tr:hover { background: #F9FAFB; }
 
-        /* 🔥 更新后的状态徽章样式 (根据截图调整) */
+        /* 🔥 更新后的状态徽章样式 */
         .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: inline-block; white-space: nowrap;}
 
         .status-paid { background: #FFEFD5; color: #8B4513; } /* 浅橙/棕色 */
@@ -85,6 +85,9 @@
 
         .btn-review { background: #FFFBEB; color: #D97706; border: 1px solid #FCD34D; }
         .btn-review:hover { background: #FEF3C7; transform: translateY(-1px); }
+
+        /* 🔥 新增：禁用按钮样式 (已评价) */
+        .btn-disabled { background: #E5E7EB; color: #9CA3AF; border: 1px solid #E5E7EB; cursor: not-allowed; pointer-events: none; }
 
         .filter-select-small { padding: 4px 8px; border-radius: 8px; border: 1px solid #E5E7EB; background-color: white; color: var(--text-dark); font-size: 0.85rem; cursor: pointer; outline: none; transition: all 0.2s; }
 
@@ -320,21 +323,35 @@
         const roleBadge = isBuyer
             ? `<span style="background:#E0E7FF; color:#3730A3; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">BUYING</span>`
             : `<span style="background:#FEF3C7; color:#92400E; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">SELLING</span>`;
+
+        // 如果后端有图片则用后端图片，否则直接用本地占位图
         const imgUrl = order.Main_Image ? `../../${order.Main_Image}` : '../../Public_Assets/images/placeholder.png';
 
         const targetUserId = isBuyer ? order.Orders_Seller_ID : order.Orders_Buyer_ID;
 
-        // Review 按钮仅在 Completed 状态下显示 (可选逻辑，目前全部显示)
-        const reviewButtonHtml = `
-            <button class="btn-small btn-review" onclick="openReviewModal(${order.Orders_Order_ID}, ${targetUserId})">
-                <i class="ri-star-line"></i> Review
-            </button>
-        `;
+        let reviewButtonHtml = '';
+        const status = order.Orders_Status ? order.Orders_Status.toLowerCase() : '';
+
+        if (status === 'completed') {
+            if (order.has_reviewed == 1) {
+                reviewButtonHtml = `
+                    <button class="btn-small btn-disabled" disabled>
+                        <i class="ri-check-line"></i> Reviewed
+                    </button>
+                `;
+            } else {
+                reviewButtonHtml = `
+                    <button class="btn-small btn-review" onclick="openReviewModal(${order.Orders_Order_ID}, ${targetUserId})">
+                        <i class="ri-star-line"></i> Review
+                    </button>
+                `;
+            }
+        }
 
         row.innerHTML = `
             <td>
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <img src="${imgUrl}" style="width:45px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #E5E7EB;" onerror="this.src='https://via.placeholder.com/45'">
+                    <img src="${imgUrl}" style="width:45px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #E5E7EB;" onerror="this.onerror=null;this.src='../../Public_Assets/images/placeholder.png'">
                     <div>
                         <div style="font-weight:700; font-size:0.9rem;">#${order.Orders_Order_ID}</div>
                         <small style="color:var(--text-gray);">ID: ${order.Product_ID}</small>
@@ -360,7 +377,6 @@
         window.location.href = `Order_Details.html?id=${orderId}`;
     }
 
-    // 🔥 核心修改：状态样式映射
     function getStatusClass(status) {
         const statusLower = status ? status.toLowerCase() : 'pending';
         const map = {
@@ -375,7 +391,6 @@
 
     function capitalizeFirst(str) {
         if (!str) return '';
-        // 处理特殊的 After Sales Processing 大小写
         if (str.toLowerCase() === 'after sales processing') return 'After Sales Processing';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
@@ -390,7 +405,6 @@
 
     // Review Modal Logic
     const reviewModal = document.getElementById('reviewModal');
-    // 🔥 核心修改：评价维度更新
     const CRITERIA_NAMES = [
         "Honesty / Accuracy",
         "Item Condition / Quality",
@@ -450,8 +464,6 @@
         };
 
         try {
-            // Replace with actual API call
-            // 请确保这一行路径指向正确的后端 API
             const res = await fetch('../../Module_User_Account_Management/api/submit_review.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -462,6 +474,8 @@
             if (json.success) {
                 closeReviewModal();
                 StatusDialog.success("Success", "Review submitted!", "OK");
+                // 🔥 提交成功后重新加载列表，使按钮状态立即更新
+                loadOrders();
             } else {
                 StatusDialog.fail("Error", json.message);
             }

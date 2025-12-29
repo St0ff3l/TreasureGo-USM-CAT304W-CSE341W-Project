@@ -494,7 +494,7 @@
           </div>` : ''}
 
           <div>
-             <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/views/public_profile.html?user_id=${r.reporterId}'">View Profile</button>
+             <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reporterId}'">View Profile</button>
           </div>
         </div>
       </div>
@@ -507,7 +507,7 @@
             <div style="margin-bottom:4px;">👤 User: <strong>${r.reportedUserName}</strong> (ID: ${r.reportedUserId})</div>
           </div>
           <div style="display:flex; gap:10px;">
-            <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/views/public_profile.html?user_id=${r.reportedUserId}'">Target Profile</button>
+            <button class="btn-action-view" onclick="window.location.href='../../Module_User_Account_Management/pages/user_profile.php?id=${r.reportedUserId}'">Target Profile</button>
             ${r.reportedItemId ? `<button class="btn-action-view" style="background:#EEF2FF; color:var(--primary);" onclick="window.location.href='../../Module_Product_Ecosystem/pages/Product_Detail.html?id=${r.reportedItemId}'">Product Page</button>` : ''}
           </div>
         </div>
