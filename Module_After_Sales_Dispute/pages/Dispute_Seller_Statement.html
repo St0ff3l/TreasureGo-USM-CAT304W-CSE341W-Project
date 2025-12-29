@@ -198,7 +198,15 @@
     async function handleSubmit() {
       const statement = document.getElementById('statement').value.trim();
 
+      // 1. 🔥 新增：从 URL 获取上一步选好的原因和收货状态
+      const reasonCode = getQueryParam('reason');
+      const receivedStatus = getQueryParam('received');
+
       if (!currentOrderId) return setMsg('Missing Order ID.', 'err');
+
+      // 检查：如果 URL 里没有 reason，说明流程可能有问题，给个默认值防止报错
+      const finalReason = reasonCode || 'Seller_Refused_Return';
+
       if (statement.length < 20) return setMsg('Please provide a detailed explanation (min 20 chars).', 'err');
 
       if (!confirm('Are you sure you want to submit this response?')) return;
@@ -206,28 +214,26 @@
       const btn = document.getElementById('btnSubmit');
       btn.disabled = true;
       btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing...';
-      setMsg('', ''); // 清除旧消息
+      setMsg('', '');
 
       try {
-        // 1. 获取用户刚选的文件
         const files = evidenceUploader.getFiles();
         let newUploadedUrls = [];
 
-        // 2. 如果有新文件，先上传
         if (files.length > 0) {
           newUploadedUrls = await uploadImagesFirst(files, currentOrderId);
         }
 
-        // 3. 合并新旧图片 (如果服务器端 API 支持追加，这里只需发新的；如果通过 JSON 全量覆盖，则需合并)
-        // 假设 API 逻辑是 update 全量，则需要合并。
-        // 这里简化为：将新上传的 URL 发送给后端
         const finalEvidenceList = [...uploadedEvidenceUrls, ...newUploadedUrls];
 
-        // 4. 提交 JSON 数据
+        // 2. 🔥 修改：构建 Payload，把原因传给后端
         const payload = {
           order_id: currentOrderId,
           seller_response: statement,
-          evidence_images: finalEvidenceList
+          evidence_images: finalEvidenceList,
+          // 新增字段
+          reason_code: finalReason,       // 传给后端填入 Dispute_Details
+          received_status: receivedStatus // 传给后端记录是否收到货
         };
 
         const res = await fetch(API_SELLER_DISPUTE_SUBMIT, {
@@ -244,7 +250,7 @@
             window.location.href = `../../Module_Transaction_Fund/pages/Order_Details.html?id=${currentOrderId}`;
           }, 1500);
         } else {
-          throw new Error(data.message);
+          throw new Error(data.message); // 如果后端还有问题，这里会捕获
         }
 
       } catch (e) {

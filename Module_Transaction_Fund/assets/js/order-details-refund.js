@@ -2,15 +2,18 @@
  * Order Details - Refund/After-sales module
  * Updated: Supports Bi-directional Dispute Initiation & Progress Timeline
  * Fixes: Full logic restoration, Correct "Check" link, Enhanced Participation Logic
+ * Latest Update: Added Seller Refusal Modal & API Integration
  */
 
 (function (global) {
   'use strict';
 
-  // --- 🆕 弹窗逻辑变量 ---
+  // --- 🆕 Modal Logic Variables ---
   let currentRefundOrderId = null;
   let hasReceivedGoods = 0; // 0=No, 1=Yes
+  let modalMode = 'buyer'; // 🆕 Values: 'buyer' or 'seller'
 
+  // --- Buyer Reasons ---
   const reasonsNotReceived = [
     {val: 'logistics_stuck', txt: 'Logistics stuck / Not moving'},
     {val: 'not_received', txt: 'Did not receive package (Lost)'},
@@ -27,16 +30,30 @@
     {val: 'other', txt: 'Other'}
   ];
 
+  // --- 🆕 Seller Reasons (Refusal) ---
+  const sellerReasonsNotReceived = [
+    {val: 'fake_tracking', txt: 'Fake Tracking Number / Invalid'},
+    {val: 'empty_package', txt: 'Received Empty Package'},
+    {val: 'not_received', txt: 'Did Not Receive Anything'},
+    {val: 'other', txt: 'Other'}
+  ];
+
+  const sellerReasonsReceived = [
+    {val: 'returned_wrong_item', txt: 'Buyer Returned Wrong Item'},
+    {val: 'damaged_by_buyer', txt: 'Item Damaged by Buyer'},
+    {val: 'parts_missing', txt: 'Returned Item Incomplete'},
+    {val: 'other', txt: 'Other'}
+  ];
+
   function escapeHtml(value) {
     return global.OrderDetailsOrder?.escapeHtml ? global.OrderDetailsOrder.escapeHtml(value) : String(value ?? '');
   }
 
-  // ✅ 0. Check 按钮的目标地址 (查看退款详情)
+  // ✅ 0. Navigation Helpers
   function goToRefundDetail(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${encodeURIComponent(orderId)}`;
   }
 
-  // ✅ 1. 填表页：买家发起
   function goToBuyerDispute(orderId, hasBuyerReturnTracking) {
     const oid = encodeURIComponent(orderId);
     const url = Number(hasBuyerReturnTracking)
@@ -45,25 +62,22 @@
     window.location.href = url;
   }
 
-  // ✅ 2. 填表页：卖家发起
   function goToSellerStatement(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Dispute_Seller_Statement.html?order_id=${encodeURIComponent(orderId)}`;
   }
 
-  // ✅ 3. 进度页：查看/聊天 (双方共用)
   function goToDisputeProgress(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Dispute_Progress.html?order_id=${encodeURIComponent(orderId)}`;
   }
 
   // ============================================================
-  // 🔥 核心函数：渲染退款/争议状态卡片
+  // 🔥 Core Function: Render Refund/Dispute Status Card
   // ============================================================
   function renderRefundStatusCard(order, isBuyer) {
-    let status = order.Refund_Status; // 可能为空
+    let status = order.Refund_Status;
     const type = order.Refund_Type;
     const disputeStatus = order.Dispute_Status;
 
-    // 🔥 如果 Refund_Status 为空，但有 Dispute_Status，强制视为 'dispute_in_progress'
     if (!status && disputeStatus && disputeStatus !== 'Closed' && disputeStatus !== 'None') {
       status = 'dispute_in_progress';
     }
@@ -72,9 +86,7 @@
 
     const typeText = type === 'refund_only' ? 'Refund Only' : 'Return & Refund';
 
-    // -------------------------------------------------------------
-    // 1. Pending Approval (等待卖家处理)
-    // -------------------------------------------------------------
+    // 1. Pending Approval
     if (status === 'pending_approval') {
       const reasonMap = {
         damaged: 'Item Damaged / Defective',
@@ -117,7 +129,7 @@
               <h4>${typeText}</h4>
               <p><strong>Reason:</strong> ${escapeHtml(readableReason)}</p>
             </div>
-            <div class="seller-actions-row">
+            <div class="seller-actions-row" id="action-btns-${Number(order.Orders_Order_ID)}">
               <button class="btn btn-confirm" onclick="sellerProcessRefund(${Number(order.Orders_Order_ID)}, 'approve', '${escapeHtml(type)}')">Approve</button>
               <button class="btn btn-warn" onclick="sellerProcessRefund(${Number(order.Orders_Order_ID)}, 'reject', '${escapeHtml(type)}')">Reject</button>
             </div>
@@ -127,9 +139,7 @@
       `;
     }
 
-    // -------------------------------------------------------------
-    // 2. Awaiting Return (退货中)
-    // -------------------------------------------------------------
+    // 2. Awaiting Return
     if (status === 'awaiting_return' || status === 'awaiting_confirm') {
       const returnTracking = order.Return_Tracking_Number || order.return_tracking_number || '';
       const deliveryMethod = String(order.Delivery_Method || 'shipping').toLowerCase().trim();
@@ -201,6 +211,7 @@
       }
 
       // Shipping Logic (Seller)
+      // 🔥 Updated: Use openSellerRefusalModal instead of sellerRefuseReturnReceived
       return `
         <div class="refund-status-card status-return">
           <div class="refund-status-header">
@@ -214,16 +225,14 @@
             </div>
             <div class="btn-group">
               <button class="btn btn-confirm" onclick="sellerConfirmReturnReceived(${Number(order.Orders_Order_ID)})">Confirm Received</button>
-              <button class="btn btn-warn" onclick="sellerRefuseReturnReceived(${Number(order.Orders_Order_ID)})">Refuse & Dispute</button>
+              <button class="btn btn-warn" onclick="openSellerRefusalModal(${Number(order.Orders_Order_ID)})">Refuse & Dispute</button>
             </div>
           </div>
         </div>
       `;
     }
 
-    // -------------------------------------------------------------
-    // 🔥 3. Completed (Refund Successful or Dispute Won by Buyer)
-    // -------------------------------------------------------------
+    // 3. Completed
     if (status === 'completed') {
       let title = 'Refund Completed';
       let msg = isBuyer ? 'Refund returned to wallet.' : 'Refund deducted from earnings.';
@@ -257,9 +266,7 @@
       `;
     }
 
-    // -------------------------------------------------------------
-    // 🔥 4. Rejected / Closed / Cancelled
-    // -------------------------------------------------------------
+    // 4. Rejected / Closed / Cancelled
     if (status === 'rejected' || status === 'closed' || status === 'goods_rejected' || status === 'cancelled') {
       const attempt = parseInt(order.Request_Attempt || '1', 10);
       const canResubmit = isBuyer && attempt < 2 && status !== 'closed' && status !== 'cancelled';
@@ -267,7 +274,6 @@
       const adminReply = isBuyer ? order.Dispute_Admin_Reply_To_Buyer : order.Dispute_Admin_Reply_To_Seller;
       const hasDispute = (order.Dispute_ID && Number(order.Dispute_ID) > 0);
 
-      // 🔥 核心判断：如果买家被拒第二次，或者虽然第一次被拒但卖家已经发起了争议
       if ((isBuyer && !canResubmit && status === 'rejected') || hasDispute) {
         return renderDisputeCard(order, isBuyer, 'Platform Intervention', 'Request rejected. Platform support team involved.');
       }
@@ -299,7 +305,6 @@
         }
       }
 
-      // 🔥 改为调用 openRefundPreCheck
       return `
         <div class="refund-status-card status-closed">
           <div class="refund-status-header">
@@ -321,9 +326,7 @@
       `;
     }
 
-    // -------------------------------------------------------------
-    // 🔥 5. Dispute In Progress (争议状态)
-    // -------------------------------------------------------------
+    // 5. Dispute In Progress
     if (status === 'dispute_in_progress') {
       return renderDisputeCard(order, isBuyer);
     }
@@ -332,95 +335,76 @@
   }
 
   // ============================================================
-  // 🔥🔥🔥 核心逻辑：智能路由判断 (Dispute Card) 🔥🔥🔥
+  // 🔥 Dispute Card Routing
   // ============================================================
   function renderDisputeCard(order, isBuyer, overrideTitle, overrideDesc) {
     const disputeId = Number(order.Dispute_ID || 0);
     const hasDisputeRecord = (disputeId > 0);
     const hasBuyerReturnTracking = !!(order.Return_Tracking_Number || order.return_tracking_number);
 
-    // ⬇️⬇️⬇️ 关键判断逻辑 ⬇️⬇️⬇️
     let jumpFunc = '';
     let hasParticipated = false;
 
-    // 1. 判断我（当前用户）是否已经提交过证据
-    // 现在检查新的 _Description 字段和图片字段
     if (isBuyer) {
       const desc = order.Buyer_Description || '';
       const imgs = order.Dispute_Buyer_Evidence || '[]';
-
-      // 如果有文字描述，或者有图片
-      if (desc.length > 0 || (imgs.length > 5 && imgs !== '[]')) {
-        hasParticipated = true;
-      }
+      if (desc.length > 0 || (imgs.length > 5 && imgs !== '[]')) hasParticipated = true;
     } else {
       const desc = order.Seller_Description || '';
       const imgs = order.Dispute_Seller_Evidence || '[]';
-
-      // 如果有文字描述，或者有图片
-      if (desc.length > 0 || (imgs.length > 5 && imgs !== '[]')) {
-        hasParticipated = true;
-      }
+      if (desc.length > 0 || (imgs.length > 5 && imgs !== '[]')) hasParticipated = true;
     }
 
-    // 2. 路由决策
     if (!hasDisputeRecord) {
-      // 还没立案 -> 肯定去填表
       jumpFunc = isBuyer
           ? `goToBuyerDispute(${Number(order.Orders_Order_ID)}, ${Number(hasBuyerReturnTracking)})`
           : `goToSellerStatement(${Number(order.Orders_Order_ID)})`;
     } else {
-      // 已经立案 -> 检查我是否参与过
       if (hasParticipated) {
-        // 我参与过 -> 去聊天页
         jumpFunc = `goToDisputeProgress(${Number(order.Orders_Order_ID)})`;
       } else {
-        // 立案了但我没交过证据 (我是被告且第一次来) -> 去填表页
         jumpFunc = isBuyer
             ? `goToBuyerDispute(${Number(order.Orders_Order_ID)}, ${Number(hasBuyerReturnTracking)})`
             : `goToSellerStatement(${Number(order.Orders_Order_ID)})`;
       }
     }
 
-    // UI 渲染逻辑
     const actionRequired = order.Action_Required_By || 'None';
     const myRole = isBuyer ? 'Buyer' : 'Seller';
-    const isActionNeeded = (actionRequired === myRole) || (actionRequired === 'Both');
     const step = order.Dispute_Status || 'Open';
 
-    let displayStatus = overrideTitle || "Dispute Submitted";
-    let displayDesc = overrideDesc || "Waiting for admin assignment.";
-    let statusIcon = "ri-send-plane-fill";
-    let headerColorClass = "status-pending"; // 默认黄/灰
+    let displayStatus = overrideTitle || "Dispute Started";
+    let displayDesc = overrideDesc || "Waiting for platform admin to review the case.";
+    let statusIcon = "ri-hourglass-2-fill";
+    let headerColorClass = "status-pending";
+
+    const isActionNeeded = (actionRequired === myRole) || (actionRequired === 'Both');
 
     if (isActionNeeded) {
       displayStatus = "Action Required";
-      displayDesc = "Please submit your evidence/response immediately.";
+      const adminMsg = isBuyer ? order.Dispute_Admin_Reply_To_Buyer : order.Dispute_Admin_Reply_To_Seller;
+      displayDesc = adminMsg ? `Admin Instruction: "${escapeHtml(adminMsg)}"` : "Please submit additional evidence immediately.";
       statusIcon = "ri-alarm-warning-fill";
-      headerColorClass = "status-closed"; // 红色背景
-    } else if (!overrideTitle) {
-      // 根据状态显示不同文案
-      switch (step) {
-        case 'In Review':
-          displayStatus = "Under Review";
-          displayDesc = "Admin is investigating the case.";
-          statusIcon = "ri-search-eye-line";
-          headerColorClass = "status-return"; // 蓝色
-          break;
-        case 'Resolved':
-          displayStatus = "Dispute Resolved";
-          displayDesc = "Verdict reached.";
-          statusIcon = "ri-check-double-line";
-          headerColorClass = "status-success"; // 绿色
-          break;
-      }
+      headerColorClass = "status-closed";
+    }
+    else if (step === 'In Review') {
+      displayStatus = "Under Investigation";
+      displayDesc = "Admin is currently reviewing evidence from both parties.";
+      statusIcon = "ri-search-eye-line";
+      headerColorClass = "status-return";
+    }
+    else if (step === 'Resolved') {
+      displayStatus = "Dispute Resolved";
+      const adminMsg = isBuyer ? order.Dispute_Admin_Reply_To_Buyer : order.Dispute_Admin_Reply_To_Seller;
+      displayDesc = adminMsg ? `Verdict: "${escapeHtml(adminMsg)}"` : "A final decision has been made.";
+      statusIcon = "ri-check-double-line";
+      headerColorClass = "status-success";
     }
 
-    // 按钮文字逻辑：没立案/没参与 -> 填表；否则 -> 看详情
-    const btnText = (!hasDisputeRecord || !hasParticipated) ? "Respond / File Dispute" : (isActionNeeded ? "Respond Now" : "View Details");
+    const btnText = (!hasDisputeRecord || !hasParticipated) ? "Respond / File Dispute" : (isActionNeeded ? "Respond Now" : "View Progress");
     const btnStyle = isActionNeeded
-        ? "background:#DC2626; color:white; border:none;" // 红色紧急
-        : "background:#1F2937; color:white;";             // 黑色普通
+        ? "background:#DC2626; color:white; border:none;"
+        : "background:#1F2937; color:white;";
 
     return `
         <div class="refund-status-card ${headerColorClass}">
@@ -524,29 +508,10 @@
     }
   }
 
+  // Legacy prompt-based function (kept for fallback compatibility, though now replaced by modal)
   async function sellerRefuseReturnReceived(orderId) {
-    const detail = prompt('Please describe why you refuse:', '');
-    if (detail === null) return;
-    if (!confirm('Confirm refuse and open dispute?')) return;
-
-    try {
-      const response = await fetch('../api/Refund_Actions.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          action: 'seller_refuse_return_received',
-          order_id: orderId,
-          reason_code: 'other',
-          reason_text: detail,
-        }),
-      });
-      const result = await response.json();
-      if (result && result.success) location.reload();
-      else alert(result?.message || 'Failed');
-    } catch (_) {
-      alert('Network error');
-    }
+    // Forward to new modal logic
+    openSellerRefusalModal(orderId);
   }
 
   async function submitReturnTracking(orderId) {
@@ -587,27 +552,48 @@
   }
 
   // =========================================
-  // 🆕🆕🆕 弹窗逻辑实现 (Pre-Check Modal)
+  // 🆕🆕🆕 Updated Modal Logic (Pre-Check)
   // =========================================
 
   function openRefundPreCheck(orderId) {
     currentRefundOrderId = orderId;
-    // 重置状态
+    modalMode = 'buyer'; // Set to Buyer Mode
     hasReceivedGoods = 0;
-    // 重置显示
-    document.getElementById('step1_received').style.display = 'block';
-    document.getElementById('step2_reason').style.display = 'none';
-    // 打开弹窗
+
+    // Update Title
+    const titleEl = document.getElementById('refundModalTitle');
+    if(titleEl) titleEl.innerText = "Request Refund";
+
+    resetRefundModal();
+    document.getElementById('refundPreCheckModal').style.display = 'flex';
+  }
+
+  function openSellerRefusalModal(orderId) {
+    currentRefundOrderId = orderId;
+    modalMode = 'seller'; // Set to Seller Mode
+    hasReceivedGoods = 0;
+
+    // Update Title
+    const titleEl = document.getElementById('refundModalTitle');
+    if(titleEl) titleEl.innerText = "Refuse Return & Dispute";
+
+    resetRefundModal();
     document.getElementById('refundPreCheckModal').style.display = 'flex';
   }
 
   function handlePreCheckStep1(status) {
-    hasReceivedGoods = status; // 0 或 1
+    hasReceivedGoods = status; // 0 or 1
     const select = document.getElementById('preSelectReason');
     select.innerHTML = '<option value="" disabled selected>-- Select a Reason --</option>';
 
-    // 根据选择填充原因
-    const reasons = (status === 1) ? reasonsReceived : reasonsNotReceived;
+    // 🔥 Switch Reasons based on Modal Mode
+    let reasons = [];
+    if (modalMode === 'seller') {
+      reasons = (status === 1) ? sellerReasonsReceived : sellerReasonsNotReceived;
+    } else {
+      reasons = (status === 1) ? reasonsReceived : reasonsNotReceived;
+    }
+
     reasons.forEach(r => {
       const opt = document.createElement('option');
       opt.value = r.val;
@@ -615,7 +601,6 @@
       select.appendChild(opt);
     });
 
-    // 切换到第二步
     document.getElementById('step1_received').style.display = 'none';
     document.getElementById('step2_reason').style.display = 'block';
   }
@@ -626,15 +611,31 @@
   }
 
   function submitPreCheck() {
-    const reason = document.getElementById('preSelectReason').value;
-    if (!reason) {
+    const reasonCode = document.getElementById('preSelectReason').value;
+    // 获取选中的文本，虽然跳转后主要用 reasonCode，但保留逻辑以防万一
+    const selectEl = document.getElementById('preSelectReason');
+    const reasonText = selectEl.options[selectEl.selectedIndex].text;
+
+    if (!reasonCode) {
       alert("Please select a reason first.");
       return;
     }
-    // 跳转到填写页面，带上参数
-    const url = `../../Module_After_Sales_Dispute/pages/Refund_Request.html?order_id=${currentRefundOrderId}&received=${hasReceivedGoods}&reason=${reason}`;
-    window.location.href = url;
+
+    // 🅰️ 买家模式：跳转到退款申请页 (保持原有逻辑)
+    if (modalMode === 'buyer') {
+      const url = `../../Module_After_Sales_Dispute/pages/Refund_Request.html?order_id=${currentRefundOrderId}&received=${hasReceivedGoods}&reason=${reasonCode}`;
+      window.location.href = url;
+    }
+
+    // 🅱️ 🆕 卖家模式：跳转到拒绝退货详情页
+    else {
+      // 不再直接调用 API，而是跳转到你指定的页面
+      // 带上 order_id, received (0或1), reason (原因代码)
+      const url = `../../Module_After_Sales_Dispute/pages/Dispute_Reject_After_Receive_Return.html?order_id=${currentRefundOrderId}&received=${hasReceivedGoods}&reason=${reasonCode}`;
+      window.location.href = url;
+    }
   }
+
 
   function closeRefundModal() {
     document.getElementById('refundPreCheckModal').style.display = 'none';
@@ -652,17 +653,19 @@
     sellerRefuseReturnReceived,
     submitReturnTracking,
     confirmReturnHandover,
-    openRefundPreCheck // 🆕 导出新函数
+    openRefundPreCheck,
+    openSellerRefusalModal // 🆕 Exported
   };
 
-  // 绑定全局以便 HTML onclick 调用
+  // Global bindings for HTML onclick
   global.openRefundPreCheck = openRefundPreCheck;
+  global.openSellerRefusalModal = openSellerRefusalModal; // 🆕
   global.handlePreCheckStep1 = handlePreCheckStep1;
   global.resetRefundModal = resetRefundModal;
   global.submitPreCheck = submitPreCheck;
   global.closeRefundModal = closeRefundModal;
 
-  // legacy globals support
+  // Legacy globals support
   global.goToRefundDetail = goToRefundDetail;
   global.sellerProcessRefund = sellerProcessRefund;
   global.sellerConfirmReturnReceived = sellerConfirmReturnReceived;

@@ -4,97 +4,278 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dispute Progress | TreasureGO</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="../assets/css/upload_images.css" rel="stylesheet">
 
   <style>
-    /* 简单的聊天室样式 */
-    body { background: #F3F4F6; font-family: 'Plus Jakarta Sans', sans-serif; padding-bottom: 100px; }
-    .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
-
-    .status-header {
-      background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      border-left: 5px solid #E5E7EB;
-    }
-    .status-header.action-needed { border-left-color: #DC2626; } /* 红色提示 */
-
-    .timeline-box { display: flex; flex-direction: column; gap: 20px; }
-
-    .msg-card {
-      background: white; padding: 15px; border-radius: 12px;
-      max-width: 85%; position: relative;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    /* ================= 布局基础 (参考 Support Chat) ================= */
+    :root {
+      --bg-body: #F3F4F6;
+      --card-bg: #FFFFFF;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --msg-me-bg: #4F46E5;
+      --msg-me-text: #FFFFFF;
+      --msg-other-bg: #FFFFFF;
+      --msg-admin-bg: #F1F5F9;
     }
 
-    /* 角色区分样式 */
-    .msg-left { align-self: flex-start; border-top-left-radius: 0; } /* 对方 */
-    .msg-right { align-self: flex-end; background: #EEF2FF; border-top-right-radius: 0; } /* 我 */
-    .msg-admin { align-self: center; max-width: 90%; background: #FEFCE8; border: 1px solid #FDE047; text-align: center; } /* 管理员 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .msg-meta { font-size: 0.75rem; color: #6B7280; margin-bottom: 5px; display: flex; justify-content: space-between; }
-    .msg-content { font-size: 0.95rem; color: #1F2937; line-height: 1.5; white-space: pre-wrap; }
-
-    .evidence-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .evidence-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #E5E7EB; }
-
-    /* 底部回复栏 (Sticky Bottom) */
-    .reply-dock {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: white; border-top: 1px solid #E5E7EB;
-      padding: 15px 0; z-index: 100;
-      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-dark);
+      height: 100dvh; /* 充满屏幕 */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .reply-inner { max-width: 800px; margin: 0 auto; padding: 0 15px; }
 
-    .locked-dock { text-align: center; color: #6B7280; font-size: 0.9rem; padding: 10px; background: #F9FAFB; }
+    .main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      background: var(--card-bg);
+      position: relative;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
 
-    .hidden { display: none; }
+    @media (min-width: 768px) {
+      .main-container {
+        margin: 20px auto;
+        border-radius: 20px;
+        height: calc(100dvh - 40px);
+        border: 1px solid #E5E7EB;
+        overflow: hidden;
+      }
+    }
+
+    /* ================= 顶部 Header ================= */
+    .chat-header {
+      height: 70px;
+      padding: 0 20px;
+      border-bottom: 1px solid #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .header-info h2 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+    .header-info p { font-size: 0.8rem; color: var(--text-gray); display: flex; align-items: center; gap: 6px; }
+
+    .status-tag {
+      font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; font-weight: 700; background: #E5E7EB; color: var(--text-dark);
+    }
+    .status-tag.urgent { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+
+    /* ================= 中间消息区域 ================= */
+    .messages-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #FAFAFA;
+      scroll-behavior: smooth;
+    }
+
+    /* 消息气泡通用 */
+    .msg-row { display: flex; flex-direction: column; max-width: 80%; }
+
+    .msg-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      position: relative;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      word-wrap: break-word;
+    }
+
+    .msg-meta {
+      font-size: 0.7rem; margin-bottom: 4px; opacity: 0.8;
+      display: flex; justify-content: space-between; gap: 10px;
+    }
+
+    /* 对方 (左) */
+    .msg-row.left { align-self: flex-start; }
+    .msg-row.left .msg-bubble {
+      background: var(--msg-other-bg);
+      border: 1px solid #E5E7EB;
+      border-top-left-radius: 4px;
+      color: var(--text-dark);
+    }
+
+    /* 我 (右) */
+    .msg-row.right { align-self: flex-end; }
+    .msg-row.right .msg-bubble {
+      background: var(--msg-me-bg);
+      color: var(--msg-me-text);
+      border-top-right-radius: 4px;
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+    }
+
+    /* 系统/管理员 (居中) */
+    .msg-row.system { align-self: center; max-width: 90%; align-items: center; }
+    .msg-row.system .msg-bubble {
+      background: var(--msg-admin-bg); color: var(--text-gray);
+      border-radius: 99px; padding: 6px 20px; font-size: 0.8rem;
+      border: 1px solid #E5E7EB; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* 图片网格 */
+    .img-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .img-thumb {
+      width: 60px; height: 60px; object-fit: cover; border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.1); cursor: zoom-in;
+    }
+
+    /* ================= 底部操作栏 ================= */
+    .input-dock {
+      padding: 15px 20px;
+      background: white;
+      border-top: 1px solid #F3F4F6;
+      flex-shrink: 0;
+    }
+
+    .action-bar { display: flex; gap: 10px; }
+
+    .btn-trigger {
+      flex: 1;
+      background: var(--primary); color: white;
+      border: none; padding: 14px;
+      border-radius: 12px;
+      font-weight: 600; font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: transform 0.2s;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    }
+    .btn-trigger:hover { transform: translateY(-2px); background: var(--primary-hover); }
+    .btn-trigger:active { transform: translateY(0); }
+
+    .locked-bar {
+      width: 100%; text-align: center; color: var(--text-gray);
+      font-size: 0.9rem; padding: 12px;
+      background: #F9FAFB; border-radius: 12px; border: 1px dashed #E5E7EB;
+    }
+
+    /* ================= 弹窗 (Dialog) ================= */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex; align-items: flex-end; /* Mobile: 从底部弹出 */
+      opacity: 0; visibility: hidden;
+      transition: all 0.3s;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    @media (min-width: 768px) {
+      .modal-overlay { align-items: center; justify-content: center; } /* PC: 居中 */
+    }
+
+    .modal-card {
+      background: white;
+      width: 100%; max-width: 600px;
+      border-top-left-radius: 24px; border-top-right-radius: 24px;
+      padding: 24px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; flex-direction: column; gap: 16px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.active .modal-card { transform: translateY(0); }
+
+    @media (min-width: 768px) {
+      .modal-card { border-radius: 24px; transform: scale(0.9); }
+      .modal-overlay.active .modal-card { transform: scale(1); }
+    }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); }
+    .modal-close { background: none; border: none; font-size: 1.5rem; color: var(--text-gray); cursor: pointer; }
+
+    textarea.modal-input {
+      width: 100%; min-height: 120px;
+      padding: 12px; border-radius: 12px;
+      border: 1px solid #E5E7EB; background: #F9FAFB;
+      font-family: inherit; font-size: 0.95rem; resize: none;
+    }
+    textarea.modal-input:focus { outline: none; border-color: var(--primary); background: white; }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <div id="statusHeader" class="status-header">
-    <h2 style="margin:0 0 5px 0; font-size:1.2rem;">Dispute Details</h2>
-    <div id="statusText" style="color:#6B7280;">Loading...</div>
-    <div id="urgentAlert" class="hidden" style="margin-top:10px; color:#DC2626; font-weight:700; display:flex; align-items:center; gap:5px;">
-      <i class="ri-alarm-warning-fill"></i> Action Required: Please provide evidence below!
+<div class="main-container">
+
+  <div class="chat-header">
+    <div class="header-info">
+      <h2 id="pageTitle">Dispute Details</h2>
+      <p>
+        <span id="statusBadge" class="status-tag">Loading...</span>
+        <span id="orderIdText">#...</span>
+      </p>
+    </div>
+    <div class="header-action">
     </div>
   </div>
 
-  <div id="timelineContainer" class="timeline-box">
+  <div id="messagesContainer" class="messages-container">
   </div>
-</div>
 
-<div class="reply-dock">
-  <div class="reply-inner">
-
-    <div id="activeReplyBox" class="hidden">
-      <div style="font-weight:700; margin-bottom:8px; color:#374151;">Submit Supplementary Evidence</div>
-      <textarea id="replyText" style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid #D1D5DB; margin-bottom:10px;" placeholder="Type your response here..."></textarea>
-
-      <div id="evidence-upload-container" style="margin-bottom:10px;"></div>
-
-      <button id="btnSubmit" class="btn btn-primary" style="width:100%; padding:12px; background:#4F46E5; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
-        Submit Response
+  <div class="input-dock">
+    <div id="activeBar" class="action-bar hidden">
+      <button class="btn-trigger" onclick="openModal()">
+        <i class="ri-add-circle-line"></i> Provide Evidence / Reply
       </button>
     </div>
+    <div id="lockedBar" class="locked-bar hidden">
+      <i class="ri-hourglass-fill"></i> Waiting for <span id="waitingTarget">...</span> to respond
+    </div>
+  </div>
 
-    <div id="lockedReplyBox" class="locked-dock hidden">
-      <i class="ri-lock-line"></i> Waiting for <span id="waitingForWho">...</span> to respond.
+</div>
+
+<div id="replyModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Submit Response</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
 
+    <div class="modal-body">
+      <label style="font-size:0.85rem; font-weight:600; color:var(--text-gray); margin-bottom:6px; display:block;">EXPLANATION</label>
+      <textarea id="replyText" class="modal-input" placeholder="Type your detailed explanation here..."></textarea>
+
+      <label style="font-size:0.85rem; font-weight:600; color:var(--text-gray); margin:16px 0 6px 0; display:block;">EVIDENCE IMAGES (Optional)</label>
+      <div id="evidence-upload-container"></div>
+    </div>
+
+    <button id="btnSubmitModal" class="btn-trigger" style="margin-top:10px;">
+      <i class="ri-send-plane-fill"></i> Submit Now
+    </button>
   </div>
 </div>
 
 <script src="../assets/js/upload_images.js"></script>
-
 <script>
   const API_GET_TIMELINE = '../api/get_dispute_timeline.php';
-  // 这里的提交接口，根据你的角色自动判断调用 buyer 还是 seller 的 PHP，或者统一一个
-  // 简单起见，我们根据角色动态决定 url
   let API_SUBMIT = '';
 
   let currentOrderId = new URLSearchParams(window.location.search).get('order_id');
@@ -102,150 +283,182 @@
   let uploader = null;
 
   async function init() {
-    if(!currentOrderId) return alert('Missing Order ID');
+    if(!currentOrderId) return alert('Error: Missing Order ID');
+    document.getElementById('orderIdText').innerText = '#' + currentOrderId;
 
-    // 1. 加载数据
-    const res = await fetch(`${API_GET_TIMELINE}?order_id=${currentOrderId}`);
-    const json = await res.json();
+    try {
+      const res = await fetch(`${API_GET_TIMELINE}?order_id=${currentOrderId}`);
+      const json = await res.json();
+      if(!json.success) throw new Error(json.message);
 
-    if(!json.success) {
-      document.body.innerHTML = `<div style="padding:50px; text-align:center;">${json.message}</div>`;
-      return;
+      const { info, timeline, my_role } = json.data;
+      myRole = my_role;
+      API_SUBMIT = (myRole === 'Buyer') ? '../api/dispute_buyer_submit.php' : '../api/dispute_seller_submit.php';
+
+      renderHeader(info);
+      renderMessages(timeline);
+      renderFooter(info);
+
+      // 初始化上传组件
+      if(typeof TreasureGoUploader !== 'undefined') {
+        uploader = new TreasureGoUploader('#evidence-upload-container', {
+          inputName: 'evidence[]',
+          maxFiles: 5
+        });
+      }
+
+      // 绑定提交事件
+      document.getElementById('btnSubmitModal').onclick = submitReply;
+
+    } catch (e) {
+      document.getElementById('messagesContainer').innerHTML = `<div style="text-align:center;padding:20px;color:red;">${e.message}</div>`;
     }
-
-    const { info, timeline, my_role } = json.data;
-    myRole = my_role; // 'Buyer' or 'Seller'
-
-    // 决定提交接口
-    API_SUBMIT = (myRole === 'Buyer')
-            ? '../api/dispute_buyer_submit.php'
-            : '../api/dispute_seller_submit.php';
-
-    renderHeader(info);
-    renderTimeline(timeline, myRole);
-    renderFooter(info, myRole);
-
-    // 初始化上传组件
-    uploader = new TreasureGoUploader('#evidence-upload-container', {
-      inputName: 'evidence[]',
-      maxFiles: 6
-    });
-
-    // 绑定提交事件
-    document.getElementById('btnSubmit').onclick = submitReply;
   }
 
-  // 渲染顶部状态
-  function renderHeader(info) {
-    const statusText = document.getElementById('statusText');
-    statusText.innerText = `Status: ${info.Dispute_Status} | Reason: ${info.Dispute_Reason}`;
+  // --- 渲染函数 ---
 
-    // 如果 Action_Required_By 是我，或者是 Both
+  function renderHeader(info) {
+    const badge = document.getElementById('statusBadge');
+    badge.innerText = info.Dispute_Status;
+
+    // 红色高亮
     const actionBy = info.Action_Required_By;
     const isUrgent = (actionBy === myRole) || (actionBy === 'Both');
 
     if (isUrgent) {
-      document.getElementById('statusHeader').classList.add('action-needed');
-      document.getElementById('urgentAlert').classList.remove('hidden');
-    }
-  }
-
-  // 渲染聊天记录
-  function renderTimeline(list, myRole) {
-    const container = document.getElementById('timelineContainer');
-    let html = '';
-
-    if (list.length === 0) {
-      html = '<div style="text-align:center; color:#9CA3AF; margin-top:30px;">No messages yet.</div>';
+      badge.classList.add('urgent');
+      badge.innerText = 'ACTION REQUIRED';
     } else {
-      list.forEach(item => {
-        const isMe = (item.User_Role === myRole);
-        const isAdmin = (item.User_Role === 'Admin');
-
-        let cardClass = isMe ? 'msg-right' : 'msg-left';
-        if (isAdmin) cardClass = 'msg-admin';
-
-        // 头像/名字展示
-        let senderName = item.User_Role;
-        if (isMe) senderName = 'Me';
-
-        // 图片渲染
-        let imgsHtml = '';
-        if (item.Evidence_Images && item.Evidence_Images.length > 0) {
-          imgsHtml = '<div class="evidence-grid">' +
-                  item.Evidence_Images.map(url =>
-                          `<img src="../../${url}" class="evidence-img" onclick="window.open(this.src)">`
-                  ).join('') +
-                  '</div>';
-        }
-
-        html += `
-              <div class="msg-card ${cardClass}">
-                <div class="msg-meta">
-                  <strong>${senderName}</strong>
-                  <span>${item.Created_At}</span>
-                </div>
-                <div class="msg-content">${item.Content || '(No text content)'}</div>
-                ${imgsHtml}
-              </div>
-            `;
-      });
+      badge.classList.remove('urgent');
     }
-    container.innerHTML = html;
-    // 滚动到底部
-    window.scrollTo(0, document.body.scrollHeight);
   }
 
-  // 渲染底部操作栏
-  function renderFooter(info, myRole) {
-    const actionBy = info.Action_Required_By;
-    const isMyTurn = (actionBy === myRole) || (actionBy === 'Both') || (info.Dispute_Status === 'Open'); // Open状态下也可以补充
-
-    // 如果争议结束了，隐藏所有
-    if (['Resolved', 'Closed', 'Cancelled'].includes(info.Dispute_Status)) {
-      document.querySelector('.reply-dock').style.display = 'none';
+  function renderMessages(list) {
+    const container = document.getElementById('messagesContainer');
+    if(list.length === 0) {
+      container.innerHTML = '<div style="text-align:center;color:#9CA3AF;margin-top:40px;">No messages yet.<br>Start the conversation by submitting details.</div>';
       return;
     }
 
+    let html = '';
+    list.forEach(item => {
+      const isMe = (item.User_Role === myRole);
+      const isAdmin = (item.User_Role === 'Admin');
+
+      let rowClass = 'left';
+      if (isMe) rowClass = 'right';
+      if (isAdmin) rowClass = 'system';
+
+      let name = isMe ? 'Me' : (isAdmin ? 'Admin' : item.User_Role);
+
+      // 时间处理
+      const dt = new Date(item.Created_At);
+      const timeStr = dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+      // 图片
+      let imgs = '';
+      if(item.Evidence_Images && item.Evidence_Images.length > 0) {
+        imgs = `<div class="img-grid">` +
+                item.Evidence_Images.map(u => {
+                  const url = u.startsWith('http') ? u : `../../${u}`;
+                  return `<img src="${url}" class="img-thumb" onclick="window.open(this.src)">`;
+                }).join('') +
+                `</div>`;
+      }
+
+      if (isAdmin) {
+        html += `
+          <div class="msg-row system">
+            <div class="msg-bubble">
+              <i class="ri-shield-user-line"></i> ${item.Content}
+            </div>
+            <div style="font-size:0.65rem; color:#9CA3AF; margin-top:4px; text-align:center;">${timeStr}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="msg-row ${rowClass}">
+            <div class="msg-bubble">
+              <div class="msg-meta">
+                <span>${name}</span>
+                <span>${timeStr}</span>
+              </div>
+              <div>${item.Content || ''}</div>
+              ${imgs}
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight; // 自动滚到底部
+  }
+
+  function renderFooter(info) {
+    const actionBy = info.Action_Required_By;
+
+    // 逻辑：如果 Action 是“我”、“双方(Both)” 或者 刚创建(Open)，都算轮到我
+    const isMyTurn = (actionBy === myRole) || (actionBy === 'Both') || (info.Dispute_Status === 'Open');
+
+    // 1. 重置：先隐藏两个底部栏，防止重叠
+    document.getElementById('activeBar').classList.add('hidden');
+    document.getElementById('lockedBar').classList.add('hidden');
+
+    // 2. 如果争议已结束，直接隐藏整个底部区域并返回
+    if(['Resolved', 'Closed', 'Cancelled'].includes(info.Dispute_Status)) {
+      document.querySelector('.input-dock').style.display = 'none';
+      return;
+    }
+
+    // 3. 状态判断逻辑
     if (isMyTurn) {
-      document.getElementById('activeReplyBox').classList.remove('hidden');
+      // 轮到我 -> 显示输入/提交按钮
+      document.getElementById('activeBar').classList.remove('hidden');
     } else {
-      document.getElementById('lockedReplyBox').classList.remove('hidden');
-      document.getElementById('waitingForWho').innerText = (actionBy === 'Admin') ? 'Platform Admin' : 'the other party';
+      // 没轮到我 -> 显示等待提示栏
+      document.getElementById('lockedBar').classList.remove('hidden');
+      const targetSpan = document.getElementById('waitingTarget');
+
+      // 🔥🔥🔥 核心修复在这里 🔥🔥🔥
+      // 如果 Action 是 'Admin' 或者 'None' (为空)，说明是平台介入中
+      if (actionBy === 'Admin' || actionBy === 'None' || !actionBy) {
+        targetSpan.innerText = 'Platform Admin (In Review)'; // 显示：等待平台管理员
+      } else {
+        // 否则才是真的在等对方 (Buyer/Seller)
+        targetSpan.innerText = 'The Other Party';
+      }
     }
   }
 
-  // 提交逻辑 (复用之前的逻辑)
+  // --- 弹窗逻辑 ---
+  window.openModal = function() {
+    document.getElementById('replyModal').classList.add('active');
+  };
+  window.closeModal = function() {
+    document.getElementById('replyModal').classList.remove('active');
+  };
+
+  // --- 提交逻辑 ---
   async function submitReply() {
     const text = document.getElementById('replyText').value.trim();
-    // 这里需要你自己实现先上传图片拿到 URL 的逻辑 (参考之前的 dispute_buyer_submit 前端代码)
-    // 简单起见，伪代码如下：
+    const btn = document.getElementById('btnSubmitModal');
+    const hasFiles = uploader.getFiles().length > 0;
 
-    const btn = document.getElementById('btnSubmit');
-    btn.disabled = true; btn.innerText = "Processing...";
+    if(!text && !hasFiles) return alert('Please enter explanation or upload evidence.');
+
+    btn.disabled = true; btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Processing...';
 
     try {
-      // 1. 上传图片 (使用 uploader 组件的方法)
-      const files = uploader.getFiles();
-      let uploadedUrls = [];
-      if (files.length > 0) {
-        // 这里要调用对应的 upload 接口，参考之前的代码
-        uploadedUrls = await uploadFilesFunction(files, currentOrderId);
-      }
+      let urls = [];
+      if(hasFiles) urls = await uploadFilesFunction(uploader.getFiles(), currentOrderId);
 
-      if (!text && uploadedUrls.length === 0) throw new Error("Please enter text or upload image.");
-
-      // 2. 提交数据
       const payload = {
         order_id: currentOrderId,
-        dispute_details: text, // 注意：补充记录用这个字段
-        seller_response: text, // 卖家接口可能用这个字段名，建议统一一下，或者根据 role 判断
-        evidence_images: uploadedUrls
+        dispute_details: text,
+        seller_response: text, // 兼容字段
+        evidence_images: urls
       };
-
-      // 兼容字段名：因为你的 buyer 接口用 dispute_details，seller 用 seller_response
-      // 建议：修改 seller 接口也接受 dispute_details，或者在这里做判断
-      if (myRole === 'Seller') payload.seller_response = text;
 
       const res = await fetch(API_SUBMIT, {
         method: 'POST',
@@ -254,28 +467,27 @@
       });
       const json = await res.json();
 
-      if (json.success) {
-        location.reload(); // 刷新页面看新消息
+      if(json.success) {
+        closeModal();
+        location.reload();
       } else {
-        alert(json.message);
-        btn.disabled = false; btn.innerText = "Submit Response";
+        throw new Error(json.message);
       }
-    } catch (e) {
+    } catch(e) {
       alert(e.message);
-      btn.disabled = false; btn.innerText = "Submit Response";
+      btn.disabled = false; btn.innerHTML = '<i class="ri-send-plane-fill"></i> Submit Now';
     }
   }
 
-  // 辅助：你需要把之前页面里的 uploadImagesFirst 函数复制过来改名为 uploadFilesFunction
   async function uploadFilesFunction(files, orderId) {
     const fd = new FormData();
     fd.append('order_id', orderId);
-    files.forEach(f => fd.append('evidence[]', f));
-    // 注意：这里需要确保 API 支持 multipart 上传
-    const res = await fetch(API_SUBMIT, { method: 'POST', body: fd });
+    Array.from(files).forEach(f => fd.append('evidence[]', f));
+
+    const res = await fetch(API_SUBMIT, { method:'POST', body:fd });
     const d = await res.json();
-    if(!d.success) throw new Error(d.message);
-    return d.files.map(f => f.url);
+    if(!d.success) throw new Error(d.message || 'Upload failed');
+    return (d.files || []).map(f => f.url);
   }
 
   init();

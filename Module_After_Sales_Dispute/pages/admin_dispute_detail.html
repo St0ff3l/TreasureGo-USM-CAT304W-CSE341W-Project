@@ -11,6 +11,30 @@
   <link rel="stylesheet" href="../assets/css/admin_dispute_detail.css">
 
   <script src="../../Public_Assets/js/admin_guard.js"></script>
+
+  <style>
+    .sidebar-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 10px;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-top: 4px;
+    }
+    .sidebar-textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+  </style>
 </head>
 <body>
 
@@ -23,6 +47,7 @@
 <div class="layout-grid">
 
   <aside class="sidebar">
+
     <div class="card">
       <div id="statusDisplay" class="status-badge st-Open">...</div>
 
@@ -35,7 +60,7 @@
         </select>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:0;">
         <label class="label" for="actionRequiredBy">Action Required From</label>
         <select id="actionRequiredBy" style="border-color:#6366f1; background:#EEF2FF; font-weight:600;">
           <option value="Admin">Admin (Processing)</option>
@@ -45,13 +70,20 @@
           <option value="None">None (Dispute Closed)</option>
         </select>
         <div style="font-size:0.75rem; color:#64748B; margin-top:4px; line-height:1.4;">
-          Selected party will see a red alert to submit evidence.
+          Selected party will see a red alert.
         </div>
       </div>
+    </div>
 
-      <div class="line-dashed"></div>
-
+    <div class="card">
       <div class="card-title">Resolution Decision</div>
+
+      <div style="font-size:0.75rem; color:#64748B; margin-bottom:12px; line-height:1.4; background:#F8FAFC; padding:8px; border-radius:6px; border:1px dashed #E2E8F0;">
+        <i class="ri-information-line"></i>
+        <strong>Note:</strong> Only select an outcome when setting status to <strong>Resolved</strong>.<br>
+        During <em>In Review</em>, you can leave this empty.
+      </div>
+
       <input type="hidden" id="orderTotalHidden" value="0">
 
       <div class="form-group">
@@ -66,8 +98,8 @@
 
       <div id="amountSection" style="display:none;">
         <div class="form-group">
-          <label class="label" id="amountLabel" for="drAmount">Refund Amount to Buyer (MYR)</label>
-          <input type="number" id="drAmount" placeholder="0.00" step="0.01" min="0">
+          <label class="label" id="amountLabel" for="drAmount">Refund Amount (MYR)</label>
+          <input type="number" id="drAmount" placeholder="0.00" step="0.01" min="0" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ddd;">
         </div>
 
         <div class="calc-box" id="calcDisplay">
@@ -86,7 +118,25 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" id="btnSaveDispute" style="margin-top: 16px;">
+      <div class="line-dashed"></div>
+
+      <div class="card-title">Replies (Visible to Users)</div>
+
+      <div style="font-size:0.75rem; color:#64748B; margin-bottom:12px; line-height:1.4;">
+        <i class="ri-information-line"></i> If "Action Required" is set, you <strong>MUST</strong> provide instructions here.
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="drReplyBuyer">Instruction / Message to Buyer</label>
+        <textarea id="drReplyBuyer" class="sidebar-textarea" placeholder="Explain decision to buyer..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="drReplySeller">Instruction / Message to Seller</label>
+        <textarea id="drReplySeller" class="sidebar-textarea" placeholder="Explain decision to seller..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="btnSaveDispute" style="margin-top: 20px; width: 100%;">
         <i class="ri-save-line"></i> Save Changes
       </button>
       <div id="saveMsg" style="text-align:center; font-size:0.8rem; margin-top:8px;"></div>
@@ -136,14 +186,11 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Dispute Timeline & Logs</div>
-      <div id="timelineContainer" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
-        <div style="text-align:center; padding:20px; color:#94a3b8;">Loading history...</div>
+      <div class="card-title">Initial Statements & Evidence</div>
+      <div style="font-size:0.75rem; color:#6B7280; margin-bottom:15px; margin-top:-10px;">
+        Evidence submitted when the dispute was first opened.
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-title">Statements & Evidence</div>
       <div class="comparison-grid">
         <div class="party-col">
           <div class="user-header">
@@ -176,18 +223,12 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Replies (Visible to users)</div>
-      <div class="comparison-grid">
-        <div>
-          <label class="label" for="drReplyBuyer">Reply to Buyer</label>
-          <textarea id="drReplyBuyer" placeholder="Explain decision to buyer..."></textarea>
-        </div>
-        <div>
-          <label class="label" for="drReplySeller">Reply to Seller</label>
-          <textarea id="drReplySeller" placeholder="Explain decision to seller..."></textarea>
-        </div>
+      <div class="card-title">Dispute Timeline & Logs (Conversation)</div>
+      <div id="timelineContainer" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+        <div style="text-align:center; padding:20px; color:#94a3b8;">Loading history...</div>
       </div>
     </div>
+
   </main>
 </div>
 
