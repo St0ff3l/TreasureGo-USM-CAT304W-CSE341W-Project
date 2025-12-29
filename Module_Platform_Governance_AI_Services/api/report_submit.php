@@ -47,12 +47,20 @@ if (!isset($_SESSION['user_id'])) {
 $reportingUserId = (int)$_SESSION['user_id'];
 
 // 2) Parse JSON
-$input = json_decode(file_get_contents('php://input'), true);
-if (!is_array($input)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Invalid JSON']);
-    exit;
+// 2) Parse JSON OR FormData
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+if (stripos($contentType, 'application/json') !== false) {
+    // JSON 提交（无图片）
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($input)) {
+        $input = [];
+    }
+} else {
+    // FormData 提交（有图片）
+    $input = $_POST;
 }
+
 
 $type = isset($input['type']) ? strtolower(trim((string)$input['type'])) : 'product';
 $reportReason = isset($input['reportReason']) ? trim((string)$input['reportReason']) : '';
@@ -162,14 +170,71 @@ try {
         echo json_encode(['success' => false, 'message' => 'Database insertion failed']);
         exit;
     }
+    $reportId = (int)$conn->lastInsertId();
+
+// =======================
+// 处理图片上传（可选）
+// =======================
+    $savedPaths = [];
+
+    if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
+        $maxCount = 3;
+        $maxSize = 2 * 1024 * 1024; // 2MB 每张
+        $allowedMime = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/webp' => 'webp'
+        ];
+
+        // 存放目录（确保这个目录在服务器可写）
+        $uploadDir = __DIR__ . '/../../Public_Assets/uploads/report_evidence';
+        if (!is_dir($uploadDir)) {
+            @mkdir($uploadDir, 0775, true);
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+
+        $count = min(count($_FILES['images']['name']), $maxCount);
+
+        for ($i = 0; $i < $count; $i++) {
+            $err  = $_FILES['images']['error'][$i] ?? UPLOAD_ERR_NO_FILE;
+            $tmp  = $_FILES['images']['tmp_name'][$i] ?? null;
+            $size = (int)($_FILES['images']['size'][$i] ?? 0);
+
+            if ($err === UPLOAD_ERR_NO_FILE) continue;
+            if ($err !== UPLOAD_ERR_OK || !$tmp) continue;
+            if ($size <= 0 || $size > $maxSize) continue;
+
+            $mime = $finfo->file($tmp);
+            if (!isset($allowedMime[$mime])) continue;
+
+            $ext = $allowedMime[$mime];
+
+            // 安全文件名：reportId_time_rand.ext
+            $filename = $reportId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $absPath = $uploadDir . '/' . $filename;
+
+            if (!move_uploaded_file($tmp, $absPath)) continue;
+
+            // 给前端用的 web path
+            $webPath = '/Public_Assets/uploads/report_evidence/' . $filename;
+            $savedPaths[] = $webPath;
+
+            // 写入 Report_Evidence
+            $evStmt = $conn->prepare("INSERT INTO Report_Evidence (Report_ID, File_Path) VALUES (?, ?)");
+            $evStmt->execute([$reportId, $webPath]);
+        }
+    }
 
     echo json_encode([
         'success' => true,
-        'report_id' => $conn->lastInsertId(),
+        'report_id' => $reportId,
         'status' => 'Pending',
         'reported_user_id' => $reportedUserId,
-        'product_title' => $dbProductTitle
+        'product_title' => $dbProductTitle,
+        'evidence' => $savedPaths
     ]);
+
 
 } catch (PDOException $e) {
     // Common FK errors can happen here (invalid product/user id)
