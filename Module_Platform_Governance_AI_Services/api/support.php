@@ -184,7 +184,8 @@ EOT;
 
     // Fallback Logic
     if (strtoupper($msgType) === 'FALLBACK') {
-        $finalReply .= "\n\n🔗 <a href='report.html' style='color:#4F46E5; font-weight:bold; text-decoration:underline;'>Click for Human Support / 人工客服</a>";
+        // 修改为 support_human_chat.html
+        $finalReply .= "\n\n🔗 <a href='support_human_chat.html' style='color:#4F46E5; font-weight:bold; text-decoration:underline;'>Click for Human Support / 人工客服</a>";
         $showButtons = false;
     }
 
