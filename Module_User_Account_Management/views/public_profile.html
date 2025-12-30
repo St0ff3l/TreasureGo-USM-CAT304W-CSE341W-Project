@@ -193,9 +193,25 @@
     .card-img-container {
       width: 100%;
       height: 180px;
-      position: relative;
+      position: relative; /*以此为基准*/
       background: #f3f4f6;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 0; /* 建立层级上下文 */
+    }
+
+    /* 新增：当图片隐藏时，显示这个相机图标 */
+    .card-img-container::before {
+      content: '📦'; /* 或者你用的相机图标 */
+      font-size: 3rem; /*稍微大一点*/
+      color: #d1d5db;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%); /* 完美居中 */
+      z-index: 0; /* 放在底层 */
     }
 
     .product-img {
@@ -203,6 +219,11 @@
       height: 100%;
       object-fit: cover;
       transition: transform 0.3s;
+
+      /* 新增/修改以下属性 */
+      position: relative;
+      z-index: 1; /* 放在上层，盖住图标 */
+      background: #fff; /* 确保图片有背景，不透明 */
     }
 
     .product-info { padding: 12px; }
@@ -464,8 +485,9 @@
         return `
             <a href="../../Module_Product_Ecosystem/pages/product_detail.html?id=${product.Product_ID}" class="${cardClass}">
                 <div class="card-img-container">
-                    <img src="${imgUrl}" alt="${product.Name}" class="product-img" loading="lazy" onerror="this.src='../../Public_Assets/images/placeholder.png'">
-                </div>
+               <img src="${imgUrl}" alt="${product.Name}" class="product-img" loading="lazy"
+               onerror="this.style.display='none';">
+</div>
                 <div class="product-info">
                     <div class="product-title">${product.Name}</div>
                     <div class="product-price">
