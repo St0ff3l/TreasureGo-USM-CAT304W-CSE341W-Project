@@ -27,13 +27,12 @@
       min-height: 100vh;
       padding-bottom: 80px;
       position: relative;
-      /* 基础渐变背景 */
       background-image:
               radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
               radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
     }
 
-    /* --- 🔥 背景浮动动画容器 --- */
+    /* 浮动背景容器 */
     #floating-container {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -57,12 +56,7 @@
       100% { transform: translateY(-10vh) rotate(20deg); opacity: 0; }
     }
 
-    /* 页面元素需高于背景层 */
-    .page-header, .container {
-      position: relative;
-      z-index: 10;
-    }
-
+    .page-header, .container { position: relative; z-index: 10; }
     .page-header { text-align: center; padding: 40px 20px 30px; }
 
     .page-title {
@@ -73,20 +67,26 @@
 
     .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
+    /* 🔥 修改了 grid 布局，去掉了日期筛选 */
     .filters {
-      display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
-      gap: 10px; align-items: end; margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: 2fr 1fr auto; /* 搜索框占大头，状态其次，按钮自动 */
+      gap: 15px;
+      align-items: end;
+      margin-bottom: 25px;
     }
 
     .field { display: flex; flex-direction: column; gap: 6px; }
     .label { font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #9CA3AF; }
+
     select, input {
-      padding: 10px 12px; border: 1px solid var(--border-color);
+      padding: 12px 14px; border: 1px solid var(--border-color);
       border-radius: 12px; background: white; font-family: inherit; font-size: 0.95rem; outline: none;
     }
 
-    .btn { padding: 10px 16px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; }
-    .btn.primary { background: var(--primary); color: white; }
+    .btn { padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; transition: transform 0.2s; }
+    .btn:active { transform: scale(0.98); }
+    .btn.primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
     .btn.ghost { background: white; border: 1px solid var(--border-color); color: #374151; }
 
     .list { background: white; border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--card-shadow); overflow: hidden; }
@@ -99,7 +99,6 @@
     .badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
     .badge.Open { background: #FEF3C7; color: #B45309; }
     .badge.Resolved { background: #D1FAE5; color: #047857; }
-    .badge.Closed { background: #F3F4F6; color: #6B7280; }
     .badge.In\ Review { background: #DBEAFE; color: #1E40AF; }
 
     .btn-view { background: #F3F4F6; border: none; border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
@@ -108,7 +107,7 @@
     .footer { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #F9FAFB; border-top: 1px solid var(--border-color); }
     .pager { display: flex; gap: 10px; align-items: center; }
 
-    @media (max-width: 900px) { .filters { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { .filters { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -140,17 +139,9 @@
         <option value="Open">Open</option>
         <option value="In Review">In Review</option>
         <option value="Resolved">Resolved</option>
-        <option value="Closed">Closed</option>
       </select>
     </div>
-    <div class="field">
-      <div class="label">From</div>
-      <input id="from" type="date" />
-    </div>
-    <div class="field">
-      <div class="label">To</div>
-      <input id="to" type="date" />
-    </div>
+
     <div class="actions">
       <button class="btn primary" onclick="applyFilters()">Apply</button>
       <button class="btn ghost" onclick="resetFilters()">Reset</button>
@@ -196,10 +187,8 @@
   const API_LIST = '../api/admin_dispute_list.php';
   let state = { page: 1, pageSize: 20, total: 0, items: [] };
 
-  // 🔥 2. 初始化浮动背景 (Logic from Deposit Page)
   function initFloatingItems() {
     const container = document.getElementById('floating-container');
-    // Emoji 替换为更符合 Dispute 场景的图标
     const items = ['⚖️', '🛡️', '💬', '⚠️', '📝', '🔍', '🤝', '📨'];
     for (let i = 0; i < 10; i++) {
       const el = document.createElement('div');
@@ -213,7 +202,6 @@
     }
   }
 
-  // 页面加载时启动背景动画
   document.addEventListener('DOMContentLoaded', initFloatingItems);
 
   function escapeHtml(s) {
@@ -223,17 +211,23 @@
     const s = String(status || 'Open');
     return `<span class="badge ${s.replaceAll(' ', '\\ ')}">${escapeHtml(s)}</span>`;
   }
+
+  // 日期显示格式 (仅保留用于列表显示)
   function fmtDate(d) {
     if (!d) return '-';
-    try { return new Date(d).toLocaleDateString() + ' ' + new Date(d).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); } catch { return d; }
+    try {
+      return new Date(d).toLocaleString('en-GB', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute:'2-digit', hour12: false
+      }).replace(/\//g, '-');
+    } catch { return d; }
   }
 
   async function load() {
     const p = new URLSearchParams({
       q: document.getElementById('q').value.trim(),
       status: document.getElementById('status').value,
-      from: document.getElementById('from').value,
-      to: document.getElementById('to').value,
+      // 🔥 已移除 from 和 to 参数
       page: state.page,
       pageSize: state.pageSize
     });
@@ -280,7 +274,14 @@
   }
 
   function applyFilters() { state.page = 1; load(); }
-  function resetFilters() { document.getElementById('q').value=''; document.getElementById('status').value='All'; state.page=1; load(); }
+
+  function resetFilters() {
+    document.getElementById('q').value='';
+    document.getElementById('status').value='All';
+    state.page=1;
+    load();
+  }
+
   function prevPage() { if(state.page > 1) { state.page--; load(); } }
   function nextPage() { if(state.page * state.pageSize < state.total) { state.page++; load(); } }
 

@@ -1,8 +1,10 @@
 /*
  * TreasureGO Headerbar Component (Navbar Only)
+ * 文件路径: Public_Assets/js/headerbar.js
  * 更新说明：
  * 1. 修复了 navigateWithAuth 未导出的问题，确保按钮点击有效。
  * 2. 集成了 AuthModal 二次确认弹窗逻辑。
+ * 3. 自动注入网站图标 (Favicon)。
  */
 
 (function (global) {
@@ -13,8 +15,8 @@
     const TG_HEADERBAR_FONTS_LINK_ID = 'tg-headerbar-fonts';
 
     // --- 自动加载 AuthModal (确保弹窗组件存在) ---
-    // 假设 auth_modal.js 在 Public_Assets/js/ 目录下
     function loadAuthModal(basePath) {
+        // 如果全局对象不存在 AuthModal 且页面上没引入过该脚本
         if (!global.AuthModal && !document.querySelector('script[src*="auth_modal.js"]')) {
             const script = document.createElement('script');
             script.src = basePath + 'Public_Assets/js/auth_modal.js';
@@ -22,7 +24,7 @@
         }
     }
 
-    // --- 2. 样式定义 (保持原样) ---
+    // --- 2. 样式定义 ---
     const EMBEDDED_HEADERBAR_CSS = `
     /* ================= CSS Variables ================= */
     :root {
@@ -163,7 +165,6 @@
 
             if (!res.ok) throw new Error('Session check failed');
 
-            // 确保返回 JSON
             const contentType = res.headers.get('content-type') || '';
             if (!contentType.includes('application/json')) {
                 throw new Error('Invalid response type');
@@ -197,7 +198,7 @@
 
     // --- 4. HTML 构建 ---
     function getNavbarHtml(p) {
-        // 注意：onclick 中调用了 TreasureGoHeaderbar.navigateWithAuth
+        // 使用 ${p}Public_Assets/images/TreasureGo_Logo.png 引用 Logo
         return `
     <nav class="navbar" data-component="tg-headerbar">
       <a href="${p}index.html" class="logo">
@@ -255,19 +256,16 @@
                     // 头像处理
                     if (avatarBtn) {
                         if (data.user.avatar_url && data.user.avatar_url.trim() !== '') {
-                            // 如果是 http 开头（外部链接）则直接用，否则加上 basePath
-                            const avatarSrc = data.user.avatar_url.startsWith('http') 
-                                ? data.user.avatar_url 
+                            const avatarSrc = data.user.avatar_url.startsWith('http')
+                                ? data.user.avatar_url
                                 : (p + data.user.avatar_url);
-                                
+
                             const fallbackInitial = (data.user.username || '?').charAt(0).toUpperCase();
                             avatarBtn.innerHTML = `<img src="${avatarSrc}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.style.display='none'; this.parentNode.innerText='${fallbackInitial}'; this.parentNode.style.background='#EEF2FF';">`;
                             avatarBtn.style.background = 'transparent';
                         } else {
-                            // 重置为文字头像模式
-                            avatarBtn.innerHTML = ''; // 清空可能存在的 img
-                            avatarBtn.style.background = '#EEF2FF'; // 恢复背景色
-                            
+                            avatarBtn.innerHTML = '';
+                            avatarBtn.style.background = '#EEF2FF';
                             const name = data.user.username || '?';
                             avatarBtn.innerText = name.charAt(0).toUpperCase();
                         }
@@ -297,7 +295,16 @@
         ensureAssets();
         const basePath = getBasePath(options);
 
-        // 尝试预加载 AuthModal，以便点击时可用
+        // 6.1 自动注入 Favicon (智能优化)
+        if (!document.querySelector("link[rel*='icon']")) {
+            const link = document.createElement('link');
+            link.type = 'image/png';
+            link.rel = 'icon';
+            link.href = basePath + 'Public_Assets/images/TreasureGo_Logo.png';
+            document.head.appendChild(link);
+        }
+
+        // 6.2 预加载 AuthModal
         loadAuthModal(basePath);
 
         const wrapper = document.createElement('div');
@@ -315,7 +322,7 @@
         return wrapper;
     }
 
-    // --- 7. 导出 (重要修改) ---
+    // --- 7. 导出 (关键) ---
     // 必须导出 navigateWithAuth，否则 HTML 中的 onclick 会报错
     global.TreasureGoHeaderbar = {
         mount,
