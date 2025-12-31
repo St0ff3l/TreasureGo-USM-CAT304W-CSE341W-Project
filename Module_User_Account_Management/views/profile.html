@@ -588,7 +588,7 @@
             <h4 style="color: #EF4444;">Delete Account</h4>
             <p>Permanently delete your account and all data</p>
           </div>
-          <button class="btn-outline btn-danger">Delete</button>
+          <button class="btn-outline btn-danger" onclick="handleDeleteAccount()">Delete</button>
         </div>
       </div>
     </div>
@@ -1552,6 +1552,36 @@
       console.error(err);
       StatusDialog.fail("Error", "Network error occurred.");
     }
+  }
+
+  // --- Delete Account Logic ---
+  function handleDeleteAccount() {
+    StatusDialog.confirm(
+      "Delete Account", 
+      "Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.", 
+      "Delete Forever", 
+      "Cancel", 
+      async () => {
+        try {
+          const res = await fetch('../api/delete_account.php', {
+            method: 'POST'
+          });
+          const json = await res.json();
+
+          if (json.status === 'success') {
+            StatusDialog.success("Account Deleted", "Your account has been successfully deleted.", "OK", () => {
+              window.location.href = '../../index.html';
+            });
+          } else {
+            StatusDialog.fail("Deletion Failed", json.message || "Could not delete account.");
+          }
+        } catch (err) {
+          console.error(err);
+          StatusDialog.fail("Error", "Network error occurred.");
+        }
+      }, 
+      true // isDanger = true (Red Button)
+    );
   }
 </script>
 
