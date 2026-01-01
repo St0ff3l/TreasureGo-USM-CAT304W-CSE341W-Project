@@ -12,11 +12,11 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); padding-bottom: 40px; }
 
-/* 头部导航 */
+/* Header Navigation */
 .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; margin-bottom: 24px; }
 .back-btn { text-decoration: none; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
 
-/* 整体布局 */
+/* Layout Grid */
 .layout-grid {
     display: grid; grid-template-columns: 320px 1fr; gap: 24px;
     max-width: 1400px; margin: 0 auto; padding: 0 20px; align-items: start;
@@ -24,47 +24,47 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); colo
 
 .sidebar { position: sticky; top: 20px; }
 
-/* 卡片通用 */
+/* General Card Styles */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
 .card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
-/* 表单元素 */
+/* Form Elements */
 .form-group { margin-bottom: 14px; }
 .label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
 input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.9rem; background: #fff; }
 textarea { resize: vertical; min-height: 80px; }
 
-/* 按钮 */
+/* Buttons */
 .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
 .btn-primary { background: var(--primary); color: white; }
 .btn-primary:hover { background: #4338CA; }
 .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
 
-/* 状态徽章 */
+/* Status Badges */
 .status-badge { padding: 12px; border-radius: 10px; text-align: center; font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
 .st-Open { background: #FEF3C7; color: #D97706; }
 .st-InReview { background: #DBEAFE; color: #1E40AF; }
 .st-Resolved { background: #D1FAE5; color: #059669; }
 .st-Closed { background: #F3F4F6; color: #4B5563; }
 
-/* 分隔线 */
+/* Divider Line */
 .line-dashed { border-top: 1px dashed var(--border); margin: 16px 0; }
 
-/* 计算器盒子 */
+/* Calculator Box */
 .calc-box { background: #F1F5F9; border-radius: 8px; padding: 12px; font-size: 0.85rem; border: 1px dashed #CBD5E1; margin-top: 8px; }
 .calc-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
 .calc-total { border-top: 1px solid #CBD5E1; margin-top: 6px; padding-top: 6px; font-weight: 700; color: var(--text-main); }
 .highlight-green { color: var(--success); font-weight: 700; }
 .highlight-blue { color: var(--primary); font-weight: 700; }
 
-/* 对比网格 */
+/* Comparison Grid */
 .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .party-col { background: #F8FAFC; border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
 
-/* 详情文本 */
+/* Detail Text */
 .detail-text { background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 0.9rem; line-height: 1.5; }
 
-/* 头像 (图片 & 字母) */
+/* Avatars (Image & Initials) */
 .user-header { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
 .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #E2E8F0; }
 .avatar-initials {
@@ -77,12 +77,12 @@ textarea { resize: vertical; min-height: 80px; }
     text-transform: uppercase;
 }
 
-/* 证据图片网格 */
+/* Evidence Image Grid */
 .evidence-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .evidence-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; transition: 0.2s; }
 .evidence-img:hover { transform: scale(1.05); }
 
-/* ================= 退款详情卡片专用样式 ================= */
+/* ================= Refund Detail Card Styles ================= */
 .meta-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -104,7 +104,7 @@ textarea { resize: vertical; min-height: 80px; }
 .rr-badge { font-size:0.8rem; font-weight:600; color:#64748B; background:#F1F5F9; padding:4px 10px; border-radius:6px; }
 .tracking-code { font-family:monospace; font-weight:700; font-size:1.1rem; background:#F1F5F9; padding:8px 12px; border-radius:6px; letter-spacing:1px; }
 
-/* 响应式适配 */
+/* Responsive Design */
 @media (max-width: 900px) {
     .layout-grid { grid-template-columns: 1fr; }
     .sidebar { position: static; }

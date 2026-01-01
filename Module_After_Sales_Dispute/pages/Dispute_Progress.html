@@ -10,7 +10,7 @@
   <link href="../assets/css/upload_images.css" rel="stylesheet">
 
   <style>
-    /* ================= 布局基础 ================= */
+    /* ================= Layout Basics ================= */
     :root {
       --bg-body: #F3F4F6;
       --card-bg: #FFFFFF;
@@ -28,16 +28,16 @@
 
     body {
       font-family: 'Poppins', sans-serif;
-      /* 🔥 修改 1: 统一背景风格 (和其他页面保持一致) */
+      /* Unified background style (consistent with other pages) */
       background-color: var(--bg-body);
       background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%234f46e5" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'), linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
 
       color: var(--text-dark);
-      /* 取消 100dvh 固定高度，改为 min-height，允许 HeaderBar 正常推流 */
+      /* Use min-height instead of fixed 100dvh to allow HeaderBar flow */
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden; /* 防止双重滚动条 */
+      overflow: hidden; /* Prevent double scrollbars */
     }
 
     .main-container {
@@ -50,11 +50,11 @@
       position: relative;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-      /* 🔥 修改 2: 容器间距调整为 40px (参照你的要求) */
+      /* Container margin adjusted to 40px */
       margin: 40px auto;
 
-      /* 重新计算高度：100vh - 顶部间距(40) - 底部间距(40) - HeaderBar预留(约60px) */
-      /* 这样可以保证聊天窗口在卡片内滚动，而不会让整个页面滚动 */
+      /* Recalculate height: 100vh - top(40) - bottom(40) - HeaderBar(approx 60px) */
+      /* Ensures chat window scrolls within card, not the whole page */
       height: calc(100vh - 140px);
     }
 
@@ -66,7 +66,7 @@
       }
     }
 
-    /* ================= 顶部 Header ================= */
+    /* ================= Top Header ================= */
     .chat-header {
       height: 70px;
       padding: 0 20px;
@@ -88,7 +88,7 @@
     }
     .status-tag.urgent { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
 
-    /* ================= 中间消息区域 ================= */
+    /* ================= Message Area ================= */
     .messages-container {
       flex: 1;
       padding: 20px;
@@ -100,7 +100,7 @@
       scroll-behavior: smooth;
     }
 
-    /* 消息气泡通用 */
+    /* Message bubble general style */
     .msg-row { display: flex; flex-direction: column; max-width: 80%; }
 
     .msg-bubble {
@@ -118,7 +118,7 @@
       display: flex; justify-content: space-between; gap: 10px;
     }
 
-    /* 对方 (左) */
+    /* Other party (Left) */
     .msg-row.left { align-self: flex-start; }
     .msg-row.left .msg-bubble {
       background: var(--msg-other-bg);
@@ -127,7 +127,7 @@
       color: var(--text-dark);
     }
 
-    /* 我 (右) */
+    /* Me (Right) */
     .msg-row.right { align-self: flex-end; }
     .msg-row.right .msg-bubble {
       background: var(--msg-me-bg);
@@ -136,7 +136,7 @@
       box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
     }
 
-    /* 系统/管理员 (居中) */
+    /* System/Admin (Center) */
     .msg-row.system { align-self: center; max-width: 90%; align-items: center; }
     .msg-row.system .msg-bubble {
       background: var(--msg-admin-bg); color: var(--text-gray);
@@ -144,14 +144,14 @@
       border: 1px solid #E5E7EB; display: flex; align-items: center; gap: 6px;
     }
 
-    /* 图片网格 */
+    /* Image grid */
     .img-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
     .img-thumb {
       width: 60px; height: 60px; object-fit: cover; border-radius: 8px;
       border: 1px solid rgba(0,0,0,0.1); cursor: zoom-in;
     }
 
-    /* ================= 底部操作栏 ================= */
+    /* ================= Bottom Action Bar ================= */
     .input-dock {
       padding: 15px 20px;
       background: white;
@@ -181,19 +181,19 @@
       background: #F9FAFB; border-radius: 12px; border: 1px dashed #E5E7EB;
     }
 
-    /* ================= 弹窗 (Dialog) ================= */
+    /* ================= Modal (Dialog) ================= */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.5);
       z-index: 1000;
-      display: flex; align-items: flex-end; /* Mobile: 从底部弹出 */
+      display: flex; align-items: flex-end; /* Mobile: Slide up from bottom */
       opacity: 0; visibility: hidden;
       transition: all 0.3s;
     }
     .modal-overlay.active { opacity: 1; visibility: visible; }
 
     @media (min-width: 768px) {
-      .modal-overlay { align-items: center; justify-content: center; } /* PC: 居中 */
+      .modal-overlay { align-items: center; justify-content: center; } /* PC: Center */
     }
 
     .modal-card {
@@ -314,7 +314,7 @@
       renderMessages(timeline);
       renderFooter(info);
 
-      // 初始化上传组件
+      // Initialize upload component
       if(typeof TreasureGoUploader !== 'undefined') {
         uploader = new TreasureGoUploader('#evidence-upload-container', {
           inputName: 'evidence[]',
@@ -322,7 +322,7 @@
         });
       }
 
-      // 绑定提交事件
+      // Bind submit event
       document.getElementById('btnSubmitModal').onclick = submitReply;
 
     } catch (e) {
@@ -330,13 +330,13 @@
     }
   }
 
-  // --- 渲染函数 ---
+  // --- Render Functions ---
 
   function renderHeader(info) {
     const badge = document.getElementById('statusBadge');
     badge.innerText = info.Dispute_Status;
 
-    // 红色高亮
+    // Red highlight
     const actionBy = info.Action_Required_By;
     const isUrgent = (actionBy === myRole) || (actionBy === 'Both');
 
@@ -366,11 +366,11 @@
 
       let name = isMe ? 'Me' : (isAdmin ? 'Admin' : item.User_Role);
 
-      // 时间处理
+      // Time processing
       const dt = new Date(item.Created_At);
       const timeStr = dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
-      // 图片
+      // Images
       let imgs = '';
       if(item.Evidence_Images && item.Evidence_Images.length > 0) {
         imgs = `<div class="img-grid">` +
@@ -407,46 +407,46 @@
     });
 
     container.innerHTML = html;
-    container.scrollTop = container.scrollHeight; // 自动滚到底部
+    container.scrollTop = container.scrollHeight; // Auto scroll to bottom
   }
 
   function renderFooter(info) {
     const actionBy = info.Action_Required_By;
 
-    // 逻辑：如果 Action 是“我”、“双方(Both)” 或者 刚创建(Open)，都算轮到我
+    // Logic: If Action is "Me", "Both", or just created (Open), it's my turn
     const isMyTurn = (actionBy === myRole) || (actionBy === 'Both') || (info.Dispute_Status === 'Open');
 
-    // 1. 重置：先隐藏两个底部栏，防止重叠
+    // 1. Reset: Hide both bottom bars to prevent overlap
     document.getElementById('activeBar').classList.add('hidden');
     document.getElementById('lockedBar').classList.add('hidden');
 
-    // 2. 如果争议已结束，直接隐藏整个底部区域并返回
+    // 2. If dispute ended, hide entire bottom area and return
     if(['Resolved', 'Closed', 'Cancelled'].includes(info.Dispute_Status)) {
       document.querySelector('.input-dock').style.display = 'none';
       return;
     }
 
-    // 3. 状态判断逻辑
+    // 3. Status logic
     if (isMyTurn) {
-      // 轮到我 -> 显示输入/提交按钮
+      // My turn -> Show input/submit button
       document.getElementById('activeBar').classList.remove('hidden');
     } else {
-      // 没轮到我 -> 显示等待提示栏
+      // Not my turn -> Show waiting bar
       document.getElementById('lockedBar').classList.remove('hidden');
       const targetSpan = document.getElementById('waitingTarget');
 
-      // 🔥🔥🔥 核心修复在这里 🔥🔥🔥
-      // 如果 Action 是 'Admin' 或者 'None' (为空)，说明是平台介入中
+      // Core fix here
+      // If Action is 'Admin' or 'None' (empty), platform is intervening
       if (actionBy === 'Admin' || actionBy === 'None' || !actionBy) {
-        targetSpan.innerText = 'Platform Admin (In Review)'; // 显示：等待平台管理员
+        targetSpan.innerText = 'Platform Admin (In Review)'; // Display: Waiting for platform admin
       } else {
-        // 否则才是真的在等对方 (Buyer/Seller)
+        // Otherwise waiting for the other party (Buyer/Seller)
         targetSpan.innerText = 'The Other Party';
       }
     }
   }
 
-  // --- 弹窗逻辑 ---
+  // --- Modal Logic ---
   window.openModal = function() {
     document.getElementById('replyModal').classList.add('active');
   };
@@ -454,7 +454,7 @@
     document.getElementById('replyModal').classList.remove('active');
   };
 
-  // --- 提交逻辑 ---
+  // --- Submit Logic ---
   async function submitReply() {
     const text = document.getElementById('replyText').value.trim();
     const btn = document.getElementById('btnSubmitModal');
@@ -471,7 +471,7 @@
       const payload = {
         order_id: currentOrderId,
         dispute_details: text,
-        seller_response: text, // 兼容字段
+        seller_response: text, // Compatible field
         evidence_images: urls
       };
 
@@ -509,3 +509,4 @@
 </script>
 </body>
 </html>
+

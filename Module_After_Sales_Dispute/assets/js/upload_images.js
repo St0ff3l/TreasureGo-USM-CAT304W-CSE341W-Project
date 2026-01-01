@@ -17,7 +17,7 @@ class TreasureGoUploader {
         this.bindEvents();
     }
 
-    // 渲染 HTML 结构
+    // Render HTML structure
     render() {
         this.container.innerHTML = `
             <div class="tg-upload-area">
@@ -41,11 +41,11 @@ class TreasureGoUploader {
             preview: this.container.querySelector('.tg-preview'),
             input: this.container.querySelector('input[type="file"]'),
             addBtn: this.container.querySelector('.tg-add-btn'),
-            clearBtn: this.container.querySelector('.tg-clear-btn') // 必须能找到上面的按钮
+            clearBtn: this.container.querySelector('.tg-clear-btn') // Must find the button above
         };
     }
 
-    // 绑定事件逻辑
+    // Bind event logic
     bindEvents() {
         const { area, input, placeholder, addBtn, clearBtn } = this.ui;
 
@@ -63,7 +63,7 @@ class TreasureGoUploader {
 
         area.addEventListener('drop', (e) => this.handleFiles(e.dataTransfer.files));
 
-        // 绑定清空按钮事件
+        // Bind clear button event
         if (clearBtn) {
             clearBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -73,7 +73,7 @@ class TreasureGoUploader {
         }
     }
 
-    // 处理文件核心逻辑
+    // Core file handling logic
     handleFiles(files) {
         let hasNew = false;
         for (let file of files) {
@@ -85,7 +85,7 @@ class TreasureGoUploader {
         if (hasNew) this.updateInput();
     }
 
-    // 删除单张图片
+    // Remove single image
     removeFile(index) {
         const newDt = new DataTransfer();
         const files = this.dt.files;
@@ -96,7 +96,7 @@ class TreasureGoUploader {
         this.updateInput();
     }
 
-    // 更新 UI 和 Input 值
+    // Update UI and Input value
     updateInput() {
         this.ui.input.files = this.dt.files;
         this.renderPreview();
@@ -108,7 +108,7 @@ class TreasureGoUploader {
 
         if (this.dt.files.length > 0) {
             placeholder.style.display = 'none';
-            if (clearBtn) clearBtn.style.display = 'block'; // 显示清空按钮
+            if (clearBtn) clearBtn.style.display = 'block'; // Show clear button
             addBtn.style.display = 'flex';
             preview.style.display = 'flex';
 
@@ -131,7 +131,7 @@ class TreasureGoUploader {
             });
         } else {
             placeholder.style.display = 'block';
-            if (clearBtn) clearBtn.style.display = 'none'; // 隐藏清空按钮
+            if (clearBtn) clearBtn.style.display = 'none'; // Hide clear button
             addBtn.style.display = 'none';
             preview.style.display = 'none';
         }

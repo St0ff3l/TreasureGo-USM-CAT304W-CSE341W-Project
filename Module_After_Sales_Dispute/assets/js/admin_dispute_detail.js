@@ -1,42 +1,42 @@
-// ================= 全局配置 =================
+// ================= Global Configuration =================
 const API_GET = '../api/admin_dispute_get.php';
 const API_UPDATE = '../api/admin_dispute_update.php';
 const params = new URLSearchParams(window.location.search);
 const disputeId = params.get('id');
 let orderTotalAmount = 0.00;
 
-// ================= DOM 元素监听与绑定 =================
+// ================= DOM Element Listeners & Binding =================
 document.addEventListener('DOMContentLoaded', () => {
-    // 绑定保存按钮
+    // Bind save button
     const btnSave = document.getElementById('btnSaveDispute');
     if(btnSave) btnSave.addEventListener('click', saveDisputeChanges);
 
-    // 绑定下拉菜单变化
+    // Bind dropdown change
     const outcomeSelect = document.getElementById('drOutcome');
     if(outcomeSelect) outcomeSelect.addEventListener('change', handleOutcomeChange);
 
-    // 绑定金额输入框 (实时计算 + 格式化)
+    // Bind amount input (real-time calculation + formatting)
     const amountInput = document.getElementById('drAmount');
     if(amountInput) {
         amountInput.addEventListener('input', updateCalculation);
         amountInput.addEventListener('blur', () => formatDecimal(amountInput));
     }
 
-    // 🔥 [新增] 监听下拉菜单，自动提示需要填写的输入框
+    // Listen to dropdown to highlight required fields
     const actionSelect = document.getElementById('actionRequiredBy');
     if(actionSelect) {
         actionSelect.addEventListener('change', highlightRequiredFields);
     }
 
-    // 🔥 [关键] 监听状态变化，实现 Resolved -> None 的联动
+    // Listen to status change for Resolved -> None logic
     const statusSelect = document.getElementById('updateStatus');
     if (statusSelect) statusSelect.addEventListener('change', handleStatusLogic);
 
-    // 初始化加载
+    // Initial load
     init();
 });
 
-// 🔥 [新增] 视觉提示函数
+// Visual highlight function
 function highlightRequiredFields() {
     const actionSelect = document.getElementById('actionRequiredBy');
     const statusSelect = document.getElementById('updateStatus');
@@ -48,15 +48,15 @@ function highlightRequiredFields() {
     const actionVal = actionSelect.value;
     const statusVal = statusSelect ? statusSelect.value : 'Open';
 
-    // 1. 如果是结案 (Resolved)，逻辑由 handleStatusLogic 接管，这里不干涉
-    // (因为结案时通常需要强制给双方发通知)
+    // 1. If Resolved, logic is handled by handleStatusLogic
+    // (Resolved cases usually require mandatory notifications to both parties)
     if (statusVal === 'Resolved') {
         boxBuyer.disabled = false;
         boxSeller.disabled = false;
         return;
     }
 
-    // 2. 先重置所有样式和状态 (默认都可用)
+    // 2. Reset all styles and states (default enabled)
     boxBuyer.disabled = false;
     boxSeller.disabled = false;
 
@@ -68,32 +68,32 @@ function highlightRequiredFields() {
     boxBuyer.placeholder = 'Instruction / Message to Buyer...';
     boxSeller.placeholder = 'Instruction / Message to Seller...';
 
-    // 3. 根据 Action 锁定另一方
-    // 🔒 如果只要买家行动 -> 禁用卖家输入框
+    // 3. Lock the other party based on Action
+    // If action required from Buyer -> Disable Seller input
     if (actionVal === 'Buyer') {
         boxSeller.disabled = true;
-        boxSeller.value = ''; // 🔥 关键：清空内容，防止误发
+        boxSeller.value = ''; // Clear content to prevent accidental sending
         boxSeller.style.background = '#F3F4F6';
         boxSeller.placeholder = '🚫 No action required from Seller currently.';
 
-        // 高亮买家框
+        // Highlight Buyer box
         boxBuyer.style.border = '2px solid #F87171';
         boxBuyer.style.background = '#FEF2F2';
         boxBuyer.placeholder = '⚠️ REQUIRED: Tell the buyer what evidence to upload...';
     }
-    // 🔒 如果只要卖家行动 -> 禁用买家输入框
+    // If action required from Seller -> Disable Buyer input
     else if (actionVal === 'Seller') {
         boxBuyer.disabled = true;
-        boxBuyer.value = ''; // 🔥 关键：清空内容，防止误发
+        boxBuyer.value = ''; // Clear content to prevent accidental sending
         boxBuyer.style.background = '#F3F4F6';
         boxBuyer.placeholder = '🚫 No action required from Buyer currently.';
 
-        // 高亮卖家框
+        // Highlight Seller box
         boxSeller.style.border = '2px solid #F87171';
         boxSeller.style.background = '#FEF2F2';
         boxSeller.placeholder = '⚠️ REQUIRED: Tell the seller what information is needed...';
     }
-    // ⚠️ 如果双方都需要行动 -> 都高亮
+    // If action required from both -> Highlight both
     else if (actionVal === 'Both') {
         boxBuyer.style.border = '2px solid #F87171';
         boxBuyer.style.background = '#FEF2F2';
@@ -103,7 +103,7 @@ function highlightRequiredFields() {
     }
 }
 
-// ================= 初始化 =================
+// ================= Initialization =================
 async function init() {
     if(!disputeId) { alert('No ID provided'); return; }
     document.getElementById('dID').textContent = disputeId;
@@ -116,8 +116,8 @@ async function init() {
         const data = json.data;
         render(data);
 
-        // 🔥🔥🔥 核心新增：自动变 In Review 🔥🔥🔥
-        // 逻辑：如果当前状态是 'Open'，自动触发更新为 'In Review'
+        // Automatically update status to In Review
+        // Logic: If current status is 'Open', automatically update to 'In Review'
         if (data.Dispute_Status === 'Open') {
             await autoUpdateToInReview(data);
         }
@@ -128,7 +128,7 @@ async function init() {
     }
 }
 
-// ================= 页面渲染 =================
+// ================= Page Rendering =================
 function render(d) {
     const reasonMap = {
         'damaged': 'Item Damaged / Defective',
@@ -147,7 +147,7 @@ function render(d) {
     orderTotalAmount = parseFloat(d.Orders_Total_Amount || 0);
     document.getElementById('orderTotalHidden').value = orderTotalAmount;
 
-    // 状态回显
+    // Status display
     const st = d.Dispute_Status;
     const stClean = st.replace(/\s+/g, '');
     const stEl = document.getElementById('statusDisplay');
@@ -155,18 +155,18 @@ function render(d) {
     stEl.className = `status-badge st-${stClean}`;
     document.getElementById('updateStatus').value = st;
 
-    // 🔥🔥🔥 核心修改：回显 Action Required By 🔥🔥🔥
+    // Display Action Required By
     const actionSelect = document.getElementById('actionRequiredBy');
     if(actionSelect && d.Action_Required_By) {
         actionSelect.value = d.Action_Required_By;
-        highlightRequiredFields(); // 🔥 调用高亮
+        highlightRequiredFields(); // Trigger highlight
     }
 
-    // 判决回显
+    // Outcome display
     document.getElementById('drOutcome').value = d.Dispute_Resolution_Outcome || '';
     if(d.Dispute_Refund_Amount) document.getElementById('drAmount').value = d.Dispute_Refund_Amount;
 
-    // 退款申请详情卡片
+    // Refund request detail card
     const typeEl = document.getElementById('rrType');
     const trackBox = document.getElementById('returnTrackingBox');
 
@@ -194,45 +194,45 @@ function render(d) {
     document.getElementById('rrReasonText').textContent = reasonMap[rawReason] || rawReason;
     document.getElementById('rrDesc').textContent = d.Refund_Description || 'No detailed description provided.';
 
-    // 计算UI
+    // Calculation UI
     handleOutcomeChange();
 
-    // 用户信息
+    // User info
     document.getElementById('buyerName').textContent = d.Reporting_Username || 'Unknown';
     document.getElementById('buyerId').textContent = `ID: ${d.Reporting_User_ID}`;
     document.getElementById('sellerName').textContent = d.Reported_Username || 'Unknown';
     document.getElementById('sellerId').textContent = `ID: ${d.Reported_User_ID}`;
 
-    // 智能头像
+    // Smart avatar
     setAvatar('buyerAvatar', d.Reporting_User_Avatar, d.Reporting_Username);
     setAvatar('sellerAvatar', d.Reported_Avatar, d.Reported_Username);
 
-    // 详情与回复
+    // Details and replies
     const rawDisputeReason = d.Dispute_Reason || '';
     document.getElementById('dReason').textContent = reasonMap[rawDisputeReason] || rawDisputeReason;
 
-    // 🔥🔥🔥 核心修改：使用新的 Description 字段 🔥🔥🔥
-    // 优先使用 Buyer_Description，如果没有则回退到旧的 Dispute_Details
+    // Use new Description fields
+    // Prioritize Buyer_Description, fallback to Dispute_Details
     document.getElementById('dDetails').textContent = d.Buyer_Description || d.Dispute_Details || '(No statement)';
 
-    // 优先使用 Seller_Description，如果没有则回退到旧的 Dispute_Seller_Response
+    // Prioritize Seller_Description, fallback to Dispute_Seller_Response
     document.getElementById('sellerResponse').textContent = d.Seller_Description || d.Dispute_Seller_Response || 'Waiting for seller response...';
 
     document.getElementById('drReplyBuyer').value = d.Dispute_Admin_Reply_To_Buyer || '';
     document.getElementById('drReplySeller').value = d.Dispute_Admin_Reply_To_Seller || '';
 
-    // 证据图片
+    // Evidence images
     renderImgs(d.Dispute_Evidence_Image, 'buyerEvidence');
     renderImgs(d.Dispute_Seller_Evidence_Image, 'sellerEvidence');
 
-    // 加载时间线
+    // Load timeline
     loadTimeline(d.Dispute_ID || disputeId);
 
-    // 🔥 [关键] 初始化 UI 状态联动
+    // Initialize UI status logic
     handleStatusLogic();
 }
 
-// ================= Timeline 加载函数 =================
+// ================= Timeline Loading Function =================
 async function loadTimeline(id) {
     const container = document.getElementById('timelineContainer');
     if(!container) return;
@@ -265,7 +265,7 @@ async function loadTimeline(id) {
                 bg = '#FFFFFF'; align = 'flex-start'; icon = 'ri-user-smile-line';
             }
 
-            // 图片处理
+            // Image processing
             let imgs = '';
             let imgArr = item.Evidence_Images || item.evidence_images || item.images || [];
             if (typeof imgArr === 'string') {
@@ -297,9 +297,9 @@ async function loadTimeline(id) {
     }
 }
 
-// ================= 辅助函数 =================
+// ================= Helper Functions =================
 
-// 设置头像 (支持首字母回退)
+// Set avatar (supports initial fallback)
 function setAvatar(elId, url, username) {
     const el = document.getElementById(elId);
     if (!el) return;
@@ -327,7 +327,7 @@ function setAvatar(elId, url, username) {
     }
 }
 
-// 渲染图片列表
+// Render image list
 function renderImgs(jsonStr, elId) {
     const box = document.getElementById(elId);
     box.innerHTML = '';
@@ -346,14 +346,14 @@ function renderImgs(jsonStr, elId) {
     } catch(e){ }
 }
 
-// 格式化小数
+// Format decimal
 function formatDecimal(el) {
     if(el.value === '') return;
     let val = parseFloat(el.value);
     if(!isNaN(val)) el.value = val.toFixed(2);
 }
 
-// 处理下拉菜单变化
+// Handle dropdown change
 function handleOutcomeChange() {
     const outcome = document.getElementById('drOutcome').value;
     const amountSection = document.getElementById('amountSection');
@@ -380,7 +380,7 @@ function handleOutcomeChange() {
     updateCalculation();
 }
 
-// 实时计算金额
+// Real-time amount calculation
 function updateCalculation() {
     const inputEl = document.getElementById('drAmount');
     let inputVal = parseFloat(inputEl.value);
@@ -397,32 +397,32 @@ function updateCalculation() {
     document.getElementById('calcSeller').innerText = `RM ${sellerGets.toFixed(2)}`;
 }
 
-// ================= 保存逻辑 =================
+// ================= Save Logic =================
 async function saveDisputeChanges() {
     const btn = document.getElementById('btnSaveDispute');
     const msg = document.getElementById('saveMsg');
 
-    // 1. 获取基础值
+    // 1. Get basic values
     let finalRefundAmount = parseFloat(document.getElementById('drAmount').value) || 0;
     const outcome = document.getElementById('drOutcome').value;
     const status = document.getElementById('updateStatus').value;
 
-    // 🔥 强制：如果是 Resolved，Action 必须为 None；否则读取下拉值
+    // Force: If Resolved, Action must be None; otherwise read dropdown value
     let actionBy = (status === 'Resolved') ? 'None' : document.getElementById('actionRequiredBy').value;
 
     const replyBuyer = document.getElementById('drReplyBuyer').value.trim();
     const replySeller = document.getElementById('drReplySeller').value.trim();
 
-    // 2. 基础校验 (调整后)
+    // 2. Basic validation
     if (status === 'Resolved') {
         if (!outcome) { alert('Please select an Outcome.'); return; }
-        // Resolved 必须同时写给双方最终判决
+        // Resolved must provide final verdict to both parties
         if (!replyBuyer || !replySeller) { alert('For Resolved cases, you MUST provide a final verdict message to BOTH parties.'); return; }
     }
 
     if (outcome === 'partial' && (finalRefundAmount < 0 || finalRefundAmount > orderTotalAmount)) { alert('Invalid Amount'); return; }
 
-    // 🔥🔥🔥【新增】强制留言校验（仅在非 Resolved 时适用）🔥🔥🔥
+    // Mandatory message validation (only for non-Resolved)
     if (status !== 'Resolved') {
         if (actionBy === 'Buyer' && !replyBuyer) {
             alert('⚠️ Cannot Save:\n\nYou require action from the BUYER, but the message to the buyer is empty.\n\nPlease instruct them what evidence is needed.');
@@ -447,9 +447,9 @@ async function saveDisputeChanges() {
             }
         }
     }
-    // 🔥🔥🔥【校验结束】🔥🔥🔥
+    // Validation end
 
-    // 3. 开始提交 (保持不变)
+    // 3. Start submission
     btn.disabled = true; btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Saving...';
     msg.textContent = '';
 
@@ -473,7 +473,7 @@ async function saveDisputeChanges() {
 
         if(json.status === 'success') {
             msg.innerHTML = '<span style="color:green">✅ Saved Successfully!</span>';
-            // 刷新页面
+            // Refresh page
             setTimeout(() => location.reload(), 1500);
         } else {
             throw new Error(json.message);
@@ -485,7 +485,7 @@ async function saveDisputeChanges() {
     }
 }
 
-// ================= 新增：状态联动函数 =================
+// ================= Status Logic Function =================
 function handleStatusLogic() {
     const statusEl = document.getElementById('updateStatus');
     const actionSelect = document.getElementById('actionRequiredBy');
@@ -494,13 +494,13 @@ function handleStatusLogic() {
     const status = statusEl.value;
     const labelBuyer = document.querySelector('label[for="drReplyBuyer"]');
     const labelSeller = document.querySelector('label[for="drReplySeller"]');
-    // 尝试找到 outcome 的父容器以便控制显示（根据你的 DOM 结构）
+    // Try to find outcome parent container to control display
     let outcomeGroup = null;
     const outcomeEl = document.getElementById('drOutcome');
     if (outcomeEl) outcomeGroup = outcomeEl.parentElement;
 
     if (status === 'Resolved') {
-        // 🔒 结案：强制 Action 为 None
+        // Resolved: Force Action to None
         actionSelect.value = 'None';
         actionSelect.disabled = true;
         actionSelect.style.background = '#F3F4F6';
@@ -510,7 +510,7 @@ function handleStatusLogic() {
 
         if (outcomeGroup) outcomeGroup.style.display = 'block';
     } else {
-        // 恢复可编辑
+        // Restore editable
         actionSelect.disabled = false;
         actionSelect.style.background = '';
 
@@ -522,23 +522,23 @@ function handleStatusLogic() {
         // That logic has been intentionally removed so we do NOT change outcomeGroup here.
     }
 
-    // 触发高亮逻辑
+    // Trigger highlight logic
     highlightRequiredFields();
 }
 
-// ================= 自动变为 In Review =================
+// ================= Auto Update to In Review =================
 async function autoUpdateToInReview(data) {
     console.log('Auto-updating status from Open to In Review...');
 
     try {
-        // 构建最小 payload，只更新状态，不动其他字段
-        // 注意：Action_Required_By 保持原样或者设为 Admin，这里设为 Admin 比较合理
+        // Build minimal payload, only update status
+        // Note: Keep Action_Required_By as is or set to Admin
         const payload = {
             Dispute_ID: data.Dispute_ID,
             Dispute_Status: 'In Review',
-            Action_Required_By: 'Admin', // 管理员介入了，暂时还没要求用户行动
+            Action_Required_By: 'Admin', // Admin intervened
 
-            // 下面这些字段保持原值或空，防止被意外清空
+            // Keep these fields as original or empty to prevent accidental clearing
             Dispute_Resolution_Outcome: data.Dispute_Resolution_Outcome,
             Dispute_Refund_Amount: data.Dispute_Refund_Amount,
             Dispute_Admin_Reply_To_Buyer: data.Dispute_Admin_Reply_To_Buyer,
@@ -554,19 +554,16 @@ async function autoUpdateToInReview(data) {
         const json = await res.json();
 
         if (json.status === 'success') {
-            // 更新 UI 显示
+            // Update UI display
             const stEl = document.getElementById('statusDisplay');
             stEl.textContent = 'In Review';
             stEl.className = 'status-badge st-InReview';
             document.getElementById('updateStatus').value = 'In Review';
 
-            // 提示一下（可选）
+            // Optional log
             // console.log('Status automatically updated to In Review');
         }
     } catch (e) {
         console.warn('Auto-update failed:', e);
     }
 }
-
-// ... rest of helper functions unchanged (renderImgs, loadTimeline, setAvatar, etc.) ...
-

@@ -32,7 +32,7 @@
               radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
     }
 
-    /* 浮动背景容器 */
+    /* Floating background container */
     #floating-container {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -67,10 +67,10 @@
 
     .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
-    /* 🔥 修改了 grid 布局，去掉了日期筛选 */
+    /* Filter section grid layout */
     .filters {
       display: grid;
-      grid-template-columns: 2fr 1fr auto; /* 搜索框占大头，状态其次，按钮自动 */
+      grid-template-columns: 2fr 1fr auto; /* Search box takes majority, status next, button auto */
       gap: 15px;
       align-items: end;
       margin-bottom: 25px;
@@ -122,7 +122,7 @@
 </script>
 
 <header class="page-header">
-  <h1 class="page-title">⚖️ Dispute Dashboard</h1>
+  <h1 class="page-title">Dispute Dashboard</h1>
   <p style="color:var(--text-gray)">Admin view for after-sales disputes</p>
 </header>
 
@@ -212,7 +212,7 @@
     return `<span class="badge ${s.replaceAll(' ', '\\ ')}">${escapeHtml(s)}</span>`;
   }
 
-  // 日期显示格式 (仅保留用于列表显示)
+  // Date formatting for display
   function fmtDate(d) {
     if (!d) return '-';
     try {
@@ -227,7 +227,6 @@
     const p = new URLSearchParams({
       q: document.getElementById('q').value.trim(),
       status: document.getElementById('status').value,
-      // 🔥 已移除 from 和 to 参数
       page: state.page,
       pageSize: state.pageSize
     });
