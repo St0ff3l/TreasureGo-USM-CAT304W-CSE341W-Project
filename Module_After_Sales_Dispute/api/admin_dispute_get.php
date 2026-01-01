@@ -38,12 +38,12 @@ try {
                 d.Dispute_ID,
                 d.Dispute_Reason,
                 
-                -- 🔥 [新增] 获取新字段
+                -- [New] Fetch new fields
                 d.Buyer_Description,
                 d.Seller_Description,
                 d.Action_Required_By,
                 
-                -- 兼容旧字段 (以防万一)
+                -- Compatibility for old fields (just in case)
                 d.Dispute_Details,
                 d.Dispute_Seller_Response,
 
