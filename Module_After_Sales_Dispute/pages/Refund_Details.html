@@ -268,7 +268,7 @@
       document.getElementById('refundDesc').innerText = order.Refund_Description;
     }
 
-    // 2. 根据状态 + 身份 渲染 Banner
+    // 2. Render the status banner based on refund state and user role.
     const statusDiv = document.getElementById('statusMessageContainer');
     const status = order.Refund_Status;
     const isBuyer = (order.Orders_Buyer_ID == currentUserId);
@@ -350,7 +350,7 @@
 
     statusDiv.innerHTML = bannerHtml;
 
-    // 3. 处理图片
+    // 3. Render evidence images (if any).
     const gallery = document.getElementById('evidenceGallery');
     if(order.Refund_Images) {
       gallery.innerHTML = '';

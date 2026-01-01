@@ -313,7 +313,7 @@
   };
 
   // ==========================================
-  // 🔥 1. Dynamic Form Logic 🔥
+  // 1. Dynamic Form Logic
   // ==========================================
   const reasonsNotReceived = [
     {val: 'logistics_stuck', txt: 'Logistics stuck / Not moving'},
@@ -361,7 +361,7 @@
         reasonSelect.add(new Option(r.txt, r.val));
       });
 
-      // 🔥 LOGIC: Hide Proof of Receipt, Show Evidence (Optional)
+      // Logic: Hide Proof of Receipt, show Evidence (Optional)
       groupReceipt.style.display = 'none';
       groupDefect.style.display = 'block';
       labelDefect.innerHTML = "Relevant Evidence (e.g. Chat/Tracking Screenshots) - Optional";
@@ -380,7 +380,7 @@
         reasonSelect.add(new Option(r.txt, r.val));
       });
 
-      // 🔥 LOGIC: Show Proof of Receipt, Show Evidence (Required)
+      // Logic: Show Proof of Receipt, show Evidence (Required)
       groupReceipt.style.display = 'block';
       groupDefect.style.display = 'block';
       labelDefect.innerHTML = "Evidence of Defect (Item Photos) <span style='color:red'>*</span>";
@@ -388,7 +388,7 @@
   }
 
   // ==========================================
-  // 🔥 2. Load Data from URL (Frontend Data) 🔥
+  // 2. Load data from URL parameters
   // ==========================================
   document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -400,8 +400,8 @@
     if (orderId) document.getElementById('orderIdDisplay').innerText = `Order ID: #${orderId}`;
     else document.getElementById('orderIdDisplay').innerText = "Order ID: Not Provided";
 
-    // 1. 尝试从 URL 获取商品信息 (如果跳转时带了参数)
-    // 假设跳转 URL 是：Request_Refund.html?order_id=123&title=MacBook&amount=2500&img=...
+    // Attempt to read item details from URL parameters (if provided by the previous page).
+    // Expected format: Refund_Request.html?order_id=123&title=MacBook&amount=2500&img=...
     const title = urlParams.get('title');
     const amount = urlParams.get('amount');
     const img = urlParams.get('img');
@@ -416,7 +416,7 @@
     if (img) {
       document.querySelector('.item-thumb').src = decodeURIComponent(img);
     } else {
-      // 如果 URL 没有图片，尝试自己 fetch (fallback)
+      // If no image URL is provided, fetch order details as a fallback.
       if(orderId) fetchOrderDetails(orderId);
     }
 
@@ -580,15 +580,11 @@
     const formData = new FormData(this);
     formData.append('order_id', orderId);
 
-    // 🔥 Check 1: Received Status
+    // Check 1: Received status
     const receivedStatus = document.getElementById('receivedStatus').value;
-    if (!receivedStatus) {
-      alert('Please confirm if you received the item.');
-      return;
-    }
 
-    // 🔥 Check 2: Mandatory Evidence Logic
-    // If Received = Yes (1), Defect Proof is Mandatory (Box 2)
+    // Check 2: Mandatory evidence rules
+    // If Received = Yes (1), defect evidence is required.
     if (receivedStatus === "1") {
       if (fileStores['defect'].files.length === 0) {
         if(typeof StatusDialog !== 'undefined') {

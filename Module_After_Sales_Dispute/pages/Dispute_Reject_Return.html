@@ -13,7 +13,8 @@
   <script src="../../Public_Assets/js/status_dialog.js"></script>
 
   <style>
-    /* 页面基础布局样式 (保持不变) */
+    /* Base page layout styles. */
+
     :root {
       --primary: #4F46E5;
       --primary-hover: #4338CA;
@@ -34,7 +35,12 @@
       min-height: 100vh;
       padding-bottom: 40px;
     }
-    .container { max-width: 850px; margin: 0 auto; padding: 0 18px; margin-top: 40px; /* 稍微增加顶部间距以适应 header */ }
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 0 18px;
+      margin-top: 40px; /* Add a bit of top spacing to accommodate the header. */
+    }
     .card {
       background: var(--card);
       border: 1px solid rgba(255,255,255,0.6);
@@ -154,16 +160,16 @@
 <script src="../assets/js/upload_images.js"></script>
 
 <script>
-  // ================= 配置区域 =================
+  // Configuration
   const API_SUBMIT_DISPUTE = '../api/dispute_buyer_submit.php';
   const API_SESSION_STATUS = '../../Module_User_Account_Management/api/session_status.php';
   const API_GET_USER_ORDERS = '../../Module_Transaction_Fund/api/Get_User_Orders.php';
 
-  // 全局变量
+  // Global state
   let currentOrderId = null;
   let evidenceUploader = null;
 
-  // ================= 页面逻辑 =================
+  // Page logic
 
   function getQueryParam(name) { return new URL(window.location.href).searchParams.get(name); }
   function formatMoney(n) { return isNaN(Number(n)) ? 'RM 0.00' : 'RM ' + Number(n).toFixed(2); }
@@ -176,7 +182,7 @@
 
     const fd = new FormData();
     fd.append('order_id', orderId);
-    // 注意：这里必须和 PHP 接收的字段一致，PHP 里我们写的是 evidence[]
+    // The field name must match what the PHP endpoint expects (evidence[]).
     Array.from(files).forEach(f => fd.append('evidence[]', f));
 
     const res = await fetch(API_SUBMIT_DISPUTE, { method: 'POST', body: fd });
@@ -199,7 +205,7 @@
       btn.innerHTML = 'Processing...';
 
       try {
-        // 1. 先从组件里拿文件并上传
+        // 1) Read selected files from the uploader component and upload them.
         const files = evidenceUploader.getFiles();
         let uploadedUrls = [];
 
@@ -207,7 +213,7 @@
           uploadedUrls = await uploadImagesFirst(files, orderId);
         }
 
-        // 2. 拿到 URL 后，提交 JSON 数据
+        // 2) After receiving URLs, submit the JSON payload
         const payload = {
           order_id: orderId,
           dispute_reason: reason,
@@ -263,9 +269,7 @@
       }
     } catch(e) { console.error(e); }
 
-    // ==========================================
-    // 初始化上传组件 (现在使用外部文件里的类)
-    // ==========================================
+    // Initialize the uploader component (provided by the external script).
     evidenceUploader = new TreasureGoUploader('#evidence-container', {
       inputName: 'evidence[]'
     });
