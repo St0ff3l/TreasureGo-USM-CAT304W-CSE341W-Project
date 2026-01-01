@@ -118,8 +118,7 @@ function getOrders($conn, $request) {
 }
 
 /**
- * Get order by ID
- * 🔥🔥 MODIFIED: Joined Product, Images, AND Shipments to support Refund Logic 🔥🔥
+ * Get order by ID with product, images and shipment details
  */
 function getOrderById($conn, $request) {
     try {
@@ -129,10 +128,9 @@ function getOrderById($conn, $request) {
             sendResponse(false, 'Missing required field: order_id', null, 400);
         }
 
-        // Updated SQL query to fetch:
-        // 1. Address_ID (to detect meetup)
-        // 2. Shipments_Tracking_Number (to detect if shipped)
-        // 3. Delivery_Method (helper field)
+        // Query order details including address and shipment information
+        // Address_ID is used to detect meetup vs shipping delivery method
+        // Shipments_Tracking_Number indicates if order has been shipped
         $sql = "SELECT 
                     o.Orders_Order_ID, 
                     o.Orders_Buyer_ID, 
@@ -141,20 +139,20 @@ function getOrderById($conn, $request) {
                     o.Orders_Platform_Fee, 
                     o.Orders_Status, 
                     o.Orders_Created_AT,
-                    o.Address_ID,  /* Added for frontend logic */
+                    o.Address_ID,
                     
                     p.Product_Title,
                     
-                    /* Added Shipment Info */
+                    /* Shipment information for tracking */
                     s.Shipments_Tracking_Number,
                     
-                    /* Helper: Determine Delivery Method */
+                    /* Determine delivery method: meetup or shipping */
                     (CASE WHEN o.Address_ID IS NULL THEN 'meetup' ELSE 'shipping' END) AS Delivery_Method,
 
                     (SELECT Image_URL FROM Product_Images pi WHERE pi.Product_ID = p.Product_ID ORDER BY Image_is_primary DESC LIMIT 1) AS Main_Image
                 FROM Orders o
                 JOIN Product p ON o.Product_ID = p.Product_ID
-                /* Left Join Shipments to get tracking info if exists */
+                /* Join shipments table to get tracking information if available */
                 LEFT JOIN Shipments s ON o.Orders_Order_ID = s.Order_ID AND s.Shipments_Type = 'forward'
                 WHERE o.Orders_Order_ID = :order_id";
 
@@ -250,7 +248,7 @@ function updateOrderStatus($conn, $request) {
 
 /**
  * Confirm order receipt (buyer confirms receiving order)
- * REPLACED: Added wallet settlement logic
+ * Settles funds to seller wallet when receipt is confirmed
  */
 function confirmOrderReceipt($conn, $request) {
     try {
@@ -261,10 +259,10 @@ function confirmOrderReceipt($conn, $request) {
             sendResponse(false, 'Missing required fields: order_id, buyer_id', null, 400);
         }
 
-        // 1. Start Transaction
+        // Start transaction to ensure atomicity
         $conn->beginTransaction();
 
-        // 2. Verify buyer and get order details (Locking row)
+        // Verify buyer and get order details (row locking to prevent race conditions)
         $sql = "SELECT Orders_Seller_ID, Orders_Total_Amount, Orders_Platform_Fee, Orders_Status
                 FROM Orders
                 WHERE Orders_Order_ID = :order_id AND Orders_Buyer_ID = :buyer_id
@@ -278,30 +276,30 @@ function confirmOrderReceipt($conn, $request) {
             sendResponse(false, 'Order not found or unauthorized', null, 404);
         }
 
-        // Check if already completed to avoid double payment
+        // Prevent double payment by checking if order is already completed
         if ($order['Orders_Status'] === 'completed') {
             $conn->rollBack();
             sendResponse(false, 'Order is already completed', null, 400);
         }
 
-        // 3. Update order status to completed
+        // Update order status to completed
         $sql = "UPDATE Orders SET Orders_Status = 'completed' WHERE Orders_Order_ID = :order_id";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':order_id' => $orderId]);
 
-        // 4. Settle funds to seller (Create Wallet Log)
-        // Calculate net amount
+        // Settle funds to seller wallet
+        // Calculate net amount (total minus platform fee)
         $sellerAmount = $order['Orders_Total_Amount'] - $order['Orders_Platform_Fee'];
 
         createWalletLog($conn, [
             'user_id' => $order['Orders_Seller_ID'],
             'amount' => $sellerAmount,
-            'type' => 'sale', // Type used to generate description
+            'type' => 'sale',
             'reference_id' => $orderId,
             'reference_type' => 'order'
         ]);
 
-        // 5. Commit Transaction
+        // Commit transaction
         $conn->commit();
 
         sendResponse(true, 'Order receipt confirmed and funds released', ['status' => 'completed']);
@@ -318,7 +316,7 @@ function confirmOrderReceipt($conn, $request) {
 
 /**
  * Create wallet log entry
- * REPLACED: Adapted for Wallet_Logs schema without separate Wallets table
+ * Records balance changes for deposits, withdrawals, sales and refunds
  */
 function createWalletLog($conn, $data) {
     $userId = $data['user_id'];
@@ -327,30 +325,30 @@ function createWalletLog($conn, $data) {
     $referenceId = $data['reference_id'] ?? null;
     $referenceType = $data['reference_type'] ?? '';
 
-    // 1. Get current balance (Locking latest row)
-    // Order by Created_AT DESC to get the latest entry. If null, balance is 0.
+    // Get current balance from latest wallet log entry
+    // If no entry exists, starting balance is 0
     $sql = "SELECT Balance_After FROM Wallet_Logs WHERE User_id = :user_id ORDER BY Created_AT DESC LIMIT 1 FOR UPDATE";
     $stmt = $conn->prepare($sql);
     $stmt->execute([':user_id' => $userId]);
     $result = $stmt->fetch();
     $currentBalance = $result ? $result['Balance_After'] : 0.00;
 
-    // 2. Calculate new balance
-    // Logic: Withdrawals/Purchases subtract from balance, Sales/Refunds add to balance
+    // Calculate new balance based on transaction type
+    // Withdrawals and purchases reduce balance, sales and refunds increase it
     $changeAmount = ($type === 'withdrawal' || $type === 'purchase') ? -abs($amount) : abs($amount);
     $newBalance = $currentBalance + $changeAmount;
 
-    // 3. Build Description
+    // Build human-readable description
     $description = ucfirst($type) . ' of $' . number_format(abs($amount), 2);
 
-    // 4. Insert new log
+    // Insert wallet log entry
     $sql = "INSERT INTO Wallet_Logs (User_id, Amount, Balance_After, Description, Reference_Type, Reference_ID, Created_AT)
             VALUES (:user_id, :amount, :balance_after, :description, :reference_type, :reference_id, NOW(6))";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([
         ':user_id' => $userId,
-        ':amount' => $changeAmount, // This records the signed amount (+ or -)
+        ':amount' => $changeAmount,
         ':balance_after' => $newBalance,
         ':description' => $description,
         ':reference_type' => $referenceType,

@@ -22,7 +22,7 @@ require_once(__DIR__ . '/config/treasurego_db_config.php');
 
 // Error handling
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    // 忽略一些不严重的警告，避免破坏 JSON 格式
+    // Suppress non-critical warnings to preserve JSON format
     if (!(error_reporting() & $errno)) {
         return;
     }
