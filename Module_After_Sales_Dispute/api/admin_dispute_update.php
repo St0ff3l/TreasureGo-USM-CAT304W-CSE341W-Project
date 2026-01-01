@@ -3,13 +3,13 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
-// 引入数据库配置和鉴权文件
+// Include DB config and Auth
 require_once __DIR__ . '/../../Module_Platform_Governance_AI_Services/api/config/treasurego_db_config.php';
 require_once __DIR__ . '/../../Module_User_Account_Management/includes/auth.php';
 
 start_session_safe();
 
-// 1. 权限验证
+// 1. Authorization Check
 if (!is_logged_in()) {
     http_response_code(401);
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
@@ -30,12 +30,12 @@ if (!$pdo) {
     exit;
 }
 
-// 2. 获取参数
+// 2. Retrieve Parameters
 $payload = json_decode(file_get_contents('php://input'), true);
 $disputeId = intval($payload['Dispute_ID'] ?? 0);
 $newStatus = trim($payload['Dispute_Status'] ?? '');
 
-// 判决参数 (防止空字符串导致 ENUM 报错)
+// Resolution Outcome (Prevent empty string causing ENUM error)
 $outcome = trim($payload['Dispute_Resolution_Outcome'] ?? '');
 if ($outcome === '') $outcome = null;
 
@@ -50,7 +50,7 @@ if ($actionRequiredBy === '' || !in_array($actionRequiredBy, $validActions)) {
     $actionRequiredBy = null;
 }
 
-// 3. 基础校验
+// 3. Basic Validation
 $allowedStatuses = ['Open', 'Closed', 'In Review', 'Resolved'];
 $allowedOutcomes = ['refund_buyer', 'refund_seller', 'partial'];
 
@@ -60,7 +60,7 @@ if ($disputeId <= 0 || $newStatus === '') {
     exit;
 }
 
-// 如果是结案 (Resolved)，必须校验判决参数
+// If status is Resolved, validate resolution parameters
 $isResolving = ($newStatus === 'Resolved');
 if ($isResolving) {
     if (!$outcome || !in_array($outcome, $allowedOutcomes, true)) {
@@ -73,7 +73,7 @@ if ($isResolving) {
         echo json_encode(['status' => 'error', 'message' => 'Replies required for both parties']);
         exit;
     }
-    // 如果是退款给买家或部分退款，必须有金额
+    // Validate refund amount for refund_buyer or partial outcomes
     if (($outcome === 'refund_buyer' || $outcome === 'partial') && (!is_numeric($refundAmount) || floatval($refundAmount) < 0)) {
         http_response_code(400);
         echo json_encode(['status' => 'error', 'message' => 'Invalid Refund Amount']);
@@ -84,7 +84,7 @@ if ($isResolving) {
 try {
     $pdo->beginTransaction();
 
-    // 4. 锁定争议单
+    // 4. Lock Dispute Record
     $stmt = $pdo->prepare('SELECT Dispute_ID, Order_ID, Refund_ID, Reporting_User_ID, Reported_User_ID FROM Dispute WHERE Dispute_ID = ? FOR UPDATE');
     $stmt->execute([$disputeId]);
     $dispute = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -92,8 +92,8 @@ try {
     if (!$dispute) throw new Exception('Dispute not found');
 
     // =================================================================================
-    // 🔥🔥🔥 [步骤 A] 提前准备数据：如果是结案，先查订单算好账 🔥🔥🔥
-    // 提到这里是为了让后面的审计日志(Administrative_Action)能记录完整的金额分配详情
+    // [STEP A] Pre-calculate Financials (If Resolving)
+    // Calculating here allows logging full financial details in Administrative_Action later
     // =================================================================================
     $amountToBuyer = 0.00;
     $amountToSeller = 0.00;
@@ -113,26 +113,26 @@ try {
         $buyerId = intval($orderInfo['Orders_Buyer_ID']);
         $sellerId = intval($orderInfo['Orders_Seller_ID']);
 
-        // 提前计算分配逻辑
+        // Calculate distribution based on outcome
         if ($outcome === 'refund_buyer') {
-            // 全额退款
+            // Full Refund
             $amountToBuyer = $totalOrderAmount;
             $amountToSeller = 0.00;
         } elseif ($outcome === 'refund_seller') {
-            // 拒绝退款 (全额打给卖家)
+            // Refund Rejected (Full Release to Seller)
             $amountToBuyer = 0.00;
             $amountToSeller = $totalOrderAmount;
         } elseif ($outcome === 'partial') {
-            // 部分退款
+            // Partial Refund
             $amountToBuyer = floatval($refundAmount);
-            // 安全检查
+            // Cap at total order amount
             if ($amountToBuyer > $totalOrderAmount) $amountToBuyer = $totalOrderAmount;
             $amountToSeller = $totalOrderAmount - $amountToBuyer;
         }
     }
 
     // =================================================================================
-    // [步骤 B] 更新主表 Dispute
+    // [STEP B] Update Dispute Table
     // =================================================================================
     $sql = "UPDATE Dispute SET
                 Dispute_Status = ?,
@@ -147,8 +147,8 @@ try {
 
     $finalActionBy = $isResolving ? 'None' : $actionRequiredBy;
 
-    // Dispute表里的 refundAmount 字段通常只记录退给买家的部分
-    // 如果是拒绝退款，字段设为0
+    // Refund amount in Dispute table typically records amount returned to buyer.
+    // If refund rejected, set to 0.
     $dbRefundAmount = ($outcome === 'refund_seller') ? 0 : $amountToBuyer;
 
     $pdo->prepare($sql)->execute([
@@ -156,7 +156,7 @@ try {
     ]);
 
     // =================================================================================
-    // [步骤 C] 写入 Timeline (对话记录)
+    // [STEP C] Insert Timeline Records
     // =================================================================================
     if (!empty($replyBuyer)) {
         $pdo->prepare("INSERT INTO Dispute_Supplement_Record (Dispute_ID, User_ID, User_Role, Content, Record_Type, Created_At) VALUES (?, ?, 'Admin', ?, 'System', NOW())")
@@ -172,16 +172,16 @@ try {
     }
 
     // =================================================================================
-    // [步骤 D] 写入审计记录 (Administrative_Action) - 包含完整金额详情
+    // [STEP D] Log Administrative Action - With Full Financial Details
     // =================================================================================
     if ($isResolving) {
-        // 格式化金额文本
+        // Format amount strings
         $strBuyer = number_format($amountToBuyer, 2);
         $strSeller = number_format($amountToSeller, 2);
         $resolutionDetail = "";
 
         if ($outcome === 'partial') {
-            // 结果示例: "Partial Refund: Buyer(RM 20.00) / Seller(RM 80.00)"
+            // e.g., "Partial Refund: Buyer(RM 20.00) / Seller(RM 80.00)"
             $resolutionDetail = "Partial Refund: Buyer(RM {$strBuyer}) / Seller(RM {$strSeller})";
         } elseif ($outcome === 'refund_buyer') {
             $resolutionDetail = "Full Refund to Buyer (RM {$strBuyer})";
@@ -194,7 +194,7 @@ try {
         $actionReason = "Resolved Dispute #{$disputeId}. Decision: {$resolutionDetail}";
         $targetUserId = intval($dispute['Reported_User_ID']);
 
-        // 去掉不存在的 Created_At 字段
+        // Removed non-existent Created_At field
         $sqlAdminAction = "INSERT INTO Administrative_Action 
             (Admin_Action_Type, Admin_Action_Reason, Admin_Action_Start_Date, Admin_Action_Final_Resolution, Admin_ID, Target_User_ID, Admin_Action_Source)
             VALUES 
@@ -202,21 +202,21 @@ try {
 
         $pdo->prepare($sqlAdminAction)->execute([
             $actionReason,
-            $resolutionDetail, // 这里现在包含了卖家的金额
+            $resolutionDetail, // Includes seller amount detail now
             $adminId,
             $targetUserId
         ]);
     }
 
     // =================================================================================
-    // [步骤 E] 资金结算 & 数据同步 (执行刚才算好的账)
+    // [STEP E] Financial Settlement & Data Sync (Execute Calculations)
     // =================================================================================
     if ($isResolving) {
         $orderId = intval($dispute['Order_ID']);
         $refundId = intval($dispute['Refund_ID']);
         $newOrderStatus = ($outcome === 'refund_buyer') ? 'cancelled' : 'completed';
 
-        // 1. 打款给买家 (如有)
+        // 1. Credit Buyer (if any)
         if ($amountToBuyer > 0) {
             $stmtBal = $pdo->prepare("SELECT Balance_After FROM Wallet_Logs WHERE User_ID = ? ORDER BY Log_ID DESC LIMIT 1 FOR UPDATE");
             $stmtBal->execute([$buyerId]);
@@ -229,7 +229,7 @@ try {
                 ->execute([$buyerId, $amountToBuyer, $newBal, $desc, $orderId]);
         }
 
-        // 2. 打款给卖家 (如有)
+        // 2. Credit Seller (if any)
         if ($amountToSeller > 0) {
             $stmtBal = $pdo->prepare("SELECT Balance_After FROM Wallet_Logs WHERE User_ID = ? ORDER BY Log_ID DESC LIMIT 1 FOR UPDATE");
             $stmtBal->execute([$sellerId]);
@@ -242,8 +242,8 @@ try {
                 ->execute([$sellerId, $amountToSeller, $newBal, $desc, $orderId]);
         }
 
-        // 3. 更新 Refund_Requests (金额同步)
-        // 确保 Refund_Amount 被更新为实际退款金额，而不是初始申请金额
+        // 3. Update Refund_Requests (Sync Amount)
+        // Ensure Refund_Amount reflects actual refunded amount, not requested amount
         $finalRefundStatus = ($outcome === 'refund_seller') ? 'closed' : 'completed';
 
         $pdo->prepare("UPDATE Refund_Requests SET 
@@ -254,7 +254,7 @@ try {
                        WHERE Refund_ID = ?")
             ->execute([$finalRefundStatus, $amountToBuyer, $refundId]);
 
-        // 4. 更新 Orders
+        // 4. Update Orders
         $pdo->prepare("UPDATE Orders SET Orders_Status = ? WHERE Orders_Order_ID = ?")
             ->execute([$newOrderStatus, $orderId]);
     }

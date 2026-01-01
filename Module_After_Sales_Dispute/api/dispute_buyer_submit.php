@@ -44,12 +44,12 @@ try {
     if (!$pdo) throw new Exception('Database connection failed');
 
     // ==========================================
-    // 逻辑分支 A: 上传图片 (不变)
+    // Logic Branch A: Image Upload
     // ==========================================
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['evidence'])) {
         $orderId = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
 
-        // 1. 简单验证
+        // 1. Simple validation
         if ($orderId > 0) {
             $stmtCheck = $pdo->prepare("SELECT Orders_Buyer_ID FROM Orders WHERE Orders_Order_ID = ?");
             $stmtCheck->execute([$orderId]);
@@ -88,7 +88,7 @@ try {
     }
 
     // ==========================================
-    // 逻辑分支 B: 提交申诉
+    // Logic Branch B: Submit Dispute
     // ==========================================
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
@@ -123,7 +123,7 @@ try {
         if (!$refundRow) throw new Exception('No refund request found.');
         $refundId = intval($refundRow['Refund_ID']);
 
-        // 检查是否存在争议
+        // Check if dispute exists
         $stmtCheck = $pdo->prepare("SELECT Dispute_ID, Action_Required_By FROM Dispute WHERE Order_ID = ? AND Dispute_Status NOT IN ('Resolved', 'Closed', 'Cancelled')");
         $stmtCheck->execute([$orderId]);
         $existingDispute = $stmtCheck->fetch(PDO::FETCH_ASSOC);
@@ -136,25 +136,26 @@ try {
 
         if ($existingDispute) {
             // ========================================================
-            // 场景 A: 争议已存在 -> 追加证据 (Supplement)
+            // Scenario A: Dispute exists - Append evidence (Supplement)
             // ========================================================
             $disputeId = $existingDispute['Dispute_ID'];
 
-            // 1. 插入子表记录
+            // 1. Insert record into supplement table
             $sqlSup = "INSERT INTO Dispute_Supplement_Record 
                       (Dispute_ID, User_ID, User_Role, Content, Evidence_Images, Record_Type, Created_At)
                       VALUES (?, ?, 'Buyer', ?, ?, 'Evidence', NOW())";
             $pdo->prepare($sqlSup)->execute([$disputeId, $userId, $cleanDetails, $evidenceJson]);
 
-            // 2. 更新状态流转 & 尝试填充主表买家字段
+            // 2. Update status flow and attempt to populate buyer fields in main table
             $currentAction = $existingDispute['Action_Required_By'];
             $newAction = 'Admin';
             if ($currentAction === 'Both') $newAction = 'Seller';
             else if ($currentAction === 'Buyer') $newAction = 'Admin';
 
-            // 🔥 核心修改：使用 COALESCE(NULLIF(..., ''), ?)
-            // 如果主表字段是 NULL 或 空字符串，则填入当前内容；否则保持原样（不覆盖初始记录）。
-            // 证据字段如果之前是 '[]' 也视为无效，尝试填入新的。
+            // Use COALESCE(NULLIF(..., ''), ?) logic.
+            // If the main table field is NULL or an empty string, fill it with the current content;
+            // otherwise, keep the original (do not overwrite initial record).
+            // If the evidence field was previously '[]', treat it as invalid and try to fill with new data.
 
             $sqlUp = "UPDATE Dispute SET 
                         Action_Required_By = ?, 
@@ -170,11 +171,11 @@ try {
 
         } else {
             // ========================================================
-            // 场景 B: 首次提交争议 (Create)
+            // Scenario B: First time dispute submission (Create)
             // ========================================================
             if (empty($reason)) out(false, 'Missing Dispute Reason');
 
-            // 🔥 核心修改：写入 Buyer_Description
+            // Write to Buyer_Description
             $sqlInsert = "INSERT INTO Dispute (
                 Order_ID, Refund_ID, Reporting_User_ID, Reported_User_ID,
                 Dispute_Reason, Dispute_Status, Dispute_Creation_Date, Action_Required_By,
@@ -189,7 +190,7 @@ try {
             ]);
             $newDisputeId = $pdo->lastInsertId();
 
-            // 同步插入第一条记录
+            // Synchronously insert the first record
             $sqlSup = "INSERT INTO Dispute_Supplement_Record 
                       (Dispute_ID, User_ID, User_Role, Content, Evidence_Images, Record_Type, Created_At)
                       VALUES (?, ?, 'Buyer', ?, ?, 'Evidence', NOW())";

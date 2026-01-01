@@ -3,19 +3,19 @@
 
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../Module_Transaction_Fund/api/config/treasurego_db_config.php';
-require_once __DIR__ . '/../../Module_User_Account_Management/includes/auth.php'; // 引入鉴权
+require_once __DIR__ . '/../../Module_User_Account_Management/includes/auth.php'; // Include authentication
 
-start_session_safe(); // 确保 session 开启
+start_session_safe(); // Ensure session is started
 
 $userId = $_SESSION['user_id'] ?? 0;
-$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin'; // 假设 session 里有 role，或者用 is_admin() 函数
+$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin'; // Assume role exists in session or use is_admin() function
 
 if ($userId <= 0) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
 }
 
-// 既支持传 order_id 也支持传 dispute_id
+// Support passing either order_id or dispute_id
 $orderId = intval($_GET['order_id'] ?? 0);
 $disputeId = intval($_GET['dispute_id'] ?? 0);
 
@@ -27,7 +27,7 @@ if ($orderId <= 0 && $disputeId <= 0) {
 try {
     $pdo = getDatabaseConnection();
 
-    // 1. 获取争议主信息 (为了鉴权和拿 Dispute_ID)
+    // 1. Get main dispute information (for authorization and retrieving Dispute_ID)
     $sqlMain = "SELECT 
                     d.Dispute_ID, d.Dispute_Status, d.Action_Required_By, d.Dispute_Reason, 
                     o.Orders_Buyer_ID, o.Orders_Seller_ID
@@ -52,14 +52,14 @@ try {
         exit;
     }
 
-    // 2. 鉴权：只有 (买家 OR 卖家 OR 管理员) 能看
-    // 如果你有 is_admin() 函数，请替换这里的判断
+    // 2. Authorization: Only Buyer, Seller, or Admin can view
+    // If you have an is_admin() function, replace this check
     if (!$isAdmin && $dispute['Orders_Buyer_ID'] != $userId && $dispute['Orders_Seller_ID'] != $userId) {
         echo json_encode(['success' => false, 'message' => 'Access Denied']);
         exit;
     }
 
-    // 3. 获取补充记录 (历史时间线)
+    // 3. Get supplementary records (history timeline)
     $realDisputeId = $dispute['Dispute_ID'];
     $sqlLog = "SELECT 
                     Record_ID, User_Role, Content, Evidence_Images, Record_Type, Created_At
@@ -71,7 +71,7 @@ try {
     $stmtLog->execute([$realDisputeId]);
     $timeline = $stmtLog->fetchAll(PDO::FETCH_ASSOC);
 
-    // 处理图片 JSON
+    // Process image JSON
     foreach ($timeline as &$log) {
         if (!empty($log['Evidence_Images'])) {
             $decoded = json_decode($log['Evidence_Images']);
@@ -81,7 +81,7 @@ try {
         }
     }
 
-    // 确定当前查看者的角色
+    // Determine the role of the current viewer
     $myRole = 'Viewer';
     if ($isAdmin) $myRole = 'Admin';
     elseif ($dispute['Orders_Buyer_ID'] == $userId) $myRole = 'Buyer';
