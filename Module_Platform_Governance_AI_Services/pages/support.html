@@ -369,9 +369,14 @@
 
                 if (data.user && avatarBtn) {
                     if (data.user.avatar_url) {
-                        avatarBtn.innerHTML = `<img src="${data.user.avatar_url}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                        let finalAvatarUrl = data.user.avatar_url;
+                        if (!finalAvatarUrl.startsWith('http') && !finalAvatarUrl.startsWith('/')) {
+                            finalAvatarUrl = '../../' + finalAvatarUrl;
+                        }
+
+                        avatarBtn.innerHTML = `<img src="${finalAvatarUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                         avatarBtn.style.background = 'transparent';
-                    } else if (data.user.username) {
+                    }else if (data.user.username) {
                         avatarBtn.innerText = data.user.username.charAt(0).toUpperCase();
                         avatarBtn.style.background = '#EEF2FF';
                         avatarBtn.style.color = '#4F46E5';
