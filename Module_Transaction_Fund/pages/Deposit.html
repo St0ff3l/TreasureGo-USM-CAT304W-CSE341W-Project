@@ -30,8 +30,8 @@
             min-height: 100vh;
             overflow-x: hidden;
             background-image:
-                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+                    radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
         #floating-container {
@@ -88,7 +88,7 @@
             height: 40px;
             border-radius: 8px;
             object-fit: cover;
-            /* 呼吸发光动画 */
+            /* Breathing glow animation */
             animation: glowAnimation 3s infinite alternate;
         }
 
@@ -1038,7 +1038,6 @@
     }
 
     // Fund Request Form Submission
-    // 找到这段代码并替换
     document.getElementById('fundRequestForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -1048,7 +1047,7 @@
         const proofImage = document.getElementById('proofImage').value;
         const adminRemarkInput = document.getElementById('adminRemark').value;
 
-        // 🔥 生成马来西亚本地时间戳
+        // Generate Malaysia local timestamp
         const now = new Date();
         const timestamp = now.toLocaleString('en-MY', {
             timeZone: 'Asia/Kuala_Lumpur',
@@ -1061,7 +1060,7 @@
             hour12: false
         });
 
-        // 🔥 将时间戳加入到remark中
+        // Add timestamp to remark
         const finalRemark = `Submitted Time: ${timestamp}
 Transaction ID: ${transactionId}
 
@@ -1078,7 +1077,7 @@ User Notes: ${adminRemarkInput}`;
                 type: type,
                 amount: parseFloat(amount),
                 proof_image: proofImage,
-                admin_remark: finalRemark  // 包含时间戳的备注
+                admin_remark: finalRemark  // Remark containing timestamp
             });
 
             StatusDialog.success(
