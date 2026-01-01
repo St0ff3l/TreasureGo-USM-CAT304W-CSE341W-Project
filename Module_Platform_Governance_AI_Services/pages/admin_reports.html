@@ -503,14 +503,17 @@
     // Render evidence image thumbnails (if any).
     let evidenceHtml = '';
     if (r.evidence && Array.isArray(r.evidence) && r.evidence.length > 0) {
-      const images = r.evidence.map(img => `
-            <a href="${img}" target="_blank" class="evidence-link">
-                <img src="${img}"
-                     alt="Evidence"
-                     onerror="this.src='https://placehold.co/80x80?text=Error'; this.style.opacity=0.5;"
-                     style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #E5E7EB; transition:transform 0.2s;">
-            </a>
-        `).join('');
+      const images = r.evidence.map(img => {
+        const finalPath = img.startsWith('http') ? img : `../../${img}`;
+        return `
+    <a href="${finalPath}" target="_blank" class="evidence-link">
+        <img src="${finalPath}"
+             alt="Evidence"
+             onerror="this.src='https://placehold.co/80x80?text=Error'; this.style.opacity=0.5;"
+             style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #E5E7EB; transition:transform 0.2s;">
+    </a>
+    `;
+      }).join('');
 
       evidenceHtml = `
             <div class="detail-row">
