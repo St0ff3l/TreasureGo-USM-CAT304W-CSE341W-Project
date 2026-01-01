@@ -9,7 +9,7 @@
     <script src="../../Public_Assets/js/status_dialog.js"></script>
     <style>
         /* ========================================= */
-        /* 核心样式 & 变量 (Core Styles)        */
+        /* Root variables and core styles */
         /* ========================================= */
         :root {
             --bg-color: #F3F6F9;
@@ -39,7 +39,7 @@
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
-        /* --- 背景浮动动画 --- */
+        /* Floating background animation container */
         #floating-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -64,7 +64,7 @@
         }
 
         /* ========================================= */
-        /* 顶部导航栏 (Navbar)           */
+        /* Top navigation bar */
         /* ========================================= */
         .navbar {
             background: var(--glass-bg);
@@ -120,7 +120,7 @@
         }
         .btn-primary:hover { transform: translateY(-2px); background-color: #000; }
 
-        /* --- 下拉菜单 --- */
+        /* Dropdown menu */
         .menu-container { position: relative; display: inline-block; }
 
         .dots-btn {
@@ -153,7 +153,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ========================================= */
-        /* 主内容区域 (Main Content)             */
+        /* Main content area */
         /* ========================================= */
         .page-header {
             text-align: center;
@@ -177,7 +177,7 @@
         }
 
         /* ========================================= */
-        /* 统计卡片 (Statistics Cards)            */
+        /* Statistics cards display */
         /* ========================================= */
         .stats-container {
             max-width: 1200px;
@@ -232,7 +232,7 @@
         .stat-card.amount { border-top: 4px solid #8B5CF6; }
 
         /* ========================================= */
-        /* 请求列表 (Request List)              */
+        /* Request list and filtering */
         /* ========================================= */
         .requests-container {
             max-width: 1200px;
@@ -470,7 +470,7 @@
         }
 
         /* ========================================= */
-        /* 弹窗 (Modal)                           */
+        /* Modal dialogs and overlays */
         /* ========================================= */
         .modal-overlay {
             position: fixed;
@@ -643,7 +643,7 @@
 
 
         /* ========================================= */
-        /* 手机端适配 (Mobile Responsive)     */
+        /* Mobile responsive design */
         /* ========================================= */
         @media (max-width: 768px) {
             .navbar { padding: 15px; }
@@ -707,11 +707,11 @@
 </script>
 
 <section class="page-header">
-    <h1 class="page-title">💰 Deposit Management</h1>
+    <h1 class="page-title">Deposit Management</h1>
     <p class="page-subtitle">Review and process user deposit requests</p>
 </section>
 
-<!-- 统计卡片 -->
+<!-- Statistics cards -->
 <section class="stats-container">
     <div class="stats-grid">
         <div class="stat-card total">
@@ -742,7 +742,7 @@
     </div>
 </section>
 
-<!-- 请求列表 -->
+<!-- Request list -->
 <section class="requests-container">
     <div class="section-header">
         <h2 class="section-title">
@@ -764,7 +764,7 @@
     </div>
 </section>
 
-<!-- 查看凭证弹窗 -->
+<!-- Payment proof modal -->
 <div id="proof-modal" class="modal-overlay">
     <div class="modal">
         <div class="modal-header">
@@ -778,7 +778,7 @@
     </div>
 </div>
 
-<!-- 处理请求弹窗 -->
+<!-- Process request modal -->
 <div id="action-modal" class="modal-overlay">
     <div class="modal">
         <div class="modal-header">
@@ -822,20 +822,17 @@
     </div>
 </div>
 
-<!-- Toast 通知 - REMOVED -->
-
-
 <script>
-    // API 配置
+    // API configuration
     const API_BASE = '../api/Fund_Request.php';
 
-    // 全局变量
+    // Global variables
     let allRequests = [];
     let currentFilter = 'all';
     let currentRequestId = null;
     let currentAction = null;
 
-    // 页面初始化
+    // Page initialization
     document.addEventListener('DOMContentLoaded', () => {
         initFloatingItems();
         loadStatistics();
@@ -843,7 +840,7 @@
         initFilterTabs();
     });
 
-    // 初始化浮动背景
+    // Initialize floating background items
     function initFloatingItems() {
         const container = document.getElementById('floating-container');
         const items = ['💰', '💵', '💳', '🏦', '📊', '✨', '💎', '🪙'];
@@ -859,7 +856,7 @@
         }
     }
 
-    // 加载统计数据
+    // Load and display statistics data
     async function loadStatistics() {
         try {
             const res = await fetch(`${API_BASE}?action=get_admin_statistics`);
@@ -877,7 +874,7 @@
         }
     }
 
-    // 加载请求列表
+    // Load and fetch request list from API
     async function loadRequests() {
         const container = document.getElementById('requests-list');
 
@@ -886,7 +883,7 @@
             const data = await res.json();
 
             if (data.success) {
-                // 只筛选充值请求
+                // Filter for deposit requests only
                 allRequests = data.data.filter(r => r.Type === 'deposit');
                 renderRequests();
             } else {
@@ -901,19 +898,19 @@
             console.error('Failed to load requests:', err);
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">⚠️</div>
+                    <div class="empty-icon">Warning</div>
                     <p class="empty-text">Network error. Please try again.</p>
                 </div>
             `;
         }
     }
 
-    // 渲染请求列表
+    // Render requests list with filtering
     function renderRequests() {
         const container = document.getElementById('requests-list');
         let filteredRequests = allRequests;
 
-        // 应用筛选
+        // Apply filter
         if (currentFilter !== 'all') {
             filteredRequests = allRequests.filter(r => {
                 if (currentFilter === 'approved') {
@@ -926,7 +923,7 @@
         if (filteredRequests.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📭</div>
+                    <div class="empty-icon">No results</div>
                     <p class="empty-text">No ${currentFilter === 'all' ? '' : currentFilter + ' '}deposit requests found</p>
                 </div>
             `;
@@ -944,8 +941,8 @@
                 <div class="request-info">
                     <div class="request-user">${request.Username || 'User #' + request.User_ID}</div>
                     <div class="request-details">
-                        <span>🆔 #${request.REQUEST_ID}</span>
-                        <span>👤 User ID: ${request.User_ID}</span>
+                        <span>ID: #${request.REQUEST_ID}</span>
+                        <span>User ID: ${request.User_ID}</span>
                     </div>
                     <div class="request-amount">+ RM${parseFloat(request.Amount).toFixed(2)}</div>
                 </div>
@@ -978,7 +975,7 @@
         `}).join('');
     }
 
-    // 初始化筛选标签
+    // Initialize filter tabs
     function initFilterTabs() {
         document.querySelectorAll('.filter-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -990,7 +987,7 @@
         });
     }
 
-    // 查看凭证
+    // View payment proof image
     function viewProof(imageUrl) {
         const modal = document.getElementById('proof-modal');
         const img = document.getElementById('proof-image');
@@ -1002,7 +999,7 @@
         document.getElementById('proof-modal').classList.remove('active');
     }
 
-    // 打开操作弹窗
+    // Open action modal for approval or rejection
     function openActionModal(requestId, action) {
         const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
         if (!request) {
@@ -1026,11 +1023,11 @@
         document.getElementById('action-remark').value = '';
 
         if (action === 'approve') {
-            title.textContent = '✅ Approve Deposit Request';
+            title.textContent = 'Approve Deposit Request';
             confirmBtn.textContent = 'Approve';
             confirmBtn.className = 'btn-confirm approve';
         } else {
-            title.textContent = '❌ Reject Deposit Request';
+            title.textContent = 'Reject Deposit Request';
             confirmBtn.textContent = 'Reject';
             confirmBtn.className = 'btn-confirm reject';
         }
@@ -1045,7 +1042,7 @@
         currentAction = null;
     }
 
-    // 处理请求
+    // Process request submission
     async function processRequest() {
         if (!currentRequestId || !currentAction) return;
 
@@ -1092,14 +1089,14 @@
         }
     }
 
-    // 工具函数
-    // 直接显示数据库中的时间字符串，不做任何时区转换
+    // Utility functions
+    // Format date string for display without timezone conversion
     function formatDate(dateStr) {
         if (!dateStr) return '-';
         return dateStr;
     }
 
-
+    // Get CSS class for status badge
     function getStatusClass(status) {
         switch (status) {
             case 'pending': return 'status-pending';
@@ -1114,7 +1111,7 @@
         return status.charAt(0).toUpperCase() + status.slice(1);
     }
 
-    // 点击弹窗外部关闭
+    // Close modal when clicking outside the modal content
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -1123,7 +1120,7 @@
         });
     });
 
-    // 打开详情弹窗
+    // Open details modal for request information
     function openDetailsModal(requestId) {
         const request = allRequests.find(r => String(r.REQUEST_ID) === String(requestId));
         if (!request) {
