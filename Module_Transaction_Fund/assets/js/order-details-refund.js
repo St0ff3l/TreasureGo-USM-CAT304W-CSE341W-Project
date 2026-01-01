@@ -1,19 +1,21 @@
 /*
  * Order Details - Refund/After-sales module
- * Updated: Supports Bi-directional Dispute Initiation & Progress Timeline
- * Fixes: Full logic restoration, Correct "Check" link, Enhanced Participation Logic
- * Latest Update: Added Seller Refusal Modal & API Integration
+ * Responsibilities:
+ * - Render refund and dispute status cards
+ * - Handle buyer refund request flow
+ * - Handle seller refund decision and dispute response
+ * - Navigate to refund detail and dispute pages
  */
 
 (function (global) {
   'use strict';
 
-  // --- 🆕 Modal Logic Variables ---
+  // State variables for refund modal
   let currentRefundOrderId = null;
-  let hasReceivedGoods = 0; // 0=No, 1=Yes
-  let modalMode = 'buyer'; // 🆕 Values: 'buyer' or 'seller'
+  let hasReceivedGoods = 0; // 0=Not received, 1=Received
+  let modalMode = 'buyer'; // Values: 'buyer' or 'seller'
 
-  // --- Buyer Reasons ---
+  // Refund reason options when buyer has not received goods
   const reasonsNotReceived = [
     {val: 'logistics_stuck', txt: 'Logistics stuck / Not moving'},
     {val: 'not_received', txt: 'Did not receive package (Lost)'},
@@ -30,7 +32,7 @@
     {val: 'other', txt: 'Other'}
   ];
 
-  // --- 🆕 Seller Reasons (Refusal) ---
+  // Seller reason options for refusing refund (when goods not received)
   const sellerReasonsNotReceived = [
     {val: 'fake_tracking', txt: 'Fake Tracking Number / Invalid'},
     {val: 'empty_package', txt: 'Received Empty Package'},
@@ -49,7 +51,7 @@
     return global.OrderDetailsOrder?.escapeHtml ? global.OrderDetailsOrder.escapeHtml(value) : String(value ?? '');
   }
 
-  // ✅ 0. Navigation Helpers
+  // Navigation helper functions for different refund and dispute pages
   function goToRefundDetail(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${encodeURIComponent(orderId)}`;
   }
@@ -71,7 +73,7 @@
   }
 
   // ============================================================
-  // 🔥 Core Function: Render Refund/Dispute Status Card
+  // Render refund and dispute status card based on order status
   // ============================================================
   function renderRefundStatusCard(order, isBuyer) {
     let status = order.Refund_Status;
@@ -86,7 +88,7 @@
 
     const typeText = type === 'refund_only' ? 'Refund Only' : 'Return & Refund';
 
-    // 1. Pending Approval
+    // Status: Pending Approval
     if (status === 'pending_approval') {
       const reasonMap = {
         damaged: 'Item Damaged / Defective',
@@ -139,7 +141,7 @@
       `;
     }
 
-    // 2. Awaiting Return
+    // Status: Awaiting Return
     if (status === 'awaiting_return' || status === 'awaiting_confirm') {
       const returnTracking = order.Return_Tracking_Number || order.return_tracking_number || '';
       const deliveryMethod = String(order.Delivery_Method || 'shipping').toLowerCase().trim();
@@ -211,7 +213,7 @@
       }
 
       // Shipping Logic (Seller)
-      // 🔥 Updated: Use openSellerRefusalModal instead of sellerRefuseReturnReceived
+      // Use openSellerRefusalModal instead of sellerRefuseReturnReceived
       return `
         <div class="refund-status-card status-return">
           <div class="refund-status-header">
@@ -232,7 +234,7 @@
       `;
     }
 
-    // 3. Completed
+    // Status: Completed
     if (status === 'completed') {
       let title = 'Refund Completed';
       let msg = isBuyer ? 'Refund returned to wallet.' : 'Refund deducted from earnings.';
@@ -266,7 +268,7 @@
       `;
     }
 
-    // 4. Rejected / Closed / Cancelled
+    // Status: Rejected / Closed / Cancelled
     if (status === 'rejected' || status === 'closed' || status === 'goods_rejected' || status === 'cancelled') {
       const attempt = parseInt(order.Request_Attempt || '1', 10);
       const canResubmit = isBuyer && attempt < 2 && status !== 'closed' && status !== 'cancelled';
@@ -326,7 +328,7 @@
       `;
     }
 
-    // 5. Dispute In Progress
+    // Status: Dispute In Progress
     if (status === 'dispute_in_progress') {
       return renderDisputeCard(order, isBuyer);
     }
@@ -335,7 +337,7 @@
   }
 
   // ============================================================
-  // 🔥 Dispute Card Routing
+  // Render dispute status card with dynamic messaging
   // ============================================================
   function renderDisputeCard(order, isBuyer, overrideTitle, overrideDesc) {
     const disputeId = Number(order.Dispute_ID || 0);
@@ -444,16 +446,16 @@
 
     let confirmMsg = '';
 
-    // 设置初始确认信息
+    // Set initial confirmation message
     if (action === 'approve') {
       confirmMsg = type === 'refund_only'
-          ? '⚠️ Approve Refund Only?\nMoney will be refunded to buyer immediately.'
-          : '⚠️ Accept Return?\nBuyer will be notified to return the item.';
+          ? 'Approve Refund Only?\nMoney will be refunded to buyer immediately.'
+          : 'Accept Return?\nBuyer will be notified to return the item.';
     } else {
-      confirmMsg = '❌ Ready to reject this refund request?';
+      confirmMsg = 'Ready to reject this refund request?';
     }
 
-    // 第一步：基本确认
+    // First step: basic confirmation
     if (!confirm(confirmMsg)) {
       return;
     }
@@ -461,7 +463,7 @@
     let reject_reason_code = null;
     let reject_reason_text = null;
 
-    // 第二步：拒绝逻辑
+    // Second step: rejection logic
     if (action === 'reject') {
       reject_reason_text = prompt('Please enter the rejection reason (Required):');
       if (reject_reason_text === null) return;
@@ -472,8 +474,7 @@
       reject_reason_code = 'other';
     }
 
-    // 特殊情况：同意退货 (Return & Refund) 需要选地址
-    // 这里的逻辑会拦截“退货”请求，弹出地址选择框
+    // Special case: approve return (Return & Refund) requires address selection
     if (action === 'approve' && type !== 'refund_only') {
       console.log('[Debug] Triggering address selection...');
       if (global.toggleAddressSelection) {
@@ -481,13 +482,12 @@
       } else {
         alert('Address module not loaded. Cannot select return address.');
       }
-      return; // 🛑 停止执行，等待地址选择模态框处理
+      return; // Stop execution and wait for address selection modal to handle
     }
 
-    // 第三步：提交 API (仅针对 "仅退款" 或 "拒绝")
+    // Third step: submit API (only for "refund only" or "reject")
     console.log('[Debug] Sending API request...');
     try {
-      // ⚠️ 请确保这里的路径是你实际的 API 路径
       const apiUrl = '../../Module_Transaction_Fund/api/Refund_Actions.php';
 
       const response = await fetch(apiUrl, {

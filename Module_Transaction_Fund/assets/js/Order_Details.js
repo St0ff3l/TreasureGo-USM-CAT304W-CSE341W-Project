@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Mount Headerbar
+    // Mount header bar component with base path
     if (window.TreasureGoHeaderbar) {
         TreasureGoHeaderbar.mount({
             basePath: '../../'
         });
     }
 
-    // 2. Initialize Order Details
+    // Initialize order details module
     if (window.OrderDetailsOrder) {
         if (typeof window.OrderDetailsOrder.bindSafetyNet === 'function') {
             window.OrderDetailsOrder.bindSafetyNet();
