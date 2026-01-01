@@ -82,7 +82,7 @@ try {
                 else {
                     // Example DB value: Module_Product/...
                     // Output URL:       /Module_Product/...
-                    $finalImageUrl = '/' . $rawImage;
+                    $finalImageUrl = '../../' . $rawImage;
                 }
             }
 
