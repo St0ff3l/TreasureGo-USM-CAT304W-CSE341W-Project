@@ -9,7 +9,7 @@
 
     <style>
         /* ========================================= */
-        /* 核心样式 & 变量 (Core Styles)        */
+        /* Core styles and variables */
         /* ========================================= */
         :root {
             --bg-color: #F3F6F9;
@@ -35,7 +35,7 @@
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
-        /* --- 背景浮动动画 --- */
+        /* Floating background animation */
         #floating-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -60,7 +60,7 @@
         }
 
         /* ========================================= */
-        /* 侧边栏样式 (Sidebar)            */
+        /* Sidebar */
         /* ========================================= */
         .sidebar {
             position: fixed;
@@ -99,7 +99,7 @@
         .sidebar-icon { font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); }
         .sidebar-text { font-size: 13px; font-weight: 700; }
 
-        /* 左侧 Category 特殊样式 */
+        /* Left sidebar: Category highlight */
         .sidebar.left .sidebar-item:nth-child(3) {
             order: 0; color: var(--primary); font-weight: 600;
         }
@@ -107,7 +107,7 @@
             transform: translateY(-3px) scale(1.05); color: var(--primary-hover);
         }
 
-        /* 右侧 Sidebar 排序逻辑 */
+        /* Right sidebar: item ordering */
         .sidebar.right .sidebar-item:nth-child(1) { order: 3; color: var(--primary); font-weight: 600; transform: scale(1); }
         .sidebar.right .sidebar-item:nth-child(1):hover { transform: translateY(-3px) scale(1.05); color: var(--primary-hover); }
         .sidebar.right .sidebar-item:nth-child(2) { order: 1; }
@@ -117,7 +117,7 @@
         .sidebar.right .sidebar-item:nth-child(6) { display: none; } /* Desktop hide Category */
 
         /* ========================================= */
-        /* 主内容区域 (Main)             */
+        /* Main content */
         /* ========================================= */
         .search-section {
             text-align: center; padding: 100px 20px 60px;
@@ -306,9 +306,14 @@
 </script>
 
 <script>
-    // 1. AuthModal 逻辑
-    // 🔥 修改点 2: 显式挂载到 window 对象，确保 headerbar.js 能访问到
-    // 某些 IDE/检查器会把 window.AuthModal 误判为只读，所以这里用 defineProperty 更稳。
+    // AuthModal bootstrap
+    // Expose AuthModal on window so headerbar.js can access it.
+    // Some linters treat window.AuthModal as read-only; defineProperty avoids that.
+
+    // Ensure the modal stays above other UI layers.
+
+    // If window.AuthModal is marked as read-only by typings, delete and re-define it.
+
     (function initGlobalAuthModal() {
         const authModalObj = {
             htmlContent: `
@@ -340,7 +345,7 @@
                     border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
                     text-align: center; width: 320px; border: none; outline: none;
                     animation: tgSlideDown 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-                    z-index: 10000; /* 确保层级够高 */
+                    z-index: 10000; /* Keep the modal above other UI layers. */
                 }
                 @keyframes tgSlideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             `;
@@ -358,12 +363,7 @@
             }
         };
 
-        // 如果某个脚本/typings 把 AuthModal 变成了只读属性，先尝试删除再重建
-        try {
-            delete window.AuthModal;
-        } catch (_) {
-            // ignore
-        }
+        // If another script/typing marks AuthModal as read-only, attempt to delete and re-define it.
 
         Object.defineProperty(window, 'AuthModal', {
             value: authModalObj,
@@ -372,24 +372,24 @@
         });
     })();
 
-    // 🔥 全局变量：存储当前登录用户的ID
+    // Global login state used by protected navigation.
     let isUserLoggedIn = false;
     let currentUserId = null;
 
-    // 🔥 核心跳转逻辑：通用权限控制函数
-    // 如果未登录 -> 弹窗
-    // 如果已登录 -> 跳转到 targetUrl
+    // Protected navigation helper:
+    // - If not logged in: open the login modal.
+    // - If logged in: navigate to the target URL.
     function handleProtectedNavigation(targetUrl) {
         if (!isUserLoggedIn) {
-            // 未登录：显示弹窗
+            // Not logged in: show the login modal.
             window.AuthModal.show();
         } else {
-            // 已登录：执行跳转
+            // Logged in: navigate to the target page.
             if (targetUrl && targetUrl !== '#') {
                 window.location.href = targetUrl;
             } else {
                 console.log("User is logged in, but no URL defined for this button (e.g. Feedback).");
-                // 这里以后可以扩展，比如 Feedback 登录后是弹出一个模态框而不是跳转页面
+                // Future extension: for some actions (e.g., Feedback), show a modal instead of navigating.
                 alert("Feedback feature coming soon!");
             }
         }
@@ -407,18 +407,18 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // --- 任务 A: 挂载 Headerbar 组件 ---
+        // Task A: Mount the headerbar component.
         if (typeof TreasureGoHeaderbar !== 'undefined') {
-            // 此时 window.AuthModal 已经定义好了，mount 内部的 checkSession 会用到它
+            // AuthModal must be defined before calling mount, because mount triggers a session check.
             TreasureGoHeaderbar.mount({ basePath: './' });
         } else {
             console.error("TreasureGoHeaderbar script not loaded.");
         }
 
-        // --- 任务 B: 加载商品数据 ---
+        // Task B: Load product data.
         loadAllData();
 
-        // --- 任务 C: 仅更新全局状态 (UI 由组件处理) ---
+        // Task C: Update global login state only (UI is handled by the headerbar).
         try {
             const res = await fetch('Module_User_Account_Management/api/session_status.php');
             const data = await res.json();
@@ -438,18 +438,20 @@
         }
     });
 
-    // 🔥 核心跳转逻辑：判断是买家还是卖家
+    // Product click routing:
+    // - If the current user is the seller: go to the seller management page.
+    // - Otherwise: go to the product detail page.
     function handleProductClick(productId, sellerId) {
         if (currentUserId && parseInt(currentUserId) === parseInt(sellerId)) {
-            // 是卖家本人 -> 跳转到商品管理页
+            // Seller view: open the seller management page for this product.
             window.location.href = `Module_Product_Ecosystem/pages/Seller_Product_Management.html?id=${productId}`;
         } else {
-            // 是买家或未登录 -> 跳转到商品详情页
+            // Buyer or guest view: open the public product detail page.
             window.location.href = `Module_Product_Ecosystem/pages/Product_Detail.html?id=${productId}`;
         }
     }
 
-    // 核心函数：请求一次 API，填充两个区域
+    // Fetch products once and populate both sections.
     async function loadAllData() {
         const freshContainer = document.getElementById('fresh-arrivals-container');
         const marketContainer = document.getElementById('market-container');
