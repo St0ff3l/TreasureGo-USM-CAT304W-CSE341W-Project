@@ -122,54 +122,44 @@ function createFundRequest($conn, $request) {
             sendResponse(false, 'Invalid type. Must be: deposit or withdrawal', null, 400);
         }
 
-        // =====================================================
-        // 🔥 核心修改：将 Base64 转换为图片文件，只存路径
-        // =====================================================
-        // 如果 $proofImage 包含 Base64 数据头，说明是新上传的图片
+        // Convert Base64 image data to file and store only the file path
         if ($proofImage && strpos($proofImage, 'data:image') === 0) {
-            // 1. 定义保存目录 (根据你的项目结构，存到 Public_Assets/proofs/)
-            // __DIR__ 是当前 api 文件的目录，向上两级找到 Public_Assets
+            // Define upload directory in Public_Assets/proofs/
             $uploadDir = __DIR__ . '/../../Public_Assets/proofs/';
 
-            // 如果目录不存在，自动创建
+            // Create directory if it doesn't exist
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
 
-            // 2. 解析 Base64 数据
-            // 分离头部 (data:image/png;base64) 和 内容
+            // Parse Base64 data
             $parts = explode(';', $proofImage);
             $typeInfo = $parts[0];
 
-            // 防止数据格式不标准导致的错误
             if (isset($parts[1])) {
                 $dataPart = explode(',', $parts[1]);
                 if (isset($dataPart[1])) {
                     $data = base64_decode($dataPart[1]);
 
-                    // 3. 确定文件后缀 (.png, .jpg 等)
-                    $extension = 'jpg'; // 默认
+                    // Determine file extension based on image type
+                    $extension = 'jpg'; // default
                     if (strpos($typeInfo, 'png') !== false) $extension = 'png';
                     if (strpos($typeInfo, 'jpeg') !== false) $extension = 'jpeg';
                     if (strpos($typeInfo, 'gif') !== false) $extension = 'gif';
 
-                    // 4. 生成唯一文件名 (proof_时间戳_随机数.jpg)
+                    // Generate unique filename
                     $filename = 'proof_' . time() . '_' . rand(1000, 9999) . '.' . $extension;
                     $fileRequestPath = $uploadDir . $filename;
 
-                    // 5. 保存文件到服务器
+                    // Save file to server and store relative path in database
                     if (file_put_contents($fileRequestPath, $data)) {
-                        // 🔥 成功！将 proofImage 变量更新为相对路径
-                        // 这个路径将存入数据库，非常短，不会报错
                         $proofImage = '../../Public_Assets/proofs/' . $filename;
                     } else {
-                        // 保存失败，置空或保留原值(可能会报错)，这里选择置空
                         $proofImage = '';
                     }
                 }
             }
         }
-        // =====================================================
 
         // Check balance for withdrawal
         if ($type === 'withdrawal') {

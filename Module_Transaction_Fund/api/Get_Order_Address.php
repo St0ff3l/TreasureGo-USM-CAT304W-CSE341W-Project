@@ -27,7 +27,7 @@ try {
 
     $uid = intval($_SESSION['user_id']);
 
-    // 1) Ensure current user is either buyer or seller of this order
+    // Verify current user is either buyer or seller of this order
     $stmt = $conn->prepare("SELECT Orders_Order_ID, Orders_Buyer_ID, Orders_Seller_ID, Address_ID FROM Orders WHERE Orders_Order_ID = :oid LIMIT 1");
     $stmt->execute([':oid' => $orderId]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -42,14 +42,14 @@ try {
         exit;
     }
 
-    // 2) Meetup orders can have NULL address
+    // Meetup orders may have null address
     $addressId = $order['Address_ID'] ?? null;
     if (!$addressId) {
         echo json_encode(['success' => true, 'data' => null]);
         exit;
     }
 
-    // 3) Return the buyer's address record linked by the order
+    // Retrieve the delivery address record associated with this order
     $stmtAddr = $conn->prepare("SELECT Address_ID, Address_User_ID, Address_Receiver_Name, Address_Detail, Address_Phone_Number, Address_Is_Default, Address_Created_At FROM Address WHERE Address_ID = :aid LIMIT 1");
     $stmtAddr->execute([':aid' => $addressId]);
     $addr = $stmtAddr->fetch(PDO::FETCH_ASSOC);
