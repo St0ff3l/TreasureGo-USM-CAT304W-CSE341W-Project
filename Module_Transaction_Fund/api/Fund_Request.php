@@ -163,16 +163,16 @@ function createFundRequest($conn, $request) {
         }
 
         // =============================================================
-        // 🔒 STEP A: 仅在“提现 (Withdrawal)”时验证 PIN 码和余额
+        // Validate PIN and balance only for withdrawal type
         // =============================================================
         if ($type === 'withdrawal') {
 
-            // 1. 检查 PIN 码是否为空
+            // Verify PIN code is provided
             if (empty($pinCode)) {
                 sendResponse(false, 'Payment PIN is required for withdrawal', null, 400);
             }
 
-            // 2. 查询用户安全信息
+            // Retrieve user security information
             $stmtUser = $conn->prepare("
                 SELECT User_Payment_PIN_Hash, User_PIN_Retry_Count, User_PIN_Locked_Until 
                 FROM User 
@@ -185,13 +185,13 @@ function createFundRequest($conn, $request) {
                 sendResponse(false, 'User not found', null, 404);
             }
 
-            // 3. 检查锁定状态
+            // Check wallet lock status
             if ($userInfo['User_PIN_Locked_Until'] && strtotime($userInfo['User_PIN_Locked_Until']) > time()) {
                 $waitMinutes = ceil((strtotime($userInfo['User_PIN_Locked_Until']) - time()) / 60);
                 sendResponse(false, "Wallet locked. Try again in $waitMinutes minutes.", null, 403);
             }
 
-            // 4. 验证 PIN 码
+            // Verify PIN code
             if (!password_verify($pinCode, $userInfo['User_Payment_PIN_Hash'])) {
                 $newRetry = $userInfo['User_PIN_Retry_Count'] + 1;
                 $lockUntil = null;
@@ -209,19 +209,19 @@ function createFundRequest($conn, $request) {
                 sendResponse(false, $msg, null, 401);
             }
 
-            // 5. PIN 正确：重置计数
+            // Reset retry count on successful PIN verification
             if ($userInfo['User_PIN_Retry_Count'] > 0) {
                 $conn->prepare("UPDATE User SET User_PIN_Retry_Count = 0 WHERE User_ID = :uid")
                     ->execute([':uid' => $userId]);
             }
 
-            // 6. 检查余额
+            // Verify sufficient wallet balance
             $currentBalance = getUserBalanceInternal($conn, $userId);
             if ($amount > $currentBalance) {
                 sendResponse(false, 'Insufficient wallet balance. You have RM' . number_format($currentBalance, 2) . ' but requested RM' . number_format($amount, 2), null, 400);
             }
 
-            // 7. 计算手续费
+            // Calculate withdrawal fee based on membership tier
             $tier = getUserMembershipTier($conn, $userId);
             $isSvip = (strtoupper($tier) === 'SVIP');
 
@@ -237,13 +237,8 @@ function createFundRequest($conn, $request) {
             $feeNote = sprintf("\n[System] Fee (%s): RM%.2f | Net Pay: RM%.2f", $feeRate, $fee, $netAmount);
             $adminRemark .= $feeNote;
         }
-        // =============================================================
-        // END 提现专属检查 (充值直接跳过这里)
-        // =============================================================
 
-        // =====================================================
-        // 🔥 图片处理：将 Base64 转换为图片文件
-        // =====================================================
+        // Convert Base64 image data to file and store only the file path
         if ($proofImage && strpos($proofImage, 'data:image') === 0) {
             $uploadDir = __DIR__ . '/../../Public_Assets/proofs/';
             if (!is_dir($uploadDir)) {

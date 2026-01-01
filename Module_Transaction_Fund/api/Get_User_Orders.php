@@ -18,10 +18,8 @@ $response = ['success' => false, 'buying' => [], 'selling' => []];
 try {
     $conn = getDatabaseConnection();
 
-    // ======================================================
-    // 1. 查询“我买的” (Buying)
-    // ======================================================
-    $sqlBuy = "SELECT 
+    // Query user's purchases (Buying orders)
+    $sqlBuy = "SELECT
                     o.Orders_Order_ID, 
                     o.Orders_Total_Amount, 
                     o.Orders_Status, 
@@ -30,38 +28,38 @@ try {
                     o.Orders_Buyer_ID,
                     MAX(o.Address_ID) AS Address_ID,
                     
-                    /* 基本订单信息 */
+                    /* Basic order information */
                     MAX(s.Shipments_Shipped_Time) AS Orders_Shipped_At,
                     MAX(s.Shipments_Tracking_Number) AS Tracking_Number,
                     MAX(u.User_Username) AS Seller_Username,
 
-                    /* 🔥 是否已评价 (1=是, 0=否) */
+                    /* Check if already reviewed (1=yes, 0=no) */
                     MAX(CASE WHEN rev.Reviews_ID IS NOT NULL THEN 1 ELSE 0 END) AS has_reviewed,
 
-                    /* 🔥 退款信息 (关联 Refund_Requests) */
+                    /* Refund information from Refund_Requests table */
                     MAX(rr.Refund_Status) AS Refund_Status,
                     MAX(rr.Refund_Type) AS Refund_Type,
                     MAX(rr.Refund_Amount) AS Refund_Amount,
 
-                    /* 🔥🔥 退款详情 🔥🔥 */
+                    /* Refund details */
                     MAX(rr.Refund_Reason) AS Refund_Reason,
                     MAX(rr.Refund_Description) AS Refund_Description,
                     MAX(rr.Refund_Updated_At) AS Refund_Updated_At,
 
-                    /* 🔥 新增：申请次数 & 卖家原因 & 拒收原因 */
+                    /* Request attempt count, seller rejection reasons, and refusal reasons */
                     MAX(rr.Request_Attempt) AS Request_Attempt,
                     MAX(rr.Seller_Reject_Reason_Code) AS Seller_Reject_Reason_Code,
                     MAX(rr.Seller_Reject_Reason_Text) AS Seller_Reject_Reason_Text,
                     MAX(rr.Seller_Refuse_Receive_Reason_Code) AS Seller_Refuse_Receive_Reason_Code,
                     MAX(rr.Seller_Refuse_Receive_Reason_Text) AS Seller_Refuse_Receive_Reason_Text,
                     
-                    /* 🔥🔥 [新增] 获取退货单号 🔥🔥 */
+                    /* Return tracking number */
                     MAX(rr.Return_Tracking_Number) AS Return_Tracking_Number,
 
-                    /* 🔥🔥 退款凭证图片 (多张图用逗号拼起来) 🔥🔥 */
+                    /* Refund evidence images concatenated with comma separator */
                     GROUP_CONCAT(DISTINCT re.Evidence_File_Url SEPARATOR ',') AS Refund_Images,
 
-                    /* 🔥 卖家退货地址 (优先读快照，没有则读默认) */
+                    /* Seller return address (uses snapshot if available, otherwise default address) */
                     COALESCE(MAX(rr.Return_Address_Detail), MAX(sa.Address_Detail)) AS Seller_Return_Address,
                     MAX(sa.Address_Receiver_Name) AS Seller_Name,
                     MAX(sa.Address_Phone_Number) AS Seller_Phone,
@@ -71,7 +69,7 @@ try {
                     p.Product_Description,
                     p.Product_Condition,
                     
-                    /* 动态判断配送方式 */
+                    /* Dynamically determine delivery method */
                     (CASE WHEN MAX(o.Address_ID) IS NULL THEN 'meetup' ELSE 'shipping' END) AS Delivery_Method,
                     p.Product_Location,
                     
@@ -80,20 +78,20 @@ try {
                     (SELECT Image_URL FROM Product_Images WHERE Product_ID = p.Product_ID AND Image_is_primary = 1 LIMIT 1) AS Main_Image,
                     GROUP_CONCAT(DISTINCT pi.Image_URL SEPARATOR ',') AS All_Images,
 
-                    /* ===== 🔥🔥 新增：争议状态与参与记录字段 🔥🔥 ===== */
+                    /* Dispute status and participation records */
                     MAX(d.Dispute_ID) AS Dispute_ID,
                     MAX(d.Dispute_Status) AS Dispute_Status,
                     MAX(d.Action_Required_By) AS Action_Required_By,
                     MAX(d.Reporting_User_ID) AS Reporting_User_ID,
                     
-                    /* 用于判断买家/卖家是否已参与 */
+                    /* Check if buyer/seller has participated */
                     MAX(d.Buyer_Description) AS Buyer_Description,
                     MAX(d.Seller_Description) AS Seller_Description,
                     MAX(d.Dispute_Buyer_Evidence) AS Dispute_Buyer_Evidence,
                     MAX(d.Dispute_Seller_Evidence) AS Dispute_Seller_Evidence,
                     MAX(d.Dispute_Seller_Response) AS Dispute_Seller_Response,
 
-                    /* ===== 新增：管理员争议处理结果 ===== */
+                    /* Admin dispute resolution results */
                     MAX(d.Dispute_Resolution_Outcome) AS Dispute_Resolution_Outcome,
                     MAX(d.Dispute_Refund_Amount) AS Dispute_Refund_Amount,
                     MAX(d.Dispute_Admin_Reply_To_Buyer) AS Dispute_Admin_Reply_To_Buyer,
@@ -110,19 +108,19 @@ try {
 
                LEFT JOIN Shipments s ON o.Orders_Order_ID = s.Order_ID AND s.Shipments_Type = 'forward'
                
-               /* 关联退款表 */
+               /* Join refund requests table */
                LEFT JOIN Refund_Requests rr ON o.Orders_Order_ID = rr.Order_ID
                
-               /* 关联退款凭证表 */
+               /* Join refund evidence table */
                LEFT JOIN Refund_Evidence re ON rr.Refund_ID = re.Refund_ID
 
-               /* 关联卖家地址 */
+               /* Join seller address */
                LEFT JOIN Address sa ON o.Orders_Seller_ID = sa.Address_User_ID AND sa.Address_Is_Default = 1
 
-               /* 关联争议表 */
+               /* Join dispute table */
                LEFT JOIN Dispute d ON o.Orders_Order_ID = d.Order_ID
                
-               /* 🔥 关联评价表 (检查作为买家是否已评价) */
+               /* Join review table (check if buyer has reviewed) */
                LEFT JOIN Review rev ON o.Orders_Order_ID = rev.Order_ID AND rev.User_ID = o.Orders_Buyer_ID
 
                WHERE o.Orders_Buyer_ID = :uid
@@ -133,10 +131,8 @@ try {
     $stmtBuy->execute([':uid' => $userId]);
     $response['buying'] = $stmtBuy->fetchAll(PDO::FETCH_ASSOC);
 
-    // ======================================================
-    // 2. 查询“我卖的” (Selling)
-    // ======================================================
-    $sqlSell = "SELECT 
+    // Query user's sales (Selling orders)
+    $sqlSell = "SELECT
                     o.Orders_Order_ID, 
                     o.Orders_Total_Amount, 
                     o.Orders_Status, 
@@ -149,33 +145,33 @@ try {
                     MAX(s.Shipments_Tracking_Number) AS Tracking_Number,
                     MAX(u.User_Username) AS Buyer_Username,
 
-                    /* 🔥 是否已评价 (1=是, 0=否) */
+                    /* Check if already reviewed (1=yes, 0=no) */
                     MAX(CASE WHEN rev.Reviews_ID IS NOT NULL THEN 1 ELSE 0 END) AS has_reviewed,
 
-                    /* 🔥 退款信息 */
+                    /* Refund information */
                     MAX(rr.Refund_Status) AS Refund_Status,
                     MAX(rr.Refund_Type) AS Refund_Type,
                     MAX(rr.Refund_Amount) AS Refund_Amount,
                     
-                    /* 🔥🔥 退款详情 🔥🔥 */
+                    /* Refund details */
                     MAX(rr.Refund_Reason) AS Refund_Reason,
                     MAX(rr.Refund_Description) AS Refund_Description,
                     MAX(rr.Refund_Updated_At) AS Refund_Updated_At,
 
-                    /* 🔥 新增：申请次数 & 卖家原因 & 拒收原因 */
+                    /* Request attempt count, seller rejection reasons, and refusal reasons */
                     MAX(rr.Request_Attempt) AS Request_Attempt,
                     MAX(rr.Seller_Reject_Reason_Code) AS Seller_Reject_Reason_Code,
                     MAX(rr.Seller_Reject_Reason_Text) AS Seller_Reject_Reason_Text,
                     MAX(rr.Seller_Refuse_Receive_Reason_Code) AS Seller_Refuse_Receive_Reason_Code,
                     MAX(rr.Seller_Refuse_Receive_Reason_Text) AS Seller_Refuse_Receive_Reason_Text,
 
-                    /* 🔥🔥 [新增] 获取退货单号 🔥🔥 */
+                    /* Return tracking number */
                     MAX(rr.Return_Tracking_Number) AS Return_Tracking_Number,
 
-                    /* 🔥🔥 退款凭证图片 🔥🔥 */
+                    /* Refund evidence images */
                     GROUP_CONCAT(DISTINCT re.Evidence_File_Url SEPARATOR ',') AS Refund_Images,
 
-                    /* 🔥 卖家(我)的退货地址 (优先读快照) */
+                    /* Seller return address (uses snapshot if available, otherwise default address) */
                     COALESCE(MAX(rr.Return_Address_Detail), MAX(sa.Address_Detail)) AS Seller_Return_Address,
                     MAX(sa.Address_Receiver_Name) AS Seller_Name,
                     MAX(sa.Address_Phone_Number) AS Seller_Phone,
@@ -185,7 +181,7 @@ try {
                     p.Product_Description,
                     p.Product_Condition,
                     
-                    /* 动态判断配送方式 */
+                    /* Dynamically determine delivery method */
                     (CASE WHEN MAX(o.Address_ID) IS NULL THEN 'meetup' ELSE 'shipping' END) AS Delivery_Method,
                     p.Product_Location,
 
@@ -194,20 +190,20 @@ try {
                     (SELECT Image_URL FROM Product_Images WHERE Product_ID = p.Product_ID AND Image_is_primary = 1 LIMIT 1) AS Main_Image,
                     GROUP_CONCAT(DISTINCT pi.Image_URL SEPARATOR ',') AS All_Images,
 
-                    /* ===== 🔥🔥 新增：争议状态与参与记录字段 🔥🔥 ===== */
+                    /* Dispute status and participation records */
                     MAX(d.Dispute_ID) AS Dispute_ID,
                     MAX(d.Dispute_Status) AS Dispute_Status,
                     MAX(d.Action_Required_By) AS Action_Required_By,
                     MAX(d.Reporting_User_ID) AS Reporting_User_ID,
                     
-                    /* 用于判断买家/卖家是否已参与 */
+                    /* Check if buyer/seller has participated */
                     MAX(d.Buyer_Description) AS Buyer_Description,
                     MAX(d.Seller_Description) AS Seller_Description,
                     MAX(d.Dispute_Buyer_Evidence) AS Dispute_Buyer_Evidence,
                     MAX(d.Dispute_Seller_Evidence) AS Dispute_Seller_Evidence,
                     MAX(d.Dispute_Seller_Response) AS Dispute_Seller_Response,
 
-                    /* ===== 新增：管理员争议处理结果 ===== */
+                    /* Admin dispute resolution results */
                     MAX(d.Dispute_Resolution_Outcome) AS Dispute_Resolution_Outcome,
                     MAX(d.Dispute_Refund_Amount) AS Dispute_Refund_Amount,
                     MAX(d.Dispute_Admin_Reply_To_Buyer) AS Dispute_Admin_Reply_To_Buyer,
@@ -226,16 +222,16 @@ try {
 
                LEFT JOIN Refund_Requests rr ON o.Orders_Order_ID = rr.Order_ID
                
-               /* 关联退款凭证表 */
+               /* Join refund evidence table */
                LEFT JOIN Refund_Evidence re ON rr.Refund_ID = re.Refund_ID
 
-               /* 关联卖家地址 */
+               /* Join seller address */
                LEFT JOIN Address sa ON o.Orders_Seller_ID = sa.Address_User_ID AND sa.Address_Is_Default = 1
 
-               /* 关联争议表 */
+               /* Join dispute table */
                LEFT JOIN Dispute d ON o.Orders_Order_ID = d.Order_ID
 
-               /* 🔥 关联评价表 (检查作为卖家是否已评价) */
+               /* Join review table (check if seller has reviewed) */
                LEFT JOIN Review rev ON o.Orders_Order_ID = rev.Order_ID AND rev.User_ID = o.Orders_Seller_ID
 
                WHERE o.Orders_Seller_ID = :uid
