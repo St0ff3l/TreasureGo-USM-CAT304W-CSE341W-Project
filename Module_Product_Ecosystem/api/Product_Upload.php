@@ -16,20 +16,20 @@ try {
     // 2. Get database connection
     $pdo = getDatabaseConnection();
     if (!$pdo) {
-        throw new Exception("无法连接到远程数据库");
+        throw new Exception("Unable to connect to remote database");
     }
 
     // 3. Only allow POST requests
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
-        echo json_encode(['success' => false, 'message' => '仅允许 POST 请求']);
+        echo json_encode(['success' => false, 'message' => 'Only POST requests are allowed']);
         exit();
     }
 
     // 4. Security check: Determine if the user is logged in
     if (!isset($_SESSION['user_id'])) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => '请先登录后再发布商品']);
+        echo json_encode(['success' => false, 'message' => 'Please login before listing a product']);
         exit();
     }
 
@@ -52,11 +52,11 @@ try {
     }
 
     // Data validation
-    if (empty($product_title)) throw new Exception("商品名称不能为空");
-    if ($price <= 0) throw new Exception("价格必须大于 0");
-    if (empty($condition)) throw new Exception("请选择商品条件");
-    if (empty($description)) throw new Exception("商品描述不能为空");
-    if (empty($location)) throw new Exception("请填写交易地址");
+    if (empty($product_title)) throw new Exception("Product name cannot be empty");
+    if ($price <= 0) throw new Exception("Price must be greater than 0");
+    if (empty($condition)) throw new Exception("Please select product condition");
+    if (empty($description)) throw new Exception("Product description cannot be empty");
+    if (empty($location)) throw new Exception("Please provide transaction address");
 
     // =========================================================
     // 6. Process image files
@@ -72,7 +72,7 @@ try {
 
     if (!is_dir($upload_base_dir)) {
         if (!mkdir($upload_base_dir, 0777, true)) {
-            throw new Exception("服务器错误：无法创建图片上传目录，请检查文件夹权限。");
+            throw new Exception("Server Error: Unable to create image upload directory, please check folder permissions.");
         }
     }
 
@@ -84,7 +84,7 @@ try {
             $error_code = $_FILES['images']['error'][$i];
 
             if ($error_code === UPLOAD_ERR_INI_SIZE || $error_code === UPLOAD_ERR_FORM_SIZE) {
-                throw new Exception("上传失败：图片 " . $_FILES['images']['name'][$i] . " 太大，超过了服务器限制。");
+                throw new Exception("Upload Failed: Image " . $_FILES['images']['name'][$i] . " is too large and exceeds server limits.");
             }
 
             if ($error_code === UPLOAD_ERR_OK) {
@@ -107,10 +107,10 @@ try {
                     // Record the physical paths of all successfully uploaded images for AI use
                     $all_physical_image_paths[] = $destination;
                 } else {
-                    throw new Exception("上传失败：无法保存图片文件。请联系管理员检查文件夹写入权限。");
+                    throw new Exception("Upload Failed: Unable to save image file. Please contact administrator to check folder write permissions.");
                 }
             } else {
-                throw new Exception("上传出错，错误代码: " . $error_code);
+                throw new Exception("Upload Error, Error Code: " . $error_code);
             }
         }
     }
@@ -214,7 +214,7 @@ try {
     http_response_code(200);
     echo json_encode([
         'success' => true,
-        'message' => '商品发布成功！' . ($final_product_status === 'Pending' ? ' (AI检测到风险，已转入人工审核)' : ''),
+        'message' => 'Product listed successfully!' . ($final_product_status === 'Pending' ? ' (AI detected risk, flagged for manual review)' : ''),
         'product_id' => $product_id,
         'status' => $final_product_status // Return product status (Active or Pending)
     ]);
