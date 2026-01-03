@@ -101,7 +101,7 @@
         .plan-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .price-area { margin-bottom: 25px; }
 
-        /* 修改：价格字体大小稍微调整以适应无符号显示 */
+        /* Modified: Adjust price font size slightly to fit display without symbol */
         .price { font-size: 2.5rem; font-weight: 800; color: var(--text-dark); }
 
         .period { color: var(--text-gray); font-size: 0.9rem; }
@@ -225,7 +225,7 @@
         const el = document.getElementById(id);
         el.style.opacity = 0;
         setTimeout(() => {
-            // ★★★ 修改 3: JS 更新价格时不再加 $ 符号 ★★★
+            // Modified: Do not add $ symbol when updating price via JS
             el.innerText = newPrice;
             el.style.opacity = 1;
         }, 200);
@@ -233,7 +233,7 @@
 
     function purchase(plan) {
         const price = plan === 'VIP' ? pricingData[currentCycle].vip : pricingData[currentCycle].svip;
-        // ★★★ 修改 4: 提示信息中去掉 $ 符号 ★★★
+        // Modified: Remove $ symbol from alert message
         showToast(`Selected ${plan} - ${currentCycle} (${price})`);
     }
 
