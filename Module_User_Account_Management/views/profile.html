@@ -241,73 +241,102 @@
     @media (max-width: 900px) {
       .layout-container {
         grid-template-columns: 1fr;
-        margin-top: 10px;
+        margin-top: 6px;
         padding-bottom: 80px; /* Space for bottom action bar */
+      }
+
+      /* Tighten spacing under headerbar on mobile */
+      #view-overview .tabs-container {
+        margin-top: 4px;
       }
 
       /* Mobile Sidebar (Top Navigation) */
       .sidebar-card {
+        position: sticky;
+        top: 70px;
+        z-index: 99;
+
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        position: static;
+        grid-template-columns: repeat(6, 1fr);
         width: 100%;
-        max-height: none;
         padding: 10px;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 8px;
+        margin-bottom: 12px;
         border-radius: 12px;
         overflow: hidden;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       }
 
       .menu-title { display: none; }
 
+      /* --- General Item Styles (For 2 items per row) --- */
       .menu-item {
-        display: none; /* Hide all by default */
-        width: auto;
-        padding: 10px 12px;
-        font-size: 0.8rem;
-        margin-bottom: 0;
-        border: 1px solid #eee;
-        flex-direction: row; /* 🔥 Changed to row */
+        display: none; /* Hidden by default */
+
+        /* Default: Span 3 columns (50% width) */
+        grid-column: span 3;
+
+        width: 100%;
+        padding: 8px 4px;
+        font-size: 0.75rem;
+        min-height: 40px;
+        border: 1px solid #f3f4f6;
+        border-radius: 8px;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
-        text-align: left;
-        height: 50px;
-        gap: 8px; /* Space between icon and text */
+        text-align: center;
+        gap: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      .menu-item i { font-size: 1.1rem; margin-bottom: 0; }
+      .menu-item i {
+        font-size: 1rem;
+        margin-bottom: 0;
+        flex-shrink: 0;
+      }
 
-      /* Priority Items: Always Visible */
+      /* --- Special Handling: First 3 Buttons (Overview, Address, Security) --- */
+      /* Force display, span 2 columns (33.3% width, 3 items per row) */
       #menu-overview, #menu-address, #menu-security {
         display: flex;
-        order: -1;
+        grid-column: span 2;
+        order: -1;           /* Keep at the top */
+        padding: 6px 2px;
+        font-size: 0.7rem;
       }
 
       /* Expanded State */
       .sidebar-card.expanded .menu-item {
         display: flex;
-        order: 0; /* Reset order */
+        order: 0;
       }
-      /* Keep priority items at top */
-      .sidebar-card.expanded #menu-overview { order: -10; }
-      .sidebar-card.expanded #menu-address { order: -9; }
-      .sidebar-card.expanded #menu-security { order: -8; }
 
-      /* Expand Button */
+      /* Keep primary items at the top and maintain their width when expanded */
+      .sidebar-card.expanded #menu-overview { order: -10; grid-column: span 2; }
+      .sidebar-card.expanded #menu-address { order: -9; grid-column: span 2; }
+      .sidebar-card.expanded #menu-security { order: -8; grid-column: span 2; }
+
+      /* Expand Button (Spans full width) */
       .mobile-expand-btn {
-        grid-column: 1 / -1; /* Span full width */
+        grid-column: 1 / -1;
         text-align: center;
-        padding: 5px;
+        padding: 4px;
         cursor: pointer;
         color: var(--text-gray);
         display: flex;
         justify-content: center;
         align-items: center;
         background: #f9fafb;
-        border-radius: 8px;
-        margin-top: 5px;
+        border-radius: 6px;
+        margin-top: 4px;
       }
+
+
+
       .mobile-expand-btn:hover { background: #eee; }
       .mobile-expand-btn i { font-size: 1.5rem; transition: transform 0.3s; }
 
@@ -1587,3 +1616,4 @@
 
 </body>
 </html>
+

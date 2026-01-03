@@ -566,7 +566,6 @@ require_login();
                 const contact = {
                     User_ID: user.User_ID,
                     User_Username: user.User_Username,
-                    // ✅ Fix: Use correct database field name User_Profile_Image
                     User_Profile_Image: user.User_Profile_Image,
                     Product_ID: productId,
                     Product_Image_Url: productImageUrl,
@@ -582,9 +581,7 @@ require_login();
 
                 renderContactItem(contact, container);
 
-                // ✅ Fix: Avatar retrieval logic
                 let avatar = contact.Product_Image_Url || contact.User_Profile_Image;
-                // Simple path fix: If avatar exists and doesn't start with http or relative path, add ../../
                 if (avatar && !avatar.startsWith('http') && !avatar.startsWith('../')) {
                     avatar = '../../' + avatar;
                 }
