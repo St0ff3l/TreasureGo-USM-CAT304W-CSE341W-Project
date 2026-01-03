@@ -13,7 +13,7 @@ require_login();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TreasureGO - Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../Public_Assets/css/headerbar.css">
@@ -33,6 +33,19 @@ require_login();
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ========================================= */
+        /* Disable pinch zoom and overscroll behavior */
+        /* ========================================= */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: pan-x pan-y;
+            -webkit-text-size-adjust: 100%;
+        }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -345,17 +358,23 @@ require_login();
                 box-shadow: none;
             }
 
+            .contacts-sidebar.hidden {
+                display: none;
+            }
+
             .chat-area {
                 position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
-                height: 100dvh; /* Chat window covers full screen */
+                height: 100%;
                 z-index: 2000;
                 transform: translateX(100%);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 border-radius: 0;
                 background: #fff;
+                display: flex;
+                flex-direction: column;
             }
 
             .chat-area.active { transform: translateX(0); }
@@ -371,9 +390,6 @@ require_login();
                 font-size: 1.2rem;
                 border-radius: 50%;
             }
-            .back-btn:active { background: #f3f4f6; }
-
-            .chat-header { padding: 10px 15px; }
 
             .product-context-card { padding: 8px; }
             .p-ctx-img { width: 40px; height: 40px; }
@@ -415,7 +431,7 @@ require_login();
                 </div>
 
                 <div class="product-context-card" id="productContextCard">
-                    <div class="p-ctx-close" onclick="removeProductContext(event)" title="Remove product context">×</div>
+                    <!-- Close button removed to keep the product context persistent -->
                     <img src="" class="p-ctx-img" id="pCtxImg">
                     <div class="p-ctx-info">
                         <div class="p-ctx-title" id="pCtxTitle">Product Title</div>
@@ -442,6 +458,21 @@ require_login();
     let currentContactId = null;
     let currentProductId = null; // New: Current chat Product ID
     let pollingInterval = null;
+
+    function setMobileView(mode) {
+        if (window.innerWidth > 768) return;
+        const sidebar = document.querySelector('.contacts-sidebar');
+        const chatArea = document.getElementById('chatArea');
+        if (!sidebar || !chatArea) return;
+
+        if (mode === 'chat') {
+            sidebar.classList.add('hidden');
+            chatArea.classList.add('active');
+        } else {
+            sidebar.classList.remove('hidden');
+            chatArea.classList.remove('active');
+        }
+    }
 
     // 1. Load contact list
     async function loadConversations() {
@@ -716,6 +747,7 @@ require_login();
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('chatContent').style.display = 'flex';
         document.getElementById('chatArea').classList.add('active'); // Show on mobile
+        setMobileView('chat');
 
         // Set header info
         document.getElementById('currentChatName').innerText = username;
@@ -896,8 +928,9 @@ require_login();
     }
 
     function closeChat() {
-        document.getElementById('chatArea').classList.remove('active');
+        setMobileView('list');
         currentContactId = null;
+        currentProductId = null;
         if (pollingInterval) clearInterval(pollingInterval);
     }
 
@@ -915,6 +948,43 @@ require_login();
         }
     };
     document.body.appendChild(script);
+
+    // ==========================================
+    // 📱 Mobile keyboard handling (Visual Viewport)
+    // ==========================================
+    if (window.visualViewport) {
+        function resizeHandler() {
+            const chatArea = document.getElementById('chatArea');
+            if (!chatArea) return;
+
+            if (window.innerWidth <= 768 && chatArea.classList.contains('active')) {
+                const vv = window.visualViewport;
+                chatArea.style.height = vv.height + 'px';
+                chatArea.style.transform = `translateY(${vv.offsetTop}px)`;
+                scrollToBottom();
+            }
+        }
+
+        window.visualViewport.addEventListener('resize', resizeHandler);
+        window.visualViewport.addEventListener('scroll', resizeHandler);
+    }
+
+    const messageInput = document.getElementById('messageInput');
+    messageInput.addEventListener('focus', function() {
+        setTimeout(() => {
+            scrollToBottom();
+        }, 300);
+    });
+
+    const originalCloseChat = closeChat;
+    closeChat = function() {
+        const chatArea = document.getElementById('chatArea');
+        if (chatArea) {
+            chatArea.style.height = '100%';
+            chatArea.style.transform = '';
+        }
+        originalCloseChat();
+    };
 
     // Initialize
     loadConversations();

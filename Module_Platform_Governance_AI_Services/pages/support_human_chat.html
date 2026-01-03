@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>TreasureGO - Human Support Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -24,6 +24,16 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      touch-action: pan-x pan-y;
+      -webkit-text-size-adjust: 100%;
+    }
 
     /* Screen-reader-only utility class. */
     .sr-only {
@@ -287,30 +297,81 @@
 
     @media (max-width: 768px) {
       .main-container {
-        padding: var(--chat-gap-top) 10px calc(var(--chat-gap-bottom) + env(safe-area-inset-bottom, 0px)) 10px;
+        padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px;
         max-width: 100%;
       }
 
+      .chat-card {
+        border-radius: 16px;
+      }
+
       .chat-header {
-        padding: 12px 14px;
-        height: 72px;
-      }
-
-      .messages-container {
-        padding: 14px;
-        gap: 14px;
-      }
-
-      .message-row { max-width: 92%; }
-
-      .input-area {
-        padding: 12px 14px;
+        padding: 10px 12px;
+        height: 64px;
         gap: 10px;
       }
 
+      .chat-header-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+      }
+
+      .chat-header-name {
+        font-size: 0.95rem;
+      }
+
+      .chat-header-badge {
+        font-size: 0.68rem;
+        padding: 1px 6px;
+      }
+
+      .chat-header-right a {
+        font-size: 0.78rem;
+        padding: 6px 10px;
+        border-radius: 10px;
+      }
+
+      .messages-container {
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .message-row {
+        max-width: 94%;
+        gap: 8px;
+      }
+
+      .msg-bubble {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        border-radius: 16px;
+      }
+
+      .msg-time {
+        font-size: 0.65rem;
+        margin-top: 4px;
+      }
+
+      .input-area {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .input-wrapper {
+        padding: 4px 14px;
+      }
+
+      .chat-input {
+        padding: 8px;
+        font-size: 0.85rem;
+      }
+
       .send-btn {
-        width: 42px;
-        height: 42px;
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
       }
     }
   </style>

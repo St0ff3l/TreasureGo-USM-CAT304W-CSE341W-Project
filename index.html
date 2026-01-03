@@ -170,30 +170,71 @@
 
         @media (max-width: 768px) {
             .sidebar.left { display: none !important; }
+
             .sidebar.right {
-                top: auto; bottom: 25px; right: auto; left: 50%;
+                top: auto;
+                bottom: 15px;
+                right: auto;
+                left: 50%;
                 transform: translateX(-50%);
                 flex-direction: row;
-                width: 90%; max-width: 380px; height: auto;
-                padding: 12px 20px; justify-content: space-between;
-                gap: 0; z-index: 9999; border-radius: 50px;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+                width: 92%;
+                max-width: 380px;
+                height: auto;
+                padding: 8px 15px;
+                justify-content: space-between;
+                gap: 0;
+                z-index: 9999;
+                border-radius: 40px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             }
-            .sidebar.right .sidebar-icon { font-size: 22px; margin-bottom: 2px; }
-            .sidebar.right .sidebar-text { font-size: 10px; }
+
+            .sidebar.right .sidebar-icon { font-size: 20px; margin-bottom: 0; }
+            .sidebar.right .sidebar-text { font-size: 9px; }
             .sidebar.right .sidebar-item:nth-child(4) { display: none; }
             .sidebar.right .sidebar-item:nth-child(6) { display: flex !important; order: 4; }
             .sidebar.right .sidebar-item:nth-child(1) { transform: scale(1); }
+
             #floating-container { display: none !important; }
-            .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 15px !important; }
-            .card-img-container { height: 160px; }
-            .card-emoji { font-size: 4rem; }
-            .card-info { padding: 1rem; }
-            .card-footer h4 { font-size: 1rem; }
-            .main-title { font-size: 2.2rem; }
-            .search-section { padding-top: 60px; padding-bottom: 40px; }
-            .search-input { padding: 12px 20px; font-size: 1rem; }
-            .search-btn { padding: 0 25px; }
+
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+
+            .card-img-container { height: 120px; }
+            .card-emoji { font-size: 3rem; }
+
+            .card-info { padding: 10px; }
+            .card-info h4 {
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+                line-height: 1.2;
+            }
+
+            .card-footer { margin-top: 8px; }
+            .price-tag { font-size: 0.95rem; }
+            .category-tag {
+                font-size: 0.65rem;
+                padding: 1px 6px;
+            }
+
+            .main-title {
+                font-size: 1.8rem;
+                margin-bottom: 1rem;
+            }
+            .search-section {
+                padding-top: 40px;
+                padding-bottom: 20px;
+            }
+            .search-input {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            .search-btn {
+                padding: 0 15px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>

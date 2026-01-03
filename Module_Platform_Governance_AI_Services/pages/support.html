@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TreasureGO - AI Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="../../Public_Assets/js/headerbar.js"></script>
 
     <style>
@@ -14,55 +15,51 @@
             --primary-hover: #4338CA;
             --text-dark: #1F2937;
             --text-gray: #6B7280;
-            --glass-bg: rgba(255, 255, 255, 0.95);
             --sidebar-radius: 24px;
             --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-            --mobile-header-offset: 76px; /* fallback; JS will set to headerbar height + 10px */
+            --mobile-header-offset: 70px; /* JS will update this */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Screen-reader-only utility class (same as human chat). */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* 禁用点击高亮 */
+        div, button, a { -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-dark);
             height: 100vh;
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scroll */
             position: relative;
             background-image:
                     radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
                     radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
         }
 
-        /* --- Mobile viewport fix ---
-           iOS/Safari `100vh` often includes browser UI.
-           Use `100dvh` when supported.
-        */
         @supports (height: 100dvh) {
             body { height: 100dvh; }
-            .chat-layout { height: 100dvh; }
         }
 
-        /* --- Main Nav Sidebar (icon-only floating toolbar) --- */
-        .main-nav-sidebar {
-            position: fixed; top: 50%; left: 25px; transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            border-radius: 50px;
-            padding: 25px 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            z-index: 999;
-            display: none; /* changed: hide the entire floating 3-button panel on desktop */
-        }
-        .nav-item { font-size: 26px; cursor: pointer; transition: 0.3s; text-decoration: none;}
-        .nav-item:hover { transform: translateY(-3px); }
-
-        /* --- Chat Layout Wrapper --- */
+        /* --- Layout Wrapper --- */
         .chat-layout {
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            height: 100vh;
+            height: 100%;
             padding-top: 30px;
             padding-bottom: 20px;
             padding-left: 100px;
@@ -70,7 +67,7 @@
             gap: 20px;
         }
 
-        /* --- Knowledge Base Sidebar --- */
+        /* --- Sidebar (Hot Topics) --- */
         .kb-sidebar {
             width: 300px; height: 85%; background: white;
             border-radius: var(--sidebar-radius); box-shadow: var(--card-shadow);
@@ -100,73 +97,111 @@
             display: flex; flex-direction: column; overflow: hidden; position: relative;
             z-index: 10; border: 1px solid rgba(0,0,0,0.05);
         }
+
+        /* Desktop Header */
         .chat-header {
             padding: 20px 30px; background: white; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; justify-content: space-between; gap: 15px;
+            flex-shrink: 0;
+        }
+        /* 左侧组：头像+文字 */
+        .header-left-group {
             display: flex; align-items: center; gap: 15px;
+            /* 桌面端默认样式 */
         }
         .bot-avatar {
             width: 45px; height: 45px; background: linear-gradient(135deg, #4F46E5, #818cf8);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); flex-shrink: 0;
+            font-size: 24px; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+            flex-shrink: 0; /* 防止挤压 */
         }
-        .header-info h2 { font-size: 1.2rem; color: var(--text-dark); }
+        .header-info h2 { font-size: 1.2rem; color: var(--text-dark); line-height: 1.2; }
         .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            display: inline-flex;            /* changed: stabilize vertical centering */
-            align-items: center;
-            justify-content: center;
-            vertical-align: middle;          /* changed */
-            margin-right: 0;                 /* changed: rely on gap instead */
+            width: 8px; height: 8px; background: #10b981; border-radius: 50%;
+            display: inline-block; margin-right: 5px;
         }
         .status-text { font-size: 0.85rem; color: var(--text-gray); font-weight: 500; }
 
+        /* PC 端隐藏 Mini 按钮 */
+        .btn-human-mini {
+            display: none;
+        }
+
+        /* Messages */
         .chat-messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background: #FAFAFA; }
         .message { display: flex; align-items: flex-end; gap: 10px; max-width: 80%; animation: fadeIn 0.3s ease; }
         .message.user { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 14px 20px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; position: relative; word-wrap: break-word; }
-        .message.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
-        .message.bot .bubble { background: white; color: var(--text-dark); border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        /* Support links & Bold Text inside bot bubble */
+        .bubble { padding: 14px 20px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+        .message.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
+        .message.bot .bubble { background: white; color: var(--text-dark); border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; }
         .message.bot .bubble a { color: #4F46E5; font-weight: 600; text-decoration: underline; }
         .message.bot .bubble strong { font-weight: 700; color: #111827; }
 
-        .input-area { padding: 20px; background: white; border-top: 1px solid #f3f4f6; display: flex; align-items: center; gap: 15px; }
-        .chat-input-wrapper {
-            flex: 1; background: #F3F6F9; border-radius: 50px; padding: 5px 20px;
-            display: flex; align-items: center; border: 1px solid transparent; transition: 0.2s;
+        /* Input Area */
+        .input-area {
+            padding: 18px 24px;
+            background: #fff;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
         }
-        .chat-input-wrapper:focus-within { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .chat-input { flex: 1; border: none; background: transparent; padding: 12px 0; outline: none; font-family: 'Poppins', sans-serif; font-size: 1rem; color: var(--text-dark); }
+
+        /* Match Human Chat input wrapper */
+        .input-wrapper {
+            flex: 1;
+            background: #F9FAFB;
+            border-radius: 50px;
+            padding: 5px 20px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #E5E7EB;
+            transition: border 0.2s;
+            min-width: 0;
+        }
+        .input-wrapper:focus-within { border-color: var(--primary); }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            width: 100%;
+            min-width: 0;
+        }
+
+        /* Keep send button consistent with Human Chat */
         .send-btn {
-            background: var(--primary); color: white; border: none; width: 45px; height: 45px;
-            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; transition: 0.2s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            width: 45px;
+            height: 45px;
+            min-width: 45px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+            transition: transform 0.2s;
+            font-size: 1.1rem;
+            flex-shrink: 0;
         }
-        .send-btn:hover { background: var(--primary-hover); transform: scale(1.05); }
+        .send-btn:hover { transform: scale(1.05); background: var(--primary-hover); }
 
-        /* --- FEEDBACK BUTTONS UI --- */
-        .feedback-container {
-            margin-top: 5px;
-            margin-bottom: 15px;
-            margin-left: 50px; /* Align with bot bubble */
-            font-size: 0.85rem;
-            color: var(--text-gray);
-            animation: fadeIn 0.5s ease;
-        }
-
+        /* Feedback Buttons */
+        .feedback-container { margin-top: 5px; margin-bottom: 15px; margin-left: 50px; font-size: 0.85rem; color: var(--text-gray); animation: fadeIn 0.5s ease; }
         .feedback-buttons { display: flex; gap: 10px; margin-top: 5px; }
-
-        .btn-feedback {
-            padding: 6px 14px; border: 1px solid #e5e7eb; background: white; border-radius: 15px;
-            cursor: pointer; font-size: 0.8rem; transition: all 0.2s; color: var(--text-dark); font-weight: 500;
-        }
+        .btn-feedback { padding: 6px 14px; border: 1px solid #e5e7eb; background: white; border-radius: 15px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
         .btn-feedback.yes:hover { background: #d1fae5; border-color: #10b981; color: #065f46; }
         .btn-feedback.no:hover { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
-
         .feedback-thanks { color: #10b981; font-weight: 600; display: none; margin-top: 5px; }
 
         @media (max-width: 1024px) {
@@ -174,114 +209,103 @@
             .chat-layout { padding-left: 20px; }
         }
 
-        /* --- Mobile --- */
+        /* --- Mobile Optimization (关键部分：已按需求修改) --- */
         @media (max-width: 768px) {
-            /* Let the page breathe on mobile. Avoid overflow:hidden which breaks keyboard/scrolling. */
-            body { overflow: hidden; }
-
-            .main-nav-sidebar { display: none; }
-
-            /*
-             * Make the chat layout a fixed panel so the input is always on-screen.
-             * Keep a tiny gap below headerbar (almost none).
-             */
             .chat-layout {
-                position: fixed;
-                left: 0;
-                right: 0;
-                top: var(--mobile-header-offset);
-                bottom: 0;
-                height: auto;
-                min-height: 0;
-
-                /* changed: keep side padding so the "card UI" doesn't disappear */
-                padding: 0 10px 10px; /* left/right = 10px, bottom = 10px */
-                gap: 0;
+                position: fixed; top: var(--mobile-header-offset); left: 0; right: 0; bottom: 0;
+                padding: 0; gap: 0; height: auto;
             }
 
-            /* Make the chat container fill available height so sticky bottom is computed correctly */
             .chat-container {
-                position: relative;
+                border-radius: 0; border: none; width: 100%; max-width: 100%;
                 height: 100%;
-                flex: 1 1 auto;
-                min-height: 0;
-
-                /* changed: keep container centered, don't override with margin:10px */
-                margin: 0 auto;
-                width: 100%;
-                max-width: 800px; /* keep desktop feel on large phones */
             }
 
-            /* removed/neutralized: was forcing extra outer margin and broke layout */
-            /* .chat-container { margin: 10px; } */
-
-            /* mini human button only on mobile + restore button UI */
-            .btn-human-mini{
-                display: inline-flex !important;
+            /* 1. Header 布局：水平排列，两端对齐 */
+            .chat-header {
+                display: flex;
+                flex-direction: row !important; /* 强制水平行 */
                 align-items: center;
+                justify-content: space-between; /* 左右撑开 */
+                padding: 10px 15px;
+                gap: 10px;
+                height: auto;
+            }
+
+            /* 左侧组：占满剩余空间，但允许文字截断 */
+            .header-left-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex: 1;
+                min-width: 0; /* 关键：防止把右侧按钮挤出屏幕 */
+            }
+
+            .bot-avatar {
+                width: 36px; height: 36px;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+
+            .header-info h2 {
+                font-size: 0.95rem;
+                line-height: 1.2;
+                margin: 0;
+                white-space: nowrap; /* 禁止换行 */
+                overflow: hidden;
+                text-overflow: ellipsis; /* 超出显示省略号 */
+            }
+            .status-text { font-size: 0.75rem; }
+
+            /* 2. Human 按钮：右侧小胶囊 */
+            .btn-human-mini {
+                display: inline-flex !important; /* 手机端显示 */
+                width: auto !important; /* 宽度自适应内容 */
+                padding: 6px 12px;
+                font-size: 0.75rem;
                 justify-content: center;
-                gap: 8px;
-                padding: 10px 12px;
-                border-radius: 999px;
-                background: #111827;
+                align-items: center;
+                background: #1F2937;
                 color: #fff;
-                border: 1px solid rgba(255,255,255,0.10);
-                text-decoration: none;
-                font-weight: 600;
-                font-size: 0.9rem;
-                line-height: 1;
+                border-radius: 20px;
+                height: 32px;
                 white-space: nowrap;
-                box-shadow: 0 8px 18px rgba(0,0,0,0.18);
-                -webkit-tap-highlight-color: transparent;
-                user-select: none;
-
-                margin-left: auto;   /* added: push to the far right within .chat-header flex */
-                margin-right: 2px;   /* changed: move a bit further right (was 6px) */
-            }
-            .btn-human-mini:hover{
-                background: #000;
-                transform: translateY(-1px);
-            }
-            .btn-human-mini:active{
-                transform: translateY(0);
-                opacity: 0.92;
+                text-decoration: none;
+                flex-shrink: 0; /* 禁止被压缩 */
+                border: 1px solid rgba(255,255,255,0.1);
             }
 
+            /* 3. 消息区域为了避开悬浮输入框 */
+            .chat-messages {
+                padding: 15px 15px 90px 15px; /* 底部 padding 增加 */
+            }
+
+            .message { max-width: 90%; }
+            .bubble { padding: 10px 14px; font-size: 0.9rem; border-radius: 16px; }
+
+            /* 4. Input Area 样式调整：悬浮胶囊样式 */
             .input-area {
-                /* changed: floating bar with fixed 10px inset from edges + bottom */
-                position: sticky;
-                left: 10px;
-                right: 10px;
+                position: fixed;
+                left: 10px; right: 10px;
                 bottom: calc(10px + env(safe-area-inset-bottom, 0px));
 
-                /* changed: do not use margin to create inset (it was collapsing/stacking) */
-                margin: 0;
-                padding: 10px;
-
-                border-radius: 16px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-                border: 1px solid rgba(0,0,0,0.06);
-                background: rgba(255,255,255,0.98);
-                backdrop-filter: blur(8px);
+                background: rgba(255,255,255,0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 24px;
+                padding: 10px 12px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                border: 1px solid rgba(0,0,0,0.05);
                 z-index: 50;
+                margin: 0;
+                gap: 8px;
             }
 
-            .chat-messages {
-                /* changed: reserve space for the floating input + 10px gap */
-                padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+            .input-wrapper {
+                padding: 4px 14px;
             }
+            .chat-input { padding: 8px; font-size: 0.85rem; }
 
-            /* Status row: make dot + text perfectly centered */
-            .status-row { display: flex; align-items: center; }
-            .status-dot { margin-right: 6px; flex: 0 0 auto; }
-
-            /* Mobile-only show the mini button */
-            /* .btn-human-mini { display: inline-flex; } */ /* removed: duplicate/overriding rule */
-        }
-
-        /* Force-hide mini button on desktop (avoid accidental overrides) */
-        @media (min-width: 769px) {
-            .btn-human-mini { display: none !important; }
+            .send-btn { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
         }
     </style>
 </head>
@@ -290,11 +314,6 @@
 <script>
     TreasureGoHeaderbar.mount({ basePath: '../../' });
 </script>
-
-<div class="main-nav-sidebar">
-    <a href="../../index.html" class="nav-item" title="Home">🏠</a>
-    <a href="#" class="nav-item" style="color: var(--primary);" title="Chat Support">💬</a>
-</div>
 
 <div class="chat-layout">
     <div class="kb-sidebar">
@@ -316,28 +335,35 @@
 
     <div class="chat-container">
         <div class="chat-header">
-            <div class="bot-avatar">🤖</div>
-            <div class="header-info">
-                <div class="header-row">
-                    <h2>TreasureGo Assistant</h2>
-                </div>
-                <div class="status-row">
-                    <div style="min-width:0;">
-                        <span class="status-dot"></span><span class="status-text">Online | Powered by DeepSeek</span>
+            <div class="header-left-group">
+                <div class="bot-avatar">🤖</div>
+                <div class="header-info">
+                    <div class="header-row">
+                        <h2>TreasureGo Assistant</h2>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Online | Powered by DeepSeek</span>
                     </div>
                 </div>
             </div>
-            <a class="btn-human-mini" href="support_human_chat.html" aria-label="Human Support">🎧 Human</a>
+
+            <a class="btn-human-mini" href="support_human_chat.html" aria-label="Human Support">
+                🎧 <span class="btn-text">Human</span>
+            </a>
         </div>
+
         <div class="chat-messages" id="chatMessages">
             <div class="message bot">
-                <div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px;">🤖</div>
+                <div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px; border-radius: 50%;">🤖</div>
                 <div class="bubble">Hello! I'm your AI assistant.<br>Pick a topic from the left or type your question below!</div>
             </div>
         </div>
+
         <div class="input-area">
-            <div class="chat-input-wrapper">
-                <input type="text" id="userInput" class="chat-input" placeholder="Type your question here..." autocomplete="off">
+            <div class="input-wrapper">
+                <label class="sr-only" for="userInput">Message</label>
+                <input type="text" id="userInput" class="chat-input" placeholder="Type your question..." autocomplete="off">
             </div>
             <button id="sendBtn" class="send-btn">➤</button>
         </div>
@@ -351,9 +377,6 @@
     // 1. Session status (headerbar integration)
     // ============================================
     document.addEventListener('DOMContentLoaded', async () => {
-        // Header is mounted by JS; ensure DOM is ready before querying elements.
-        // headerbar.js mount runs synchronously, so ids are available after mount.
-
         const loginBtn = document.getElementById('nav-login-btn');
         const userMenu = document.getElementById('nav-user-menu');
         const avatarBtn = document.getElementById('nav-avatar');
@@ -363,7 +386,6 @@
             const data = await res.json();
 
             if (data.is_logged_in) {
-                // Logged in
                 if(loginBtn) loginBtn.style.display = 'none';
                 if(userMenu) userMenu.style.display = 'inline-block';
 
@@ -373,17 +395,15 @@
                         if (!finalAvatarUrl.startsWith('http') && !finalAvatarUrl.startsWith('/')) {
                             finalAvatarUrl = '../../' + finalAvatarUrl;
                         }
-
                         avatarBtn.innerHTML = `<img src="${finalAvatarUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
                         avatarBtn.style.background = 'transparent';
-                    }else if (data.user.username) {
+                    } else if (data.user.username) {
                         avatarBtn.innerText = data.user.username.charAt(0).toUpperCase();
                         avatarBtn.style.background = '#EEF2FF';
                         avatarBtn.style.color = '#4F46E5';
                     }
                 }
             } else {
-                // Not logged in
                 if(loginBtn) loginBtn.style.display = 'inline-block';
                 if(userMenu) userMenu.style.display = 'none';
             }
@@ -398,16 +418,13 @@
     // 2. Chat logic
     // ============================================
 
-    // Keep the latest message visible (useful on mobile when the keyboard opens).
     function scrollChatToBottom() {
         if (!chatMessages) return;
-        // Use rAF so layout (esp. sticky input / dynamic viewport) settles first.
         requestAnimationFrame(() => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
     }
 
-    // Render a chat message bubble (bot messages support simple markdown formatting).
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
         const cssClass = (sender === 'ai' || sender === 'bot') ? 'bot' : 'user';
@@ -417,27 +434,19 @@
 
         let avatarHtml = '';
         if (cssClass === 'bot') {
-            avatarHtml = `<div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px;">🤖</div>`;
+            avatarHtml = `<div class="bot-avatar" style="width: 35px; height: 35px; font-size: 18px; margin-right: 10px; border-radius: 50%;">🤖</div>`;
         }
 
         let contentHtml = '';
         if (cssClass === 'bot') {
-            // Bot message formatting:
-            // 1) Convert **text** to <strong>text</strong>
-            // 2) Convert list markers to bullets
-            // 3) Convert newlines (\n) to <br>
-
-            // User messages are HTML-escaped to reduce XSS risk.
             contentHtml = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // bold
-                .replace(/^\s*[-•]\s+/gm, '• ') // list markers
-                .replace(/\n/g, '<br>'); // newlines
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^\s*[-•]\s+/gm, '• ')
+                .replace(/\n/g, '<br>');
         } else {
-            // User message: escape HTML to reduce XSS risk.
             contentHtml = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
         }
 
-        // Render the message into the chat.
         msgDiv.innerHTML = `${avatarHtml}<div class="bubble">${contentHtml}</div>`;
         chatMessages.appendChild(msgDiv);
         scrollChatToBottom();
@@ -445,10 +454,8 @@
         return { msgId, msgDiv };
     }
 
-    // Append a simple Yes/No resolution prompt after the last bot response.
     function addFeedbackUI(logId) {
         if (!logId) return;
-
         const feedbackDiv = document.createElement('div');
         feedbackDiv.className = 'feedback-container';
         feedbackDiv.innerHTML = `
@@ -463,12 +470,9 @@
         scrollChatToBottom();
     }
 
-    // Submit resolution feedback to the backend.
     async function handleResolution(logId, isResolved) {
         const btnContainer = document.getElementById(`fb-btns-${logId}`);
         const thanksMsg = document.getElementById(`fb-thanks-${logId}`);
-
-        // Hide buttons immediately
         if(btnContainer) btnContainer.style.display = 'none';
 
         if (thanksMsg) {
@@ -477,33 +481,27 @@
                 thanksMsg.innerText = "Glad I could help! ✅";
             } else {
                 thanksMsg.style.color = '#ef4444';
-                // Use the human chat page for escalation.
-                thanksMsg.innerHTML = `Sorry about that. <a href="support_human_chat.html" style="color: #4F46E5; text-decoration: underline;">Click here to contact Support</a>.`;
+                thanksMsg.innerHTML = `Sorry about that. <a href="support_human_chat.html" style="color: #4F46E5; text-decoration: underline;">Contact Human Support</a>.`;
             }
         }
 
-        // Backend API call
         try {
             await fetch('../api/support_resolve_chat.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ log_id: logId, is_resolved: isResolved })
             });
-        } catch (e) {
-            console.error("Failed to update resolution status", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     async function handleSend() {
         const userMessage = userInput.value.trim();
         if (!userMessage) return;
 
-        // 1. UI: Add user message
         const { msgId: userMsgId } = addMessage(userMessage, 'user');
         userInput.value = '';
         scrollChatToBottom();
 
-        // 2. UI: Add loading indicator
         const { msgId: loadingId } = addMessage('Thinking...', 'ai');
 
         try {
@@ -516,7 +514,6 @@
                 body: JSON.stringify(payload)
             });
 
-            // Handle 401
             if (response.status === 401) {
                 document.querySelector(`[data-id="${loadingId}"]`)?.remove();
                 document.querySelector(`[data-id="${userMsgId}"]`)?.remove();
@@ -527,16 +524,10 @@
             if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
             const data = await response.json();
-
-            // Remove loading
             document.querySelector(`[data-id="${loadingId}"]`)?.remove();
 
-            // Display AI Response
             if (data.choices && data.choices.length > 0) {
                 addMessage(data.choices[0].message.content, 'ai');
-                scrollChatToBottom();
-
-                // Only show feedback buttons when the backend explicitly enables them.
                 if (data.db_log_id && data.show_resolution_buttons === true) {
                     addFeedbackUI(data.db_log_id);
                 }
@@ -544,13 +535,11 @@
                 addMessage("Empty response.", 'ai');
             }
         } catch (error) {
-            console.error('Chat Error:', error);
             document.querySelector(`[data-id="${loadingId}"]`)?.remove();
             addMessage(`System Error: ${error.message}`, 'ai');
         }
     }
 
-    // Prefill the input with a suggestion and send it.
     function autoAsk(text) {
         userInput.value = text;
         handleSend();
@@ -558,53 +547,38 @@
 
     sendBtn.addEventListener('click', handleSend);
     userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
-    userInput.addEventListener('focus', scrollChatToBottom);
+    // 解决手机键盘弹出遮挡
+    userInput.addEventListener('focus', () => { setTimeout(scrollChatToBottom, 300); });
 
-    // Enable the compact human-support button only on mobile.
+    // ============================================
+    // 3. Header Offset Calculation
+    // ============================================
     const mqMobile = window.matchMedia('(max-width: 768px)');
 
-    // Keep chat panel exactly 10px below the dynamic headerbar.
     function findHeaderbarElement() {
-        // Prefer the header created by headerbar.js (usually a fixed header/nav). Try broad but safe selectors.
         return (
             document.querySelector('#treasurego-header') ||
             document.querySelector('#headerbar') ||
-            document.querySelector('.treasurego-header') ||
             document.querySelector('.headerbar') ||
-            document.querySelector('body > header') ||
             document.querySelector('header')
         );
     }
 
     function updateMobileHeaderOffset() {
         if (!mqMobile.matches) return;
-
         const headerEl = findHeaderbarElement();
         const h = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 66;
         document.documentElement.style.setProperty('--mobile-header-offset', `${h + 10}px`);
     }
 
-    // Initial + responsive updates
     updateMobileHeaderOffset();
     window.addEventListener('resize', updateMobileHeaderOffset);
-
-    // If headerbar mounts after DOMContentLoaded, observe DOM changes briefly.
-    const mo = new MutationObserver(() => {
-        updateMobileHeaderOffset();
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    // Stop observing after a short time to avoid overhead.
-    setTimeout(() => mo.disconnect(), 3000);
-
+    setTimeout(updateMobileHeaderOffset, 500);
     if (mqMobile.addEventListener) mqMobile.addEventListener('change', updateMobileHeaderOffset);
-    else mqMobile.addListener(updateMobileHeaderOffset);
-
-    // Also run once after headerbar likely finished mounting/layout.
-    window.requestAnimationFrame(updateMobileHeaderOffset);
 </script>
 
 </body>
 </html>
+
 
 
