@@ -334,6 +334,9 @@
         ? order.Seller_Username || `ID: ${escapeHtml(order.Orders_Seller_ID)}`
         : order.Buyer_Username || `ID: ${escapeHtml(order.Orders_Buyer_ID)}`;
 
+    // Use numeric IDs for chat routing.
+    const otherPartyUserId = isBuyer ? order.Orders_Seller_ID : order.Orders_Buyer_ID;
+
     const addressBlockHtml =
         global.OrderDetailsAddress && typeof global.OrderDetailsAddress.renderAddressBlock === 'function'
             ? global.OrderDetailsAddress.renderAddressBlock(order)
@@ -358,7 +361,7 @@
           <div class="thumbnails" id="thumbnailContainer"></div>
 
           <div style="margin-top: 20px;">
-            <button class="btn btn-contact" onclick="alert('Chat system connecting...')">Contact ${escapeHtml(otherPartyLabel)}</button>
+            <button class="btn btn-contact" id="btnContactOtherParty">Contact ${escapeHtml(otherPartyLabel)}</button>
           </div>
         </div>
 
@@ -390,6 +393,47 @@
 
     const el = document.getElementById('detailContent');
     if (el) el.innerHTML = html;
+
+    // Bind Contact Seller/Buyer button (login check + jump).
+    try {
+      const btn = document.getElementById('btnContactOtherParty');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          const contactId = otherPartyUserId;
+          if (!contactId) {
+            alert('Unable to open chat: missing user id');
+            return;
+          }
+
+          let currentUserId = state.CURRENT_USER_ID;
+          if (!currentUserId) {
+            try {
+              const sessionRes = await fetch('../../Module_User_Account_Management/api/session_status.php', { credentials: 'include' });
+              const sessionData = await sessionRes.json();
+              if (!sessionData.is_logged_in) {
+                window.location.href = '../../Module_User_Account_Management/pages/login.php';
+                return;
+              }
+              currentUserId = sessionData.user.user_id;
+            } catch (_) {
+              window.location.href = '../../Module_User_Account_Management/pages/login.php';
+              return;
+            }
+          }
+
+          // If user is trying to contact themselves, hide the button.
+          if (String(currentUserId) === String(contactId)) {
+            btn.style.display = 'none';
+            return;
+          }
+
+          const chatUrl = `../../Module_User_Account_Management/pages/chat.php?contact_id=${encodeURIComponent(String(contactId))}&product_id=${encodeURIComponent(String(order.Product_ID || ''))}`;
+          window.location.href = chatUrl;
+        });
+      }
+    } catch (_) {
+      // ignore
+    }
 
     try {
       const hasAddressSection = !!document.querySelector('#detailContent .info-section .address-item');
@@ -488,3 +532,4 @@
   global.submitTracking = submitTracking;
 
 })(window);
+

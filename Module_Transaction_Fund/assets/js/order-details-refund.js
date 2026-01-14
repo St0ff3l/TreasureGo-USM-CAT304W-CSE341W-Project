@@ -51,6 +51,34 @@
     return global.OrderDetailsOrder?.escapeHtml ? global.OrderDetailsOrder.escapeHtml(value) : String(value ?? '');
   }
 
+  // Try to format seller's return address for buyers during return shipping.
+  // Source priority:
+  // 1) Address module current address object (selected by seller on approve)
+  // 2) Common order fields (best-effort)
+  function getReturnAddressHtml() {
+    try {
+      const addr = global.OrderDetailsAddress?.getCurrentOrderAddress?.();
+      if (addr) {
+        const name = addr.Address_Receiver_Name || addr.receiver_name || addr.Receiver_Name || addr.name || '';
+        const phone = addr.Address_Phone_Number || addr.phone || addr.Phone_Number || addr.phone_number || '';
+        const detail = addr.Address_Detail || addr.full_address || addr.address_detail || addr.detail || addr.address || '';
+        if (String(name + phone + detail).trim()) {
+          return `
+            <div style="margin-top:10px; padding:10px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:8px;">
+              <div style="font-size:0.75rem; color:#9A3412; font-weight:700; margin-bottom:6px;">RETURN ADDRESS</div>
+              ${name ? `<div style="font-weight:700; color:#7C2D12;">${escapeHtml(name)}</div>` : ''}
+              ${phone ? `<div style="color:#7C2D12;">${escapeHtml(phone)}</div>` : ''}
+              ${detail ? `<div style="color:#7C2D12; margin-top:6px; white-space:pre-line;">${escapeHtml(detail)}</div>` : ''}
+            </div>
+          `;
+        }
+      }
+    } catch (_) {
+      // ignore
+    }
+    return '';
+  }
+
   // Navigation helper functions for different refund and dispute pages
   function goToRefundDetail(orderId) {
     window.location.href = `../../Module_After_Sales_Dispute/pages/Refund_Details.html?order_id=${encodeURIComponent(orderId)}`;
@@ -146,6 +174,8 @@
       const returnTracking = order.Return_Tracking_Number || order.return_tracking_number || '';
       const deliveryMethod = String(order.Delivery_Method || 'shipping').toLowerCase().trim();
 
+      const returnAddressHtml = isBuyer ? getReturnAddressHtml() : '';
+
       // Meet-up Logic
       if (deliveryMethod === 'meetup') {
         return `
@@ -180,6 +210,7 @@
               <div class="refund-status-body">
                 <div class="refund-info-text" style="width:100%;">
                   <h4>Waiting for Seller</h4>
+                  ${returnAddressHtml}
                   <div style="margin-top:10px; padding:10px; background:#F3F4F6; border-radius:8px;">
                     <div style="font-size:0.75rem; color:#9CA3AF;">TRACKING NUMBER</div>
                     <div style="font-weight:700; color:#374151;">${escapeHtml(returnTracking)}</div>
@@ -199,6 +230,7 @@
                 <div class="refund-info-text">
                   <h4>Awaiting Return</h4>
                   <p>Please ship back and upload tracking.</p>
+                  ${returnAddressHtml}
                 </div>
                 <div class="btn-group">
                   <div class="tracking-group">
